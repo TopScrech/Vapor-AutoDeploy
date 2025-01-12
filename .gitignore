@@ -12,3 +12,6 @@ db.sqlite
 .vscode
 .cache
 .viminfo
+.bash_history
+.gitconfig
+.ssh
