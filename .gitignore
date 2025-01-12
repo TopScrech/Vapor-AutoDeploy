@@ -16,3 +16,6 @@ db.sqlite
 .gitconfig
 .ssh
 .bashrc
+.bash_profile
+.sudo_as_admin_successful
+compiled/
