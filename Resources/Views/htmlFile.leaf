@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Index Page</title>
+</head>
+<body>
+    <h1>infile</h1>
+    <p>This html page is defined in htmlFile.leaf. <br> Test2.</p>
+</body>
+</html>

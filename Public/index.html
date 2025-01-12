@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-bg: #ffffff;
+            --text-primary: #1a202c;
+            --text-secondary: #2d3748;
+            --heading-color: #0d1117;
+            --status-bg: #e2e8f0;
+            --status-color: #2b6cb0;
+            --heading-gradient: linear-gradient(90deg, #2b6cb0, #4a5568);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --grid-bg: rgba(0, 0, 0, 0.05);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-gradient: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+                --card-bg: #1c1f24;
+                --text-primary: #e2e8f0;
+                --text-secondary: #a0aec0;
+                --heading-color: #f7fafc;
+                --status-bg: #2d3748;
+                --status-color: #63b3ed;
+                --heading-gradient: linear-gradient(90deg, #63b3ed, #a0aec0);
+                --shadow-color: rgba(0, 0, 0, 0.3);
+                --grid-bg: rgba(255, 255, 255, 0.05);
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        .container {
+            background: var(--card-bg);
+            background-image: 
+                linear-gradient(var(--grid-bg) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-bg) 1px, transparent 1px);
+            background-size: 20px 20px;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px var(--shadow-color);
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--grid-bg);
+        }
+
+        .gear {
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 100px;
+            height: 100px;
+            animation: spin 10s linear infinite;
+            opacity: 0.1;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--status-bg);
+            color: var(--status-color);
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .status-dot::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            opacity: 0.4;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(2); opacity: 0; }
+            100% { transform: scale(1); opacity: 0.4; }
+        }
+
+        .status-text {
+            color: #10b981;
+            font-size: 0.875rem;
+            font-weight: 500;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        h2 {
+            color: var(--heading-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            position: relative;
+            display: inline-block;
+            padding: 0.5rem 0;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--heading-gradient);
+            border-radius: 2px;
+        }
+
+        p {
+            line-height: 1.7;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: var(--status-bg);
+            border: 1px solid var(--grid-bg);
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metric {
+            padding: 1rem;
+            background: var(--status-bg);
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--status-color);
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .routes {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: var(--status-bg);
+            border: 1px solid var(--grid-bg);
+        }
+
+        .routes-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            /*margin-top: 2rem;*/
+        }
+
+        .routes-table th, .routes-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--grid-bg);
+        }
+
+        .routes-table th {
+            background: var(--status-bg);
+            color: var(--status-color);
+            font-weight: 600;
+        }
+
+        .routes-table td {
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .route-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            display: block;
+            transition: color 0.2s;
+        }
+
+        .route-link:hover {
+            color: var(--heading-color);
+        }
+
+        .route-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .route-title img {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .type {
+            margin-left: 18pt;
+        }
+
+        .routes-table tr {
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .routes-table tr:hover {
+            background-color: var(--status-bg);
+            transform: scale(1.02);
+        }
+
+        .routes-table a {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <svg class="gear" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+        </svg>
+        
+        <div class="status-container">
+            <div class="status">
+                HTTP <div class="status-text">● RUNNING</div>
+            </div>
+            <div class="status">
+                SSL <div class="status-text">● RUNNING</div>
+            </div>
+            <div class="status">
+                Vapor <div class="status-text">● RUNNING</div>
+            </div>
+        </div>
+
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value">80</div>
+                <div class="metric-label">HTTP Port</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">443</div>
+                <div class="metric-label">HTTPS Port</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">8080</div>
+                <div class="metric-label">Vapor Port</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">Active</div>
+                <div class="metric-label">SSL Status</div>
+            </div>
+        </div>
+
+        <p>This website is running on a Ubuntu VPS. It uses nginx as a http 
+        server that reverse proxies to a Swift app using the Vapor framework. 
+        nginx is configured to redirect port 80 http requests to port 443 https 
+        requests and then to my server side Vapor app on port 8080. nginx 
+        handles the SSL certificate.</p>
+        
+        <p>This is the static index page defined in 
+        /vapor/hello/Public/index.html</p>
+
+        <!-- <h2 class="file">index.html</h2> !-->
+
+        <div class="routes">
+            <table class="routes-table">
+                <thead>
+                    <tr>
+                        <th><span class="type">Type</span></th>
+                        <th>Route</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr onclick="window.location='/text'">
+                        <td>
+                            <div class="route-title">
+                                <a class="route-link" href="/text">Static</a>
+                            </div>
+                        </td>
+                        <td>/text</td>
+                        <td>A route that responds with static text.</td>
+                    </tr>
+                    <tr onclick="window.location='/dynamic/Joshi'">
+                        <td>
+                            <div class="route-title">
+                                <a class="route-link" href="/dynamic/Joshi">Dynamic</a>
+                            </div>
+                        </td>
+                        <td>/dynamic/Joshi</td>
+                        <td>A route with a dynamic property and response.</td>
+                    </tr>
+                    <tr onclick="window.location='/inline'">
+                        <td>
+                            <div class="route-title">
+                                <a class="route-link" href="/inline">Inline</a>
+                            </div>
+                        </td>
+                        <td>/inline</td>
+                        <td>A route that responds with inline html defined right inside the route handler.</td>
+                    </tr>
+                    <tr onclick="window.location='/infile'">
+                        <td>
+                            <div class="route-title">
+                                <a class="route-link" href="/infile">File</a>
+                            </div>
+                        </td>
+                        <td>/infile</td>
+                        <td>A route that responds with a html file.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>        
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            container.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+            
+            setTimeout(() => {
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>
