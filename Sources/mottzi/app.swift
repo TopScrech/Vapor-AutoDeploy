@@ -23,7 +23,7 @@ extension Application
     {
         self.get("text")
         { _ in
-            "Automatic deployment cli command: mottzi deploy. TEST. Test2."
+            "Automatic deployment cli command: mottzi deploy. TEST. Test2. Test3."
         }
 
         self.get("dynamic", ":property")
