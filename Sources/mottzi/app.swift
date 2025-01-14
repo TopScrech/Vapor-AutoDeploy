@@ -101,7 +101,7 @@ extension Application
             
             logEntry += "\nPayload:\n\(json)\n\n"
             
-            logEntry += "Response:\n\("[mottzi] Push event received successfully.")\n\n"
+            logEntry += "Response: \("[mottzi] Push event received successfully.")\n\n"
             logEntry += "=====================================\n\n"
             
             if !FileManager.default.fileExists(atPath: logFile)
