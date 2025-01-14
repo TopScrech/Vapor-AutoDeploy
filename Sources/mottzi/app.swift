@@ -21,64 +21,7 @@ extension Application
 {
     func setupRoutes()
     {
-        // github webhook for push events
-        self.post("pushevent")
-        { request async in
-            let logFile = "/var/www/mottzi/pushevent.log"
-            
-            // verify the signature before processing
-            if let error = request.verifyGitHubSignature()
-            {
-                return error
-            }
-            
-            var json = request.body.string ?? "{}"
-            
-            if let jsonData = json.data(using: .utf8),
-               let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
-               let prettyJsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted]),
-               let formattedString = String(data: prettyJsonData, encoding: .utf8)
-            {
-                json = formattedString
-            }
-            
-            var logEntry = "=== Webhook received at \(Date()) ===\n\n"
-            
-            logEntry += "Headers:\n"
-            for (name, value) in request.headers
-            {
-                logEntry += "  \(name): \(value)\n"
-            }
-            
-            logEntry += "\nPayload:\n\(json)\n\n"
-            logEntry += "=====================================\n\n"
-            
-            if !FileManager.default.fileExists(atPath: logFile)
-            {
-                FileManager.default.createFile(atPath: logFile, contents: nil, attributes: nil)
-            }
-            
-            do
-            {
-                let fileHandle = try FileHandle(forWritingTo: URL(fileURLWithPath: logFile))
-                try fileHandle.seekToEnd()
-                
-                if let data = logEntry.data(using: .utf8)
-                {
-                    fileHandle.write(data)
-                }
-                
-                fileHandle.closeFile()
-            }
-            catch
-            {
-                request.logger.error("Vapor: Failed to write to log file: \(error)")
-                
-                return Response(status: .internalServerError, body: .init(stringLiteral: "Internal Server Error"))
-            }
-            
-            return Response(status: .ok, body: .init(stringLiteral: "Vapor: Payload received and logged successfully"))
-        }
+        self.listenToPushEvents("pushevent")
         
         self.get("text")
         { _ in
@@ -117,6 +60,76 @@ extension Application
             """)
             
             return response
+        }
+    }
+}
+
+extension Application
+{
+    // verify request comes from github
+    // log request headers and body (payload)
+    // return a response
+    func listenToPushEvents(_ route: PathComponent...)
+    {
+        self.post(route)
+        { request async in
+            let logFile = "/var/www/mottzi/pushevent.log"
+            
+            // verify the signature before processing
+            if let error = request.verifyGitHubSignature()
+            {
+                return error
+            }
+            
+            var json = request.body.string ?? "{}"
+            
+            if let jsonData = json.data(using: .utf8),
+               let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
+               let prettyJsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted]),
+               let formattedString = String(data: prettyJsonData, encoding: .utf8)
+            {
+                json = formattedString
+            }
+            
+            var logEntry = "=== [mottzi] Push Event received at \(Date()) ===\n\n"
+            
+            logEntry += "Headers:\n"
+            for (name, value) in request.headers
+            {
+                logEntry += "  \(name): \(value)\n"
+            }
+            
+            logEntry += "\nPayload:\n\(json)\n\n"
+            
+
+            logEntry += "Response:\n\("[mottzi] Push event received successfully.")\n\n"
+            logEntry += "=====================================\n\n"
+            
+            if !FileManager.default.fileExists(atPath: logFile)
+            {
+                FileManager.default.createFile(atPath: logFile, contents: nil, attributes: nil)
+            }
+            
+            do
+            {
+                let fileHandle = try FileHandle(forWritingTo: URL(fileURLWithPath: logFile))
+                try fileHandle.seekToEnd()
+                
+                if let data = logEntry.data(using: .utf8)
+                {
+                    fileHandle.write(data)
+                }
+                
+                fileHandle.closeFile()
+            }
+            catch
+            {
+                request.logger.error("[mottzi] Failed to write to log file: \(error)")
+                
+                return Response(status: .internalServerError, body: .init(stringLiteral: "[mottzi] Failed to log received push event"))
+            }
+            
+            return Response(status: .ok, body: .init(stringLiteral: "[mottzi] Push event received and logged successfully"))
         }
     }
 }
@@ -188,11 +201,14 @@ extension String
     {
         var data = Data(capacity: count / 2)
         let regex = try! NSRegularExpression(pattern: "[0-9a-f]{1,2}", options: .caseInsensitive)
-        regex.enumerateMatches(in: self, range: NSRange(startIndex..., in: self)) { match, _, _ in
+        
+        regex.enumerateMatches(in: self, range: NSRange(startIndex..., in: self))
+        { match, _, _ in
             let byteString = (self as NSString).substring(with: match!.range)
             let num = UInt8(byteString, radix: 16)!
             data.append(num)
         }
+        
         return data
     }
 }
