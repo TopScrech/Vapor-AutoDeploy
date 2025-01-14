@@ -24,49 +24,48 @@ extension Application
         // github webhook for push events
         self.post("pushevent")
         { request async in
-            let logFilePath = "/var/www/mottzi/pushevent.log"
+            let logFile = "/var/www/mottzi/pushevent.log"
             
-            // Format the JSON string
-            let jsonString = request.body.string ?? "{}"
-            let prettyJSON: String
-            do {
-                if let jsonData = jsonString.data(using: .utf8),
-                   let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
-                   let prettyJsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted]) {
-                    prettyJSON = String(data: prettyJsonData, encoding: .utf8) ?? jsonString
-                } else {
-                    prettyJSON = jsonString
-                }
+            var json = request.body.string ?? "{}"
+            
+            if let jsonData = json.data(using: .utf8),
+               let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
+               let prettyJsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted]),
+               let formattedString = String(data: prettyJsonData, encoding: .utf8)
+            {
+                json = formattedString
             }
             
-            // Create log entry with timestamp, headers and JSON
             var logEntry = "=== Webhook received at \(Date()) ===\n\n"
             
-            // Add headers
             logEntry += "Headers:\n"
-            for (name, value) in request.headers {
+            for (name, value) in request.headers
+            {
                 logEntry += "  \(name): \(value)\n"
             }
             
-            // Add formatted JSON
-            logEntry += "\nPayload:\n\(prettyJSON)\n\n"
+            logEntry += "\nPayload:\n\(json)\n\n"
             logEntry += "=====================================\n\n"
             
-            // Write to file
-            if !FileManager.default.fileExists(atPath: logFilePath) {
-                FileManager.default.createFile(atPath: logFilePath, contents: nil, attributes: nil)
+            if !FileManager.default.fileExists(atPath: logFile)
+            {
+                FileManager.default.createFile(atPath: logFile, contents: nil, attributes: nil)
             }
             
-            do {
-                let fileHandle = try FileHandle(forWritingTo: URL(fileURLWithPath: logFilePath))
+            do
+            {
+                let fileHandle = try FileHandle(forWritingTo: URL(fileURLWithPath: logFile))
                 try fileHandle.seekToEnd()
                 
-                if let data = logEntry.data(using: .utf8) {
+                if let data = logEntry.data(using: .utf8)
+                {
                     fileHandle.write(data)
                 }
                 
                 fileHandle.closeFile()
-            } catch {
+            }
+            catch
+            {
                 request.logger.error("Vapor: Failed to write to log file: \(error)")
                 
                 let response = Response(status: .internalServerError)
