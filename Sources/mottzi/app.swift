@@ -68,7 +68,7 @@ extension Application
 {
     // verify request comes from github
     // log request headers, body (payload) and success text
-    // return a response
+    // return a response.
     func listenToPushEvents(_ route: PathComponent...)
     {
         self.post(route)
