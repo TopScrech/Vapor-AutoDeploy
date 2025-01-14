@@ -119,6 +119,7 @@ extension Application
                 json = formattedString
             }
             
+            // using multiline string
             var logEntry =
             """
             === [mottzi] Push event received at \(Date()) ===
