@@ -45,7 +45,7 @@ extension Application
             }
             catch
             {
-                request.logger.error("Catch: Failed to write to log file: \(error)")
+                request.logger.error("Vapor: Failed to write to log file: \(error)")
 
                 let response = Response(status: .internalServerError)
                 response.body = .init(stringLiteral: "Internal Server Error")
@@ -53,7 +53,7 @@ extension Application
             }
             
             let response = Response(status: .ok)
-            response.body = .init(stringLiteral: "Payload received and logged successfully")
+            response.body = .init(stringLiteral: "Vapor: Payload received and logged successfully")
             return response
         }
         
