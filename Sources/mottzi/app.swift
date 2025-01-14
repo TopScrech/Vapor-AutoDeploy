@@ -78,6 +78,34 @@ extension Application
             // verify the signature before processing
             if let error = request.verifyGitHubSignature()
             {
+                var errorLog = "=== [mottzi] Invalid request (\(error.status.code)) at \(Date()) ===\n\n"
+                errorLog += "Error: \(error.body.description)\n\n"
+                errorLog += "=====================================\n\n"
+
+                if !FileManager.default.fileExists(atPath: logFile)
+                {
+                    FileManager.default.createFile(atPath: logFile, contents: nil, attributes: nil)
+                }
+                
+                do
+                {
+                    let fileHandle = try FileHandle(forWritingTo: URL(fileURLWithPath: logFile))
+                    try fileHandle.seekToEnd()
+                    
+                    if let data = errorLog.data(using: .utf8)
+                    {
+                        fileHandle.write(data)
+                    }
+                    
+                    fileHandle.closeFile()
+                }
+                catch
+                {
+                    request.logger.error("[mottzi] Failed to write to log file (invalid request): \(error)")
+                    
+                    return Response(status: .internalServerError, body: .init(stringLiteral: "[mottzi] Failed to log received but invalid push event"))
+                }
+                
                 return error
             }
             
@@ -135,6 +163,7 @@ extension Application
 
 extension Request
 {
+    // this will verify that the request actually came from github
     func verifyGitHubSignature() -> Response?
     {
         // hard coded secret *** SECURITY RISK ***
