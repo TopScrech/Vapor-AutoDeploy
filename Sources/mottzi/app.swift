@@ -67,7 +67,7 @@ extension Application
 extension Application
 {
     // verify request comes from github
-    // log request headers and body (payload)
+    // log request headers, body (payload) and success text
     // return a response
     func listenToPushEvents(_ route: PathComponent...)
     {
