@@ -21,6 +21,42 @@ extension Application
 {
     func setupRoutes()
     {
+        self.post("pushevent")
+        { request async in
+            let jsonString = request.body.string ?? "{}"
+            let logFilePath = "/var/www/mottzi/pushevent.log"
+            
+            if !FileManager.default.fileExists(atPath: logFilePath)
+            {
+                FileManager.default.createFile(atPath: logFilePath, contents: nil, attributes: nil)
+            }
+            
+            do
+            {
+                let fileHandle = try FileHandle(forWritingTo: URL(fileURLWithPath: logFilePath))
+                try fileHandle.seekToEnd()
+                
+                if let data = jsonString.appending("\n").data(using: .utf8)
+                {
+                    fileHandle.write(data)
+                }
+                
+                fileHandle.closeFile()
+            }
+            catch
+            {
+                request.logger.error("Catch: Failed to write to log file: \(error)")
+
+                let response = Response(status: .internalServerError)
+                response.body = .init(stringLiteral: "Internal Server Error")
+                return response
+            }
+            
+            let response = Response(status: .ok)
+            response.body = .init(stringLiteral: "Payload received and logged successfully")
+            return response
+        }
+        
         self.get("text")
         { _ in
             """
