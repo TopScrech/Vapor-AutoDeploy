@@ -21,6 +21,7 @@ extension Application
 {
     func setupRoutes()
     {
+        // github webhook for push events
         self.post("pushevent")
         { request async in
             let logFilePath = "/var/www/mottzi/pushevent.log"
