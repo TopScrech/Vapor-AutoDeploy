@@ -84,7 +84,7 @@ extension Application
                 
                 Error: \(verificationError.body.description)
                 
-                =====================================\n
+                =====================================\n\n
                 """
                 
                 if self.logPushEvent(errorLog) == false
@@ -119,7 +119,7 @@ extension Application
             Payload:
             \(json)
 
-            =====================================\n
+            =====================================\n\n
             """
             
             if self.logPushEvent(requestLog) == false
