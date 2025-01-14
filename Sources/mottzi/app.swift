@@ -133,8 +133,6 @@ extension Application
             Payload:
             \(json)
 
-            Response: [mottzi] Push event received successfully.
-
             =====================================\n
             """
             
