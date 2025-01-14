@@ -81,7 +81,7 @@ extension Application
                 var errorLog = "=== [mottzi] Invalid request (\(error.status.code)) at \(Date()) ===\n\n"
                 errorLog += "Error: \(error.body.description)\n\n"
                 errorLog += "=====================================\n\n"
-
+                
                 if !FileManager.default.fileExists(atPath: logFile)
                 {
                     FileManager.default.createFile(atPath: logFile, contents: nil, attributes: nil)
@@ -119,9 +119,18 @@ extension Application
                 json = formattedString
             }
             
-            var logEntry = "=== [mottzi] Push event received at \(Date()) ===\n\n"
+            var logEntry =
+            """
+            === [mottzi] Push event received at \(Date()) ===
             
-            logEntry += "Headers:\n"
+            
+            Request:
+              Method: \(request.method.rawValue)
+              URL: \(request.url.description)
+            
+            Headers:
+            """
+
             for (name, value) in request.headers
             {
                 logEntry += "  \(name): \(value)\n"
