@@ -26,6 +26,12 @@ extension Application
         { request async in
             let logFile = "/var/www/mottzi/pushevent.log"
             
+            // verify the signature before processing
+            if let error = request.verifyGitHubSignature()
+            {
+                return error
+            }
+            
             var json = request.body.string ?? "{}"
             
             if let jsonData = json.data(using: .utf8),
@@ -68,14 +74,10 @@ extension Application
             {
                 request.logger.error("Vapor: Failed to write to log file: \(error)")
                 
-                let response = Response(status: .internalServerError)
-                response.body = .init(stringLiteral: "Internal Server Error")
-                return response
+                return Response(status: .internalServerError, body: .init(stringLiteral: "Internal Server Error"))
             }
             
-            let response = Response(status: .ok)
-            response.body = .init(stringLiteral: "Vapor: Payload received and logged successfully")
-            return response
+            return Response(status: .ok, body: .init(stringLiteral: "Vapor: Payload received and logged successfully"))
         }
         
         self.get("text")
@@ -116,5 +118,81 @@ extension Application
             
             return response
         }
+    }
+}
+
+extension Request
+{
+    func verifyGitHubSignature() -> Response?
+    {
+        // hard coded secret *** SECURITY RISK ***
+        let secret = "4133Pratteln"
+        
+        // get signature
+        guard let signatureHeader = headers.first(name: "X-Hub-Signature-256") else
+        {
+            return Response(status: .forbidden, body: .init(string: "Missing X-Hub-Signature-256 header"))
+        }
+        
+        // ensure signature starts with "sha256="
+        guard signatureHeader.hasPrefix("sha256=") else
+        {
+            return Response(status: .forbidden, body: .init(string: "Invalid signature format"))
+        }
+        
+        // extract signature hex string
+        let signatureHex = String(signatureHeader.dropFirst("sha256=".count))
+        
+        // get raw request body
+        guard let payload = self.body.string else
+        {
+            return Response(status: .badRequest, body: .init(string: "Missing request body"))
+        }
+        
+        // encode local secret and received payload
+        guard let secretData = secret.data(using: .utf8),
+              let payloadData = payload.data(using: .utf8) else
+        {
+            return Response(status: .internalServerError, body: .init(string: "Encoding error"))
+        }
+        
+        // calculate expected signature
+        let signature = HMAC<SHA256>.authenticationCode(for: payloadData, using: SymmetricKey(data: secretData))
+        
+        let expectedSignatureHex = signature.map { String(format: "%02x", $0) }.joined()
+        
+        // constant-time comparison to prevent timing attacks
+        guard expectedSignatureHex.count == signatureHex.count else
+        {
+            return Response(status: .forbidden, body: .init(string: "Invalid signature length"))
+        }
+        
+        let valid = HMAC<SHA256>.isValidAuthenticationCode(
+            signatureHex.hexadecimal ?? Data(),
+            authenticating: payloadData,
+            using: SymmetricKey(data: secretData)
+        )
+        
+        if !valid
+        {
+            return Response(status: .forbidden, body: .init(string: "Invalid signature"))
+        }
+       
+        return nil // nil means verification passed
+    }
+}
+
+extension String
+{
+    var hexadecimal: Data?
+    {
+        var data = Data(capacity: count / 2)
+        let regex = try! NSRegularExpression(pattern: "[0-9a-f]{1,2}", options: .caseInsensitive)
+        regex.enumerateMatches(in: self, range: NSRange(startIndex..., in: self)) { match, _, _ in
+            let byteString = (self as NSString).substring(with: match!.range)
+            let num = UInt8(byteString, radix: 16)!
+            data.append(num)
+        }
+        return data
     }
 }
