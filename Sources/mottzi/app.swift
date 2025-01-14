@@ -91,7 +91,7 @@ extension Application
                 json = formattedString
             }
             
-            var logEntry = "=== [mottzi] Push Event received at \(Date()) ===\n\n"
+            var logEntry = "=== [mottzi] Push event received at \(Date()) ===\n\n"
             
             logEntry += "Headers:\n"
             for (name, value) in request.headers
@@ -101,7 +101,6 @@ extension Application
             
             logEntry += "\nPayload:\n\(json)\n\n"
             
-
             logEntry += "Response:\n\("[mottzi] Push event received successfully.")\n\n"
             logEntry += "=====================================\n\n"
             
