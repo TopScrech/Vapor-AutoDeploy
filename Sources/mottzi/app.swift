@@ -23,30 +23,51 @@ extension Application
     {
         self.post("pushevent")
         { request async in
-            let jsonString = request.body.string ?? "{}"
             let logFilePath = "/var/www/mottzi/pushevent.log"
             
-            if !FileManager.default.fileExists(atPath: logFilePath)
-            {
+            // Format the JSON string
+            let jsonString = request.body.string ?? "{}"
+            let prettyJSON: String
+            do {
+                if let jsonData = jsonString.data(using: .utf8),
+                   let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
+                   let prettyJsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted]) {
+                    prettyJSON = String(data: prettyJsonData, encoding: .utf8) ?? jsonString
+                } else {
+                    prettyJSON = jsonString
+                }
+            }
+            
+            // Create log entry with timestamp, headers and JSON
+            var logEntry = "=== Webhook received at \(Date()) ===\n\n"
+            
+            // Add headers
+            logEntry += "Headers:\n"
+            for (name, value) in request.headers {
+                logEntry += "  \(name): \(value)\n"
+            }
+            
+            // Add formatted JSON
+            logEntry += "\nPayload:\n\(prettyJSON)\n\n"
+            logEntry += "=====================================\n\n"
+            
+            // Write to file
+            if !FileManager.default.fileExists(atPath: logFilePath) {
                 FileManager.default.createFile(atPath: logFilePath, contents: nil, attributes: nil)
             }
             
-            do
-            {
+            do {
                 let fileHandle = try FileHandle(forWritingTo: URL(fileURLWithPath: logFilePath))
                 try fileHandle.seekToEnd()
                 
-                if let data = jsonString.appending("\n").data(using: .utf8)
-                {
+                if let data = logEntry.data(using: .utf8) {
                     fileHandle.write(data)
                 }
                 
                 fileHandle.closeFile()
-            }
-            catch
-            {
+            } catch {
                 request.logger.error("Vapor: Failed to write to log file: \(error)")
-
+                
                 let response = Response(status: .internalServerError)
                 response.body = .init(stringLiteral: "Internal Server Error")
                 return response
