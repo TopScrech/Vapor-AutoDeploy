@@ -119,28 +119,24 @@ extension Application
                 json = formattedString
             }
             
-            // using multiline string
-            var logEntry =
+            let logEntry =
             """
             === [mottzi] Push event received at \(Date()) ===
-            
-            
+
             Request:
               Method: \(request.method.rawValue)
               URL: \(request.url.description)
-            
-            Headers:
-            """
 
-            for (name, value) in request.headers
-            {
-                logEntry += "  \(name): \(value)\n"
-            }
-            
-            logEntry += "\nPayload:\n\(json)\n\n"
-            
-            logEntry += "Response: \("[mottzi] Push event received successfully.")\n\n"
-            logEntry += "=====================================\n\n"
+            Headers:
+            \(request.headers.map { "  \($0): \($1)" }.joined(separator: "\n"))
+
+            Payload:
+            \(json)
+
+            Response: [mottzi] Push event received successfully.
+
+            =====================================\n
+            """
             
             if !FileManager.default.fileExists(atPath: logFile)
             {
