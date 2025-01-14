@@ -75,38 +75,24 @@ extension Application
         { request async in
             let logFile = "/var/www/mottzi/pushevent.log"
             
-            // verify the signature before processing
-            if let error = request.verifyGitHubSignature()
+            // verify the github signature, log verification error, abort
+            if let verificationError = request.verifyGitHubSignature()
             {
-                var errorLog = "=== [mottzi] Invalid request (\(error.status.code)) at \(Date()) ===\n\n"
-                errorLog += "Error: \(error.body.description)\n\n"
-                errorLog += "=====================================\n\n"
+                let errorLog =
+                """
+                === [mottzi] Invalid request (\(verificationError.status.code)) at \(Date()) ===
                 
-                if !FileManager.default.fileExists(atPath: logFile)
-                {
-                    FileManager.default.createFile(atPath: logFile, contents: nil, attributes: nil)
-                }
+                Error: \(verificationError.body.description)
                 
-                do
-                {
-                    let fileHandle = try FileHandle(forWritingTo: URL(fileURLWithPath: logFile))
-                    try fileHandle.seekToEnd()
-                    
-                    if let data = errorLog.data(using: .utf8)
-                    {
-                        fileHandle.write(data)
-                    }
-                    
-                    fileHandle.closeFile()
-                }
-                catch
-                {
-                    request.logger.error("[mottzi] Failed to write to log file (invalid request): \(error)")
-                    
-                    return Response(status: .internalServerError, body: .init(stringLiteral: "[mottzi] Failed to log received but invalid push event"))
-                }
+                =====================================\n
+                """
                 
-                return error
+                if self.logPushEvent(errorLog) == false
+                {
+                    return Response(status: .internalServerError, body: .init(stringLiteral: "[mottzi] Failed to log invalid push-event request"))
+                }
+        
+                return verificationError
             }
             
             var json = request.body.string ?? "{}"
@@ -119,7 +105,7 @@ extension Application
                 json = formattedString
             }
             
-            let logEntry =
+            let requestLog =
             """
             === [mottzi] Push event received at \(Date()) ===
 
@@ -136,32 +122,44 @@ extension Application
             =====================================\n
             """
             
-            if !FileManager.default.fileExists(atPath: logFile)
+            if self.logPushEvent(requestLog) == false
             {
-                FileManager.default.createFile(atPath: logFile, contents: nil, attributes: nil)
+                return Response(status: .internalServerError, body: .init(stringLiteral: "[mottzi] Failed to log valid push-event request"))
             }
             
-            do
-            {
-                let fileHandle = try FileHandle(forWritingTo: URL(fileURLWithPath: logFile))
-                try fileHandle.seekToEnd()
-                
-                if let data = logEntry.data(using: .utf8)
-                {
-                    fileHandle.write(data)
-                }
-                
-                fileHandle.closeFile()
-            }
-            catch
-            {
-                request.logger.error("[mottzi] Failed to write to log file: \(error)")
-                
-                return Response(status: .internalServerError, body: .init(stringLiteral: "[mottzi] Failed to log received push event"))
-            }
-            
-            return Response(status: .ok, body: .init(stringLiteral: "[mottzi] Push event received and logged successfully"))
+            return Response(status: .ok, body: .init(stringLiteral: "[mottzi] Logged valid push-event request"))
         }
+    }
+    
+    func logPushEvent(_ content: String) -> Bool
+    {
+        let path = "/var/www/mottzi/pushevent.log"
+        
+        if !FileManager.default.fileExists(atPath: path)
+        {
+            FileManager.default.createFile(atPath: path, contents: nil, attributes: nil)
+        }
+        
+        let file: FileHandle
+        
+        do
+        {
+            file = try FileHandle(forWritingTo: URL(fileURLWithPath: path))
+            try file.seekToEnd()
+        }
+        catch
+        {
+            return false
+        }
+        
+        if let data = content.data(using: .utf8)
+        {
+            file.write(data)
+        }
+        
+        file.closeFile()
+        
+        return true
     }
 }
 
