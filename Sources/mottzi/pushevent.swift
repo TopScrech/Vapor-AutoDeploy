@@ -1,7 +1,5 @@
 import Vapor
 
-import Vapor
-
 // GitHub Webhook test
 extension Application
 {
