@@ -64,12 +64,12 @@ extension Application
         process.arguments = ["mottzi", "deploy"]
         process.standardOutput = pipe
         process.standardError = pipe
-        
+            
         // after commenting out these env variables, the prints function?!!
         process.environment = [
-            "PATH": "/usr/local/swift/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+            "PATH": "/usr/bin/git:/usr/local/swift/usr/bin:/usr/local/bin:/usr/bin/supervisorctl",
 //            "HOME": "/var/www/mottzi",
-            "USER": "root",
+//            "USER": "mottzi",
 //            "SHELL": "/bin/bash",
 //            "PWD": "/var/www/mottzi",
         ]

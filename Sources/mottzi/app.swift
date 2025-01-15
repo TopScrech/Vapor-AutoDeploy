@@ -31,7 +31,7 @@ extension Application
         self.get("text")
         { _ in
             """
-            Version 5.3
+            Version new path
             Joshi stinkt.
             """
         }
