@@ -31,7 +31,7 @@ extension Application
         self.get("text")
         { _ in
             """
-            Version 200.0
+            Version 300.0
             Joshi stinkt.
             """
         }
