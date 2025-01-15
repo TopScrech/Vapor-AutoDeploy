@@ -58,44 +58,35 @@ extension Application
     func handlePushEvent(_ request: Request)
     {
         let process = Process()
-        let pipe = Pipe()
+        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
+        process.arguments = ["deploy"]
         
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.arguments = ["mottzi", "deploy"]
+        let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
-            
-        // after commenting out these env variables, the prints function?!!
-        process.environment = [
-//            "PATH": "/usr/bin/git:/usr/local/swift/usr/bin:/usr/local/bin:/usr/bin/supervisorctl",
-//            "HOME": "/var/www/mottzi",
-            "USER": "mottzi",
-//            "SHELL": "/bin/bash",
-//            "PWD": "/var/www/mottzi",
-        ]
         
-        self.log("deploy/github/push.log", "\nDEBUG: after event log - before deploy log\n")
-        
-        // does never print
-        process.terminationHandler =
-        { [weak self] process in
-            guard let self = self else { return }
-            
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            let output = String(data: data, encoding: .utf8) ?? ""
-            
-            self.log("deploy/github/push.log",
-            """
-            === [mottzi] Deploying project... ===
-            
-            \(output)
-            
-            =====================================\n\n
-            """)
+        do
+        {
+            try process.run()
+        }
+        catch
+        {
+            request.logger.error("Error executing deploy command: \(error)")
         }
         
-        try? process.run()
         process.waitUntilExit()
+        
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: data, encoding: .utf8) ?? ""
+            
+        self.log("deploy/github/push.log",
+        """
+        === [mottzi] Deploying project... ===
+        
+        \(output)
+        
+        =====================================\n\n
+        """)
     }
     
     // appends content at the end of file
