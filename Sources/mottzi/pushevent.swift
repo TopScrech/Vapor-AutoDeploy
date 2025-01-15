@@ -65,6 +65,7 @@ extension Application
         process.standardOutput = pipe
         process.standardError = pipe
         
+        // after commenting out these env variables, the prints function?!!
 //        process.environment = [
 //            "PATH": "/usr/local/swift/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
 //            "HOME": "/var/www/mottzi",
