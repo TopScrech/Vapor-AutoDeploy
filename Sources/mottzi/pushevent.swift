@@ -60,6 +60,8 @@ extension Application
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
         process.arguments = ["deploy"]
+        
+        self.log("deploy/github/push.log", "1.0 Environment:\n\(process.environment?.debugDescription ?? "Empty.")\n")
                         
         let pipe = Pipe()
         process.standardOutput = pipe
@@ -67,6 +69,8 @@ extension Application
         
         do
         {
+            self.log("deploy/github/push.log", "try running\n")
+
             try process.run()
             process.waitUntilExit()
 
