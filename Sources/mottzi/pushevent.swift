@@ -67,9 +67,9 @@ extension Application
             
         // after commenting out these env variables, the prints function?!!
         process.environment = [
-            "PATH": "/usr/bin/git:/usr/local/swift/usr/bin:/usr/local/bin:/usr/bin/supervisorctl",
+//            "PATH": "/usr/bin/git:/usr/local/swift/usr/bin:/usr/local/bin:/usr/bin/supervisorctl",
 //            "HOME": "/var/www/mottzi",
-//            "USER": "mottzi",
+            "USER": "mottzi",
 //            "SHELL": "/bin/bash",
 //            "PWD": "/var/www/mottzi",
         ]
