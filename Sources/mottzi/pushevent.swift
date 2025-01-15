@@ -71,7 +71,6 @@ extension Application
             "USER": "mottzi",
             "SHELL": "/bin/bash",
             "PWD": "/var/www/mottzi",
-            "LANG": "C.UTF-8"
         ]
         
         try? process.run()
