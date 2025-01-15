@@ -11,7 +11,11 @@ extension Application
             // verify github signature
             guard self.validateRequest(request) else { return .denied }
             // react to push event
-            self.handlePushEvent(request)
+            Task.detached
+            {
+                self.handlePushEvent(request)
+            }
+           
             // success http response
             return .success
         }
