@@ -74,7 +74,8 @@ extension Application
         ]
         
         self.log("deploy/github/push.log", "\nDEBUG: after event log - before deploy log\n")
-                
+        
+        // does never print
         process.terminationHandler =
         { [weak self] process in
             guard let self = self else { return }
