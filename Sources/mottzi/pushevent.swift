@@ -76,7 +76,7 @@ extension Application
         self.log("deploy/github/push.log",
         """
         ====================================
-        Attempting to run auto deploy script......
+        Attempting to run auto deploy script.......
         
         Process:
           Command: \(String(describing: process.executableURL))
