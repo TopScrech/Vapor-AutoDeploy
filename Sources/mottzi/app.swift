@@ -2,7 +2,7 @@ import Vapor
 import Leaf
 
 @main
-struct mottzi // name?
+struct mottzi
 {
     static func main() async throws
     {
