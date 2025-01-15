@@ -39,7 +39,7 @@ extension Application
             Process:
               Arguments: \(ProcessInfo.processInfo.arguments)
               Environment: 
-                    \(ProcessInfo.processInfo.environment.map {"        \($0): \($1)"}.sorted().joined(separator: "\n"))
+              \(ProcessInfo.processInfo.environment.map {"        \($0): \($1)"}.sorted().joined(separator: "\n"))
               Process Name: \(ProcessInfo.processInfo.processName)
               Process ID: \(getpid())
               Parent Process ID: \(getppid())
@@ -66,7 +66,7 @@ extension Application
     func handlePushEvent(_ request: Request)
     {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
+        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
         process.arguments = ["deploy"]
         
         let pipe = Pipe()
@@ -79,41 +79,37 @@ extension Application
         Attempting to run auto deploy script...
         
         Process:
+          Command: \(String(describing: process.executableURL))
           Arguments: \(String(describing: process.arguments))
-          Environment: 
-                    \(String(describing: process.environment?.map{ (key: String, value: String) in "     \(key): \(value)"}))
-          Process Name: \(ProcessInfo.processInfo.processName)
-          Process ID: \(getpid())
-          Parent Process ID: \(getppid())
+          Environment: \(String(describing: process.environment?.map{ (key: String, value: String) in "     \(key): \(value)"}))
+          Process ID: \(process.processIdentifier)
         ====================================\n\n
         """)
-//
-//        do
-//        {
-//            self.log("deploy/github/push.log", "try running\n")
-//
-//            try process.run()
-//            process.waitUntilExit()
-//
-//            if let data = try pipe.fileHandleForReading.readToEnd()
-//            {
-//                let output = String(data: data, encoding: .utf8) ?? ""
-//                
-//                self.log("deploy/github/push.log",
-//                """
-//                === [mottzi] Deploying project... ===
-//                
-//                \(output)
-//                
-//                ======================================\n\n
-//                """)
-//            }
-//
-//        }
-//        catch
-//        {
-//            self.log("deploy/github/push.log", "Error executing deploy command: \(error)")
-//        }
+
+        do
+        {
+            try process.run()
+            process.waitUntilExit()
+
+            if let data = try pipe.fileHandleForReading.readToEnd()
+            {
+                let output = String(data: data, encoding: .utf8) ?? ""
+                
+                self.log("deploy/github/push.log",
+                """
+                === [mottzi] Testscript... ===
+                
+                \(output)
+                
+                ======================================\n\n
+                """)
+            }
+
+        }
+        catch
+        {
+            self.log("deploy/github/push.log", "Error executing deploy command: \(error)")
+        }
     }
     
     // appends content at the end of file
