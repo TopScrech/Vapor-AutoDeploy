@@ -60,6 +60,7 @@ extension Application
         let pipe = Pipe()
         
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.environment = ["PATH": "/usr/bin:/usr/local/bin"]
         process.arguments = ["mottzi", "deploy"]
         process.standardOutput = pipe
         process.standardError = pipe
