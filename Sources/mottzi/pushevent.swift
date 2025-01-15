@@ -66,13 +66,13 @@ extension Application
         process.standardError = pipe
         
         // after commenting out these env variables, the prints function?!!
-//        process.environment = [
-//            "PATH": "/usr/local/swift/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+        process.environment = [
+            "PATH": "/usr/local/swift/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
 //            "HOME": "/var/www/mottzi",
 //            "USER": "mottzi",
 //            "SHELL": "/bin/bash",
 //            "PWD": "/var/www/mottzi",
-//        ]
+        ]
         
         self.log("deploy/github/push.log", "\nDEBUG: after event log - before deploy log\n")
         
