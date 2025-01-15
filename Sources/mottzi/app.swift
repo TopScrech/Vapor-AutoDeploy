@@ -10,7 +10,7 @@ struct mottzi
         let app = try await Application.make(env)
 
         app.views.use(.leaf)
-        app.setupRoutes()
+        app.configureRoutes()
         
         try await app.execute()
         try await app.asyncShutdown()
@@ -19,10 +19,12 @@ struct mottzi
 
 extension Application
 {
-    func setupRoutes()
+    // the web server will respond to these following http requests
+    func configureRoutes()
     {
         self.listenToPushEvents("pushevent")
         
+        // mottzi.de/text
         self.get("text")
         { _ in
             """
@@ -31,16 +33,19 @@ extension Application
             """
         }
 
+        // mottzi.de/dynamic/world
         self.get("dynamic", ":property")
         { request async in
             "Hello, \(request.parameters.get("property")!)!"
         }
         
+        // mottzi.de/infile
         self.get("infile")
         { request async throws in
             try await request.view.render("htmlFile")
         }
         
+        // mottzi.de/inline
         self.get("inline")
         { _ in
             let response = Response(status: .ok)
@@ -66,138 +71,101 @@ extension Application
 
 extension Application
 {
-    // verify request comes from github
-    // log request headers, body (payload) and success text
-    // return a response.
+    // listen for github push events on specified route
     func listenToPushEvents(_ route: PathComponent...)
     {
         self.post(route)
-        { request async in
-            let logFile = "/var/www/mottzi/pushevent.log"
+        { request async -> Response in
+            // verify github signature
+            guard self.validateRequest(request) else { return .denied }
             
-            // verify the github signature, log verification error, abort
-            if let verificationError = request.verifyGitHubSignature()
-            {
-                let errorLog =
-                """
-                === [mottzi] Invalid request (\(verificationError.status.code)) at \(Date()) ===
-                
-                Error: \(verificationError.body.description)
-                
-                =====================================\n\n
-                """
-                
-                if self.logPushEvent(errorLog) == false
-                {
-                    return Response(status: .internalServerError, body: .init(stringLiteral: "[mottzi] Failed to log invalid push-event request"))
-                }
-        
-                return verificationError
-            }
+            // react to push event
+            self.handlePushEvent(request)
             
-            var json = request.body.string ?? "{}"
-            
-            if let jsonData = json.data(using: .utf8),
-               let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
-               let prettyJsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted]),
-               let formattedString = String(data: prettyJsonData, encoding: .utf8)
-            {
-                json = formattedString
-            }
-            
-            let requestLog =
-            """
-            === [mottzi] Push event received at \(Date()) ===
-
-            Request:
-              Method: \(request.method.rawValue)
-              URL: \(request.url.description)
-
-            Headers:
-            \(request.headers.map { "  \($0): \($1)" }.joined(separator: "\n"))
-
-            Payload:
-            \(json)
-
-            =====================================\n\n
-            """
-            
-            if self.logPushEvent(requestLog) == false
-            {
-                return Response(status: .internalServerError, body: .init(stringLiteral: "[mottzi] Failed to log valid push-event request"))
-            }
-            
-            return Response(status: .ok, body: .init(stringLiteral: "[mottzi] Logged valid push-event request"))
+            return .success
         }
     }
     
-    func logPushEvent(_ content: String) -> Bool
+    // verify that the request has a valid github signature
+    func validateRequest(_ request: Request) -> Bool
     {
-        let path = "/var/www/mottzi/pushevent.log"
-        
-        if !FileManager.default.fileExists(atPath: path)
+        guard request.validateSignature() else
         {
-            FileManager.default.createFile(atPath: path, contents: nil, attributes: nil)
-        }
-        
-        let file: FileHandle
-        
-        do
-        {
-            file = try FileHandle(forWritingTo: URL(fileURLWithPath: path))
-            try file.seekToEnd()
-        }
-        catch
-        {
+            self.log("/var/www/mottzi/pushevent.log",
+            """
+            === [mottzi] >>> Invalid request <<< at \(Date()) ===
+                        
+            ==================================================================\n\n
+            """)
+            
             return false
         }
         
-        if let data = content.data(using: .utf8)
-        {
-            file.write(data)
+        return true
+    }
+    
+    func handlePushEvent(_ request: Request)
+    {
+        self.log("/var/www/mottzi/pushevent.log",
+        """
+        === [mottzi] Push event received at \(Date()) ===
+        
+        Request:
+          Method: \(request.method.rawValue)
+          URL: \(request.url.description)
+        
+        Headers:
+        \(request.headers.map { "  \($0): \($1)" }.joined(separator: "\n"))
+        
+        Payload:
+        \(request.body.string?.readable ?? "{}")
+        
+        =====================================\n\n
+        """)
+    }
+    
+    // appends content at the end of file
+    func log(_ file: String, _ content: String)
+    {
+        // create log file if it does not exist
+        if !FileManager.default.fileExists(atPath: file) {
+            FileManager.default.createFile(atPath: file, contents: nil, attributes: nil)
         }
         
-        file.closeFile()
+        // prepare log file
+        guard let file = try? FileHandle(forWritingTo: URL(fileURLWithPath: file)) else { return }
+        guard (try? file.seekToEnd()) != 0 else { return }
+        guard let data = content.data(using: .utf8) else { return }
         
-        return true
+        // append content
+        file.write(data)
+        file.closeFile()
     }
 }
 
 extension Request
 {
-    // this will verify that the request actually came from github
-    func verifyGitHubSignature() -> Response?
+    // verify that the request has a valid github signature
+    func validateSignature() -> Bool
     {
         // hard coded secret *** SECURITY RISK ***
         let secret = "4133Pratteln"
         
         // get signature
-        guard let signatureHeader = headers.first(name: "X-Hub-Signature-256") else
-        {
-            return Response(status: .forbidden, body: .init(string: "Missing X-Hub-Signature-256 header"))
-        }
+        guard let signatureHeader = headers.first(name: "X-Hub-Signature-256") else { return false }
         
         // ensure signature starts with "sha256="
-        guard signatureHeader.hasPrefix("sha256=") else
-        {
-            return Response(status: .forbidden, body: .init(string: "Invalid signature format"))
-        }
+        guard signatureHeader.hasPrefix("sha256=") else { return false }
         
         // extract signature hex string
         let signatureHex = String(signatureHeader.dropFirst("sha256=".count))
         
         // get raw request body
-        guard let payload = self.body.string else
-        {
-            return Response(status: .badRequest, body: .init(string: "Missing request body"))
-        }
+        guard let payload = self.body.string else { return false }
         
         // encode local secret and received payload
-        guard let secretData = secret.data(using: .utf8),
-              let payloadData = payload.data(using: .utf8) else
-        {
-            return Response(status: .internalServerError, body: .init(string: "Encoding error"))
-        }
+        guard let payloadData = payload.data(using: .utf8),
+              let secretData = secret.data(using: .utf8) else { return false }
         
         // calculate expected signature
         let signature = HMAC<SHA256>.authenticationCode(for: payloadData, using: SymmetricKey(data: secretData))
@@ -205,10 +173,7 @@ extension Request
         let expectedSignatureHex = signature.map { String(format: "%02x", $0) }.joined()
         
         // constant-time comparison to prevent timing attacks
-        guard expectedSignatureHex.count == signatureHex.count else
-        {
-            return Response(status: .forbidden, body: .init(string: "Invalid signature length"))
-        }
+        guard expectedSignatureHex.count == signatureHex.count else { return false }
         
         let valid = HMAC<SHA256>.isValidAuthenticationCode(
             signatureHex.hexadecimal ?? Data(),
@@ -216,17 +181,33 @@ extension Request
             using: SymmetricKey(data: secretData)
         )
         
-        if !valid
-        {
-            return Response(status: .forbidden, body: .init(string: "Invalid signature"))
-        }
-       
-        return nil // nil means verification passed...
+        return valid
     }
+}
+
+extension Response
+{
+    static let success = Response(status: .ok, body: .init(stringLiteral: "[mottzi] push-event request: valid"))
+    static let denied = Response(status: .forbidden, body: .init(stringLiteral: "[mottzi] push-event request: invalid"))
 }
 
 extension String
 {
+    // tries to beautify json blobs
+    var readable: String
+    {
+        if let jsonData = self.data(using: .utf8),
+           let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
+           let prettyJsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted]),
+           let formattedString = String(data: prettyJsonData, encoding: .utf8)
+        {
+            return formattedString
+        }
+        
+        return self
+    }
+    
+    // needed for signature verification
     var hexadecimal: Data?
     {
         var data = Data(capacity: count / 2)
