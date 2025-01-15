@@ -74,23 +74,26 @@ extension Application
         ]
         
         self.log("deploy/github/push.log", "\nDEBUG: after event log - before deploy log\n")
+                
+        process.terminationHandler =
+        { [weak self] process in
+            guard let self = self else { return }
+            
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            let output = String(data: data, encoding: .utf8) ?? ""
+            
+            self.log("deploy/github/push.log",
+            """
+            === [mottzi] Deploying project... ===
+            
+            \(output)
+            
+            =====================================\n\n
+            """)
+        }
         
         try? process.run()
         process.waitUntilExit()
-        
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8) ?? "empty"
-        
-        try? pipe.fileHandleForReading.close()
-        
-        self.log("deploy/github/push.log",
-        """
-        === [mottzi] Deploying project... ===
-        
-        \(output)
-        
-        =====================================\n\n
-        """)
     }
     
     // appends content at the end of file
