@@ -10,10 +10,9 @@ extension Application
         { request async -> Response in
             // verify github signature
             guard self.validateRequest(request) else { return .denied }
-            
             // react to push event
             self.handlePushEvent(request)
-            
+            // success http response
             return .success
         }
     }
@@ -23,7 +22,7 @@ extension Application
     {
         guard request.validateSignature() else
         {
-            self.log("deploy/github/pushevent.log",
+            self.log("deploy/github/push.log",
             """
             === [mottzi] >>> Invalid github event received <<< at \(Date()) ===
                         
@@ -38,7 +37,7 @@ extension Application
     
     func handlePushEvent(_ request: Request)
     {
-        self.log("deploy/github/pushevent.log",
+        self.log("deploy/github/push.log",
         """
         === [mottzi] Valid github event received at \(Date()) ===
         
