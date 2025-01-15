@@ -61,6 +61,7 @@ extension Application
         process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
         process.arguments = ["deploy"]
         
+        
         self.log("deploy/github/push.log", process.environment?.description ?? "??")
         
         self.log("deploy/github/push.log", process.environment?.description ?? "??")
@@ -91,6 +92,7 @@ extension Application
         }
         catch
         {
+            self.log("deploy/github/push.log", "Error executing deploy command: \(error)")
             request.logger.error("Error executing deploy command: \(error)")
         }
     }
