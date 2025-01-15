@@ -81,6 +81,8 @@ extension Application
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         let output = String(data: data, encoding: .utf8) ?? ""
         
+        try? pipe.fileHandleForReading.close()
+        
         self.log("deploy/github/push.log",
         """
         === [mottzi] Deploying project... ===
