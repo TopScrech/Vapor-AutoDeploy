@@ -61,6 +61,11 @@ extension Application
         process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
         process.arguments = ["deploy"]
         
+        var env = ProcessInfo.processInfo.environment
+        let currentPath = env["PATH"] ?? ""
+        env["PATH"] = "/usr/local/swift/usr/bin:" + currentPath
+        process.environment = env
+        
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
