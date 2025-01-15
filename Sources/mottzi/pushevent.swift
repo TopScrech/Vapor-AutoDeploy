@@ -1,6 +1,6 @@
 import Vapor
 
-// GitHub Webhook test
+// GitHub Webhook
 extension Application
 {
     // listen for github push events on specified route
