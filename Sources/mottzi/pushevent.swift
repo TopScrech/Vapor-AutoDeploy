@@ -54,15 +54,13 @@ extension Application
         }
     }
     
-    // 
+    //
     func handlePushEvent(_ request: Request)
     {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
         process.arguments = ["deploy"]
-                
-        //self.log("deploy/github/push.log", "Env: \(process.environment?.description ?? "??")")
-        
+                        
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
