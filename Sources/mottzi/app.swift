@@ -6,9 +6,10 @@ struct mottzi
 {
     static func main() async throws
     {
-        let env = try Environment.detect()
+        var env = try Environment.detect()
+        try LoggingSystem.bootstrap(from: &env)
+        
         let app = try await Application.make(env)
-
         app.views.use(.leaf)
         app.configureRoutes()
         
