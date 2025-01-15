@@ -66,7 +66,7 @@ extension Application
     func handlePushEvent(_ request: Request)
     {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
+        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
         process.arguments = ["deploy"]
         
         let pipe = Pipe()
