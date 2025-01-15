@@ -62,11 +62,6 @@ extension Application
         process.arguments = ["deploy"]
         
         self.log("deploy/github/push.log", process.environment?.description ?? "??")
-
-        var env = ProcessInfo.processInfo.environment
-        let currentPath = env["PATH"] ?? ""
-        env["PATH"] = "/usr/local/swift/usr/bin:" + currentPath
-        process.environment = env
         
         self.log("deploy/github/push.log", process.environment?.description ?? "??")
         
