@@ -73,16 +73,12 @@ extension Application
             "PWD": "/var/www/mottzi",
         ]
         
-        self.log("deploy/github/push.log", "\ntest\n")
+        self.log("deploy/github/push.log", "\nDEBUG: after event log - before deploy log\n")
         
-        
-        let fileHandle = pipe.fileHandleForReading
         try? process.run()
-        
-        // Read the data before waiting for exit
-        let data = fileHandle.readDataToEndOfFile()
         process.waitUntilExit()
         
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
         let output = String(data: data, encoding: .utf8) ?? ""
         
         self.log("deploy/github/push.log",
