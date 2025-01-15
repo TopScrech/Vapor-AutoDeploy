@@ -64,7 +64,7 @@ extension Application
             FileManager.default.createFile(atPath: filePath, contents: nil, attributes: nil)
         }
 
-        // prepare log file
+        // prepare log filee
         guard let file = try? FileHandle(forWritingTo: URL(fileURLWithPath: filePath)) else { return }
         let _ = try? file.seekToEnd()
         guard let data = content.data(using: .utf8) else { return }
