@@ -1,6 +1,6 @@
 import Vapor
 
-// GitHub Webhookk
+// GitHub Webhook
 extension Application
 {
     // listen for github push events on specified route
@@ -66,7 +66,6 @@ extension Application
 
         // prepare log filee
         guard let file = try? FileHandle(forWritingTo: URL(fileURLWithPath: filePath)) else { return }
-        //let _ = try? file.seekToEnd() hmmmmmmm
         guard (try? file.seekToEnd()) != nil else { return }
         guard let data = content.data(using: .utf8) else { return }
         
