@@ -23,6 +23,8 @@ extension Application
     // the web server will respond to these following http requests
     func configureRoutes()
     {
+        // this will listen to the pushevent github webhook
+        // push events are sent here when the repo was pushed to
         self.github("pushevent")
         
         // mottzi.de/text
