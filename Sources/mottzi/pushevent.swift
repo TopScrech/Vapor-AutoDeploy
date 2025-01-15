@@ -20,7 +20,28 @@ extension Application
     // verify that the request has a valid github signature
     func validateRequest(_ request: Request) -> Bool
     {
-        guard request.validateSignature() else
+        if request.validateSignature()
+        {
+            self.log("deploy/github/push.log",
+            """
+            === [mottzi] Valid github event received at \(Date()) ===
+            
+            Request:
+              Method: \(request.method.rawValue)
+              URL: \(request.url.description)
+            
+            Headers:
+            \(request.headers.map { "  \($0): \($1)" }.joined(separator: "\n"))
+            
+            Payload:
+            \(request.body.string?.readable ?? "{}")
+            
+            =====================================\n\n
+            """)
+            
+            return true
+        }
+        else
         {
             self.log("deploy/github/push.log",
             """
@@ -31,25 +52,29 @@ extension Application
             
             return false
         }
-        
-        return true
     }
     
     func handlePushEvent(_ request: Request)
     {
+        let process = Process()
+        let pipe = Pipe()
+        
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["mottzi", "deploy"]
+        process.standardOutput = pipe
+        process.standardError = pipe
+        
+        try? process.run()
+        process.waitUntilExit()
+        
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: data, encoding: .utf8) ?? ""
+        
         self.log("deploy/github/push.log",
         """
-        === [mottzi] Valid github event received at \(Date()) ===
+        === [mottzi] Deploying project... ===
         
-        Request:
-          Method: \(request.method.rawValue)
-          URL: \(request.url.description)
-        
-        Headers:
-        \(request.headers.map { "  \($0): \($1)" }.joined(separator: "\n"))
-        
-        Payload:
-        \(request.body.string?.readable ?? "{}")
+        \(output)
         
         =====================================\n\n
         """)
