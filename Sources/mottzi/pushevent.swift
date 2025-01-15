@@ -61,7 +61,7 @@ extension Application
         process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
         process.arguments = ["deploy"]
                 
-        self.log("deploy/github/push.log", "Env: \(process.environment?.description ?? "??")")
+        //self.log("deploy/github/push.log", "Env: \(process.environment?.description ?? "??")")
         
         let pipe = Pipe()
         process.standardOutput = pipe
