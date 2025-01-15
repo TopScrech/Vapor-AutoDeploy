@@ -54,7 +54,7 @@ extension Application
         }
     }
     
-    // TEST
+    // TES
     func handlePushEvent(_ request: Request)
     {
         let process = Process()
