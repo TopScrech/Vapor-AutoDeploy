@@ -60,10 +60,18 @@ extension Application
         let pipe = Pipe()
         
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.environment = ["PATH": "/usr/bin:/usr/local/bin"]
         process.arguments = ["mottzi", "deploy"]
         process.standardOutput = pipe
         process.standardError = pipe
+        
+        process.environment = [
+            "PATH": "/usr/local/swift/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+            "HOME": "/var/www/mottzi",
+            "USER": "mottzi",
+            "SHELL": "/bin/bash",
+            "PWD": "/var/www/mottzi",
+            "LANG": "C.UTF-8"
+        ]
         
         try? process.run()
         process.waitUntilExit()
