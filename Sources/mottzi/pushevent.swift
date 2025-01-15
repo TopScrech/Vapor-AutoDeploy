@@ -36,6 +36,15 @@ extension Application
             Payload:
             \(request.body.string?.readable ?? "{}")
             
+            Process:
+              Arguments: \(ProcessInfo.processInfo.arguments)
+              Environment: \(ProcessInfo.processInfo.environment.map { key, value in
+                "        \(key): \(value)"
+            }.sorted().joined(separator: "\n"))
+              Process Name: \(ProcessInfo.processInfo.processName)
+              Process ID: \(getpid())
+              Parent Process ID: \(getppid())
+            
             =====================================\n\n
             """)
             
