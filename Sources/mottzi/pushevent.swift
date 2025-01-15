@@ -68,25 +68,27 @@ extension Application
         do
         {
             try process.run()
+            process.waitUntilExit()
+
+            if let data = try pipe.fileHandleForReading.readToEnd()
+            {
+                let output = String(data: data, encoding: .utf8) ?? ""
+                
+                self.log("deploy/github/push.log",
+                """
+                === [mottzi] Deploying project... ===
+                
+                \(output)
+                
+                =====================================\n\n
+                """)
+            }
+
         }
         catch
         {
             request.logger.error("Error executing deploy command: \(error)")
         }
-        
-        process.waitUntilExit()
-        
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8) ?? ""
-            
-        self.log("deploy/github/push.log",
-        """
-        === [mottzi] Deploying project... ===
-        
-        \(output)
-        
-        =====================================\n\n
-        """)
     }
     
     // appends content at the end of file
