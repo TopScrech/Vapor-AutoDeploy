@@ -4,7 +4,7 @@ import Vapor
 extension Application
 {
     // listen for github push events on specified route
-    func listenToPushEvents(_ route: PathComponent...)
+    func github(_ route: PathComponent...)
     {
         self.post(route)
         { request async -> Response in
@@ -23,9 +23,9 @@ extension Application
     {
         guard request.validateSignature() else
         {
-            self.log("/var/www/mottzi/pushevent.log",
+            self.log("deploy/github.log",
             """
-            === [mottzi] >>> Invalid request <<< at \(Date()) ===
+            === [mottzi] >>> Invalid push event received <<< at \(Date()) ===
                         
             ==================================================================\n\n
             """)
@@ -38,9 +38,9 @@ extension Application
     
     func handlePushEvent(_ request: Request)
     {
-        self.log("/var/www/mottzi/pushevent.log",
+        self.log("deploy/github.log",
         """
-        === [mottzi] Push event received at \(Date()) ===
+        === [mottzi] Valid push event received at \(Date()) ===
         
         Request:
           Method: \(request.method.rawValue)

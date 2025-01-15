@@ -23,7 +23,7 @@ extension Application
     // the web server will respond to these following http requests
     func configureRoutes()
     {
-        self.listenToPushEvents("pushevent")
+        self.github("pushevent")
         
         // mottzi.de/text
         self.get("text")
