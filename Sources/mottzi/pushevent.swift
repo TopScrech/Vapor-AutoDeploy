@@ -57,42 +57,42 @@ extension Application
     // TES
     func handlePushEvent(_ request: Request)
     {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
-        process.arguments = ["deploy"]
-        
-        self.log("deploy/github/push.log", "1.0 Environment:\n\(process.environment?.debugDescription ?? "Empty.")\n")
-                        
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = pipe
-        
-        do
-        {
-            self.log("deploy/github/push.log", "try running\n")
-
-            try process.run()
-            process.waitUntilExit()
-
-            if let data = try pipe.fileHandleForReading.readToEnd()
-            {
-                let output = String(data: data, encoding: .utf8) ?? ""
-                
-                self.log("deploy/github/push.log",
-                """
-                === [mottzi] Deploying project... ===
-                
-                \(output)
-                
-                ======================================\n\n
-                """)
-            }
-
-        }
-        catch
-        {
-            self.log("deploy/github/push.log", "Error executing deploy command: \(error)")
-        }
+//        let process = Process()
+//        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
+//        process.arguments = ["deploy"]
+//        
+//        self.log("deploy/github/push.log", "1.0 Environment:\n\(process.environment?.debugDescription ?? "Empty.")\n")
+//                        
+//        let pipe = Pipe()
+//        process.standardOutput = pipe
+//        process.standardError = pipe
+//        
+//        do
+//        {
+//            self.log("deploy/github/push.log", "try running\n")
+//
+//            try process.run()
+//            process.waitUntilExit()
+//
+//            if let data = try pipe.fileHandleForReading.readToEnd()
+//            {
+//                let output = String(data: data, encoding: .utf8) ?? ""
+//                
+//                self.log("deploy/github/push.log",
+//                """
+//                === [mottzi] Deploying project... ===
+//                
+//                \(output)
+//                
+//                ======================================\n\n
+//                """)
+//            }
+//
+//        }
+//        catch
+//        {
+//            self.log("deploy/github/push.log", "Error executing deploy command: \(error)")
+//        }
     }
     
     // appends content at the end of file
