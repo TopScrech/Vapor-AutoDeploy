@@ -25,7 +25,7 @@ extension Application
         {
             self.log("deploy/github/pushevent.log",
             """
-            === [mottzi] >>> Invalid push event received <<< at \(Date()) ===
+            === [mottzi] >>> Invalid github event received <<< at \(Date()) ===
                         
             ==================================================================\n\n
             """)
@@ -40,7 +40,7 @@ extension Application
     {
         self.log("deploy/github/pushevent.log",
         """
-        === [mottzi] Valid push event received at \(Date()) ===
+        === [mottzi] Valid github event received at \(Date()) ===
         
         Request:
           Method: \(request.method.rawValue)
