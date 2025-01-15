@@ -38,9 +38,8 @@ extension Application
             
             Process:
               Arguments: \(ProcessInfo.processInfo.arguments)
-              Environment: \(ProcessInfo.processInfo.environment.map { key, value in
-                "        \(key): \(value)"
-            }.sorted().joined(separator: "\n"))
+              Environment: 
+                    \(ProcessInfo.processInfo.environment.map {"        \($0): \($1)"}.sorted().joined(separator: "\n"))
               Process Name: \(ProcessInfo.processInfo.processName)
               Process ID: \(getpid())
               Parent Process ID: \(getppid())
@@ -66,16 +65,29 @@ extension Application
     // TEST 1
     func handlePushEvent(_ request: Request)
     {
-//        let process = Process()
-//        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
-//        process.arguments = ["deploy"]
-//        
-//        self.log("deploy/github/push.log", "1.0 Environment:\n\(process.environment?.debugDescription ?? "Empty.")\n")
-//                        
-//        let pipe = Pipe()
-//        process.standardOutput = pipe
-//        process.standardError = pipe
-//        
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/mottzi")
+        process.arguments = ["deploy"]
+        
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        
+        self.log("deploy/github/push.log",
+        """
+        ====================================
+        Attempting to run auto deploy script...
+        
+        Process:
+          Arguments: \(String(describing: process.arguments))
+          Environment: 
+                    \(String(describing: process.environment?.map{ (key: String, value: String) in "     \(key): \(value)"}))
+          Process Name: \(ProcessInfo.processInfo.processName)
+          Process ID: \(getpid())
+          Parent Process ID: \(getppid())
+        ====================================\n\n
+        """)
+//
 //        do
 //        {
 //            self.log("deploy/github/push.log", "try running\n")
