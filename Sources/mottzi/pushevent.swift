@@ -69,7 +69,7 @@ extension Application
         process.environment = [
             "PATH": "/usr/local/swift/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
 //            "HOME": "/var/www/mottzi",
-//            "USER": "mottzi",
+            "USER": "mottzi",
 //            "SHELL": "/bin/bash",
 //            "PWD": "/var/www/mottzi",
         ]
