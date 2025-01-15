@@ -23,7 +23,7 @@ extension Application
     {
         guard request.validateSignature() else
         {
-            self.log("deploy/github.log",
+            self.log("deploy/github/pushevent.log",
             """
             === [mottzi] >>> Invalid push event received <<< at \(Date()) ===
                         
@@ -38,7 +38,7 @@ extension Application
     
     func handlePushEvent(_ request: Request)
     {
-        self.log("deploy/github.log",
+        self.log("deploy/github/pushevent.log",
         """
         === [mottzi] Valid push event received at \(Date()) ===
         
