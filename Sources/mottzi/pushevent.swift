@@ -73,6 +73,9 @@ extension Application
             "PWD": "/var/www/mottzi",
         ]
         
+        self.log("deploy/github/push.log", "\ntest\n")
+        
+        
         let fileHandle = pipe.fileHandleForReading
         try? process.run()
         
