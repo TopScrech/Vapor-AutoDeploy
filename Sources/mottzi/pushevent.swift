@@ -27,7 +27,7 @@ extension Application
     func handlePushEvent(_ request: Request) async
     {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/deploytest")
+        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
         process.arguments = ["deploy"]
         
         let pipe = Pipe()
