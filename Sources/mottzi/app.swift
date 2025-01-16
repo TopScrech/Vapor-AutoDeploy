@@ -32,8 +32,8 @@ extension Application
         self.get("text")
         { req throws in
             """
-            Version 4
-            Joshi stinkt.
+            ALTE VERSION
+            > Bitte updaten.
             """
         }
 

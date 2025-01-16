@@ -57,6 +57,7 @@ extension Application
         // read the output as an async stream
         pipe.fileHandleForReading.readabilityHandler =
         { stream in
+            // load chunk of output data
             let data = stream.availableData
             
             // stop reading when end of file is reached
@@ -67,9 +68,9 @@ extension Application
             }
             
             // log data chunk to file
-            if let output = String(data: data, encoding: .utf8)
+            if let chunk = String(data: data, encoding: .utf8)
             {
-                self.log("deploy/github/push.log", output)
+                self.log("deploy/github/push.log", chunk)
             }
         }
         
