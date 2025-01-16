@@ -7,11 +7,12 @@ struct mottzi
     static func main() async throws
     {
         var env = try Environment.detect()
-        try LoggingSystem.bootstrap(from: &env)
         
         let app = try await Application.make(env)
         app.views.use(.leaf)
         app.configureRoutes()
+        
+        try LoggingSystem.bootstrap(from: &env)
         
         try await app.execute()
         try await app.asyncShutdown()
