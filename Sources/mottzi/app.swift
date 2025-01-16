@@ -13,38 +13,34 @@ struct mottzi
         app.views.use(.leaf)
         app.configureRoutes()
         
-        app.logger = Logger(label: "com.example.timestampedLogger") { label in
-            return StreamLogHandler.standardOutput(label: label)
-        }
-        
         // Set custom log formatter for timestamp
         app.logger.logLevel = .debug
-        
-        // Log a "Startup test message" with timestamp
-        app.logger.logWithTimestamp(level: .debug, message: "Startup test message 9")
+        app.logger.log(level: .debug, "Startup test message 1.")
         
         try await app.execute()
+        app.logger.log(level: .debug, "Startup test message 2.")
         try await app.asyncShutdown()
+        app.logger.log(level: .debug, "Startup test message 3.")
     }
 }
 
-extension Logger {
-    // Custom log format including timestamp
-    func logWithTimestamp(level: Logger.Level, message: String) {
-        let timestamp = DateFormatter.timestampFormatter.string(from: Date())
-        let logMessage = "[\(timestamp)] [\(level)] \(message)"
-        self.log(level: level, "\(logMessage)")
-    }
-}
-
-extension DateFormatter {
-    // Formatter for the timestamp (you can customize the format here)
-    static var timestampFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        return formatter
-    }
-}
+//extension Logger {
+//    // Custom log format including timestamp
+//    func log(level: Logger.Level, message: String) {
+//        let timestamp = DateFormatter.timestampFormatter.string(from: Date())
+//        let logMessage = "[DEBUG] [\(timestamp)] [\(level)] \(message)"
+//        self.log(level: level, "\(logMessage)")
+//    }
+//}
+//
+//extension DateFormatter {
+//    // Formatter for the timestamp (you can customize the format here)
+//    static var timestampFormatter: DateFormatter {
+//        let formatter = DateFormatter()
+//        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+//        return formatter
+//    }
+//}
 
 // Routes
 extension Application
