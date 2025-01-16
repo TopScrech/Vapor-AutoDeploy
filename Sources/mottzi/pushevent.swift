@@ -31,6 +31,11 @@ extension Application
         process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
         process.arguments = ["deploy"]
         
+        // Set environment variables
+        var environment = ProcessInfo.processInfo.environment
+        environment["HOME"] = "/var/www/mottzi"  // Set HOME to project directory
+        process.environment = environment
+        
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
