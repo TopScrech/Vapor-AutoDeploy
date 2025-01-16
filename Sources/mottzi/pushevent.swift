@@ -34,7 +34,7 @@ extension Application
         process.standardOutput = pipe
         process.standardError = pipe
         
-        // log the initial message
+        // log the initial messagee
         self.log("deploy/github/push.log",
         """
         ====================================
