@@ -41,7 +41,7 @@ extension Application
             """
         }
 
-        // mottzi.de/dynamic/world
+        // mottzi.de/dynamic/worldd
         self.get("dynamic", ":property")
         { request async in
             request.logger.error("TestError here")
