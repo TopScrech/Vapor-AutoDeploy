@@ -32,7 +32,7 @@ extension Application
         self.get("text")
         { req throws in
             """
-            NEU
+            Nochmals neu?
             > Danke.
             """
         }
