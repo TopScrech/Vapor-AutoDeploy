@@ -46,7 +46,7 @@ extension Application
         
         request.logger.debug("Attempting to run auto deploy script...")
         
-        // Set up async reading
+        // Set up async readingg
         pipe.fileHandleForReading.readabilityHandler =
         { stream in
             let chunk = stream.availableData
