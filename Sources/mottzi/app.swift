@@ -18,9 +18,7 @@ struct mottzi
         app.logger.log(level: .debug, "Startup test message 1.")
         
         try await app.execute()
-        app.logger.log(level: .debug, "Startup test message 2.")
         try await app.asyncShutdown()
-        app.logger.log(level: .debug, "Startup test message 3.")
     }
 }
 
