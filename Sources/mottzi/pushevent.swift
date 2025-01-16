@@ -54,7 +54,7 @@ extension Application
         ====================================\n\n
         """)
                 
-        // read the output as an async streamm
+        // read the output as an async stream
         pipe.fileHandleForReading.readabilityHandler =
         { stream in
             let data = stream.availableData
