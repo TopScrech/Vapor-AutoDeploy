@@ -10,10 +10,10 @@ extension Application
     // listen for github  on this route
     func webhook(_ endpoint: PathComponent..., type: WebhookEvent)
     {
-        switch type
-        {
-            case .githubPush: do
-            {
+//        switch type
+//        {
+//            case .githubPush: do
+//            {
                 self.post(endpoint)
                 { request async -> Response in
                     // validate request by verifying github signature header
@@ -25,9 +25,8 @@ extension Application
                     // respond immediately
                     return .accepted
                 }
-            }
-        }
-        
+//            }
+//        }
     }
     
     func handlePushEvent(_ request: Request) async
@@ -59,6 +58,7 @@ extension Application
         pipe.fileHandleForReading.readabilityHandler =
         { stream in
             let data = stream.availableData
+            
             // stop reading when end of file is reached
             if data.isEmpty
             {
