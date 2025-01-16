@@ -22,24 +22,6 @@ struct mottzi
     }
 }
 
-//extension Logger {
-//    // Custom log format including timestamp
-//    func log(level: Logger.Level, message: String) {
-//        let timestamp = DateFormatter.timestampFormatter.string(from: Date())
-//        let logMessage = "[DEBUG] [\(timestamp)] [\(level)] \(message)"
-//        self.log(level: level, "\(logMessage)")
-//    }
-//}
-//
-//extension DateFormatter {
-//    // Formatter for the timestamp (you can customize the format here)
-//    static var timestampFormatter: DateFormatter {
-//        let formatter = DateFormatter()
-//        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-//        return formatter
-//    }
-//}
-
 // Routes
 extension Application
 {

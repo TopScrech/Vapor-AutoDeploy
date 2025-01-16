@@ -69,54 +69,59 @@ extension Application
     // TEST 1234567
     func handlePushEvent(_ request: Request)
     {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
-        process.arguments = ["deploy"]
-        
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = pipe
-        
-        self.log("deploy/github/push.log",
-        """
-        ====================================
-        Attempting to run auto deploy script.......
-        
-        Process:
-          Command: \(String(describing: process.executableURL))
-          Arguments: \(String(describing: process.arguments))
-          Environment: \(String(describing: process.environment?.map{ (key: String, value: String) in "     \(key): \(value)"}))
-          Process ID: \(process.processIdentifier)
-        ====================================\n\n
-        """)
-
-        do
+        func handlePushEvent(_ request: Request)
         {
-            request.logger.log(level: .debug, "A")
-            try process.run()
-            request.logger.log(level: .debug, "B")
-            process.waitUntilExit()
-            request.logger.log(level: .debug, "C")
-            if let data = try pipe.fileHandleForReading.readToEnd()
-            {
-                request.logger.log(level: .debug, "D")
-                let output = String(data: data, encoding: .utf8) ?? ""
-                
-                self.log("deploy/github/push.log",
-                """
-                === [mottzi] Testscript... ===
-                
-                \(output)
-                
-                ======================================\n\n
-                """)
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
+            process.arguments = ["deploy"]
+            
+            let pipe = Pipe()
+            process.standardOutput = pipe
+            process.standardError = pipe
+            
+            // Log the initial message
+            self.log("deploy/github/push.log",
+            """
+            ====================================
+            ::::::::::::::::::::::::::::::::::::
+            Attempting to run auto deploy script
+            ::::::::::::::::::::::::::::::::::::
+            ====================================\n\n
+            """)
+            
+            // Asynchronously read output from the pipe
+            let handleOutput: (Data) -> Void =
+            { data in
+                if let output = String(data: data, encoding: .utf8)
+                {
+                    // Here we can log the output or handle it as needed
+                    self.log("deploy/github/push.log", output)
+                }
             }
-
-        }
-        catch
-        {
-            request.logger.log(level: .debug, "CATCH")
-            self.log("deploy/github/push.log", "Error executing deploy command: \(error)")
+            
+            let outputHandle = pipe.fileHandleForReading
+            outputHandle.readabilityHandler = { fileHandle in
+                let data = fileHandle.availableData
+                if !data.isEmpty {
+                    handleOutput(data)
+                }
+            }
+            
+            do
+            {
+                try process.run()
+            }
+            catch
+            {
+                request.logger.log(level: .debug, "CATCH")
+                self.log("deploy/github/push.log", "Error running deploy process: \(error)")
+            }
+            
+            // Wait until the process finishes
+            process.waitUntilExit()
+            
+            // Once the process finishes, we can remove the readability handler
+            outputHandle.readabilityHandler = nil
         }
     }
     
