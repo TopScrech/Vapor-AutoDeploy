@@ -1,27 +1,33 @@
 import Vapor
 
-// GitHub Webhook
 extension Application
 {
-    // listen for github push events on specified route...
-    func github(_ route: PathComponent...)
+    enum WebhookEvent
     {
-        self.post(route)
-        { request async -> Response in
-            // validate request by verifying github signature header
-            guard self.validateRequest(request) else
+        case githubPush
+    }
+    
+    // listen for github  on this route
+    func webhook(_ endpoint: PathComponent..., type: WebhookEvent)
+    {
+        switch type
+        {
+            case .githubPush: do
             {
-                request.logger.debug("Denied push event!\n Responding with HTTP 400.")
-                return .denied
+                self.post(endpoint)
+                { request async -> Response in
+                    // validate request by verifying github signature header
+                    guard self.validateRequest(request) else { return .denied }
+                    
+                    // handle accepted request
+                    Task.detached { await self.handlePushEvent(request) }
+                    
+                    // respond immediately
+                    return .accepted
+                }
             }
-            
-            // #handle accepted requestt
-            Task.detached { await self.handlePushEvent(request) }
-            
-            // respond immediately to accepted request
-            request.logger.debug("Accepted github push event -> Responding with HTTP 200.\n Background Task deployed...")
-            return .accepted
         }
+        
     }
     
     func handlePushEvent(_ request: Request) async
@@ -48,32 +54,27 @@ extension Application
         ::::::::::::::::::::::::::::::::::::
         ====================================\n\n
         """)
-        
-        request.logger.debug("Attempting to run auto deploy script...")
-        
-        // Set up async readingg
+                
+        // read the output as an async stream
         pipe.fileHandleForReading.readabilityHandler =
         { stream in
-            let chunk = stream.availableData
-            
-            // EOF reached
-            if chunk.isEmpty
+            // stop reading when end of file is reached
+            if stream.availableData.isEmpty
             {
-                // stop reading
                 stream.readabilityHandler = nil
                 return
             }
             
-            if let output = String(data: chunk, encoding: .utf8)
+            // log data chunk to file
+            if let output = String(data: stream.availableData, encoding: .utf8)
             {
-                // Log each chunk of output
                 self.log("deploy/github/push.log", output)
-                request.logger.debug("\(output)")
             }
         }
         
         do
         {
+            // run the process
             try process.run()
         }
         catch
@@ -112,7 +113,7 @@ extension Application
             """
             =====================================================
             :::::::::::::::::::::::::::::::::::::::::::::::::::::
-            Valid push event received [\(Date.now)]
+            Invalid push event received [\(Date.now)]
             :::::::::::::::::::::::::::::::::::::::::::::::::::::
             =====================================================\n\n
             """)

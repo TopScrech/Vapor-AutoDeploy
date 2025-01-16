@@ -28,14 +28,13 @@ extension Application
     // the web server will respond to these following http requests
     func configureRoutes()
     {
-        // this will notify app off github push events
-        self.github("pushevent")
+        // set up github push event webhook handler
+        self.webhook("pushevent", type: .githubPush)
         
         // mottzi.de/text
         self.get("text")
         { req throws in
-            throw Abort(.forbidden, reason: "Error: Trumpwww... ABC... HAHA")
-            return """
+            """
             Version 1
             Joshi stinkt.
             """
