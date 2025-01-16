@@ -27,6 +27,7 @@ extension Application
     func handlePushEvent(_ request: Request) async
     {
         let process = Process()
+        process.currentDirectoryURL = URL(fileURLWithPath: "/var/www/mottzi")
         process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
         process.arguments = ["deploy"]
         
