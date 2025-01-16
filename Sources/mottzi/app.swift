@@ -14,7 +14,7 @@ struct mottzi
         app.configureRoutes()
         
         app.logger.logLevel = .debug
-        app.logger.debug("Startup test message")
+        app.logger.debug("Startup test message 2")
         
         try await app.execute()
         try await app.asyncShutdown()
