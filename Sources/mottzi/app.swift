@@ -34,7 +34,7 @@ extension Application
         // mottzi.de/text
         self.get("text")
         { req throws in
-            throw Abort(.forbidden, reason: "Error: WWW... ABC... HAHA")
+            throw Abort(.forbidden, reason: "Error: WWWHTTP... ABC... HAHA")
             return """
             Version 1
             Joshi stinkt.
