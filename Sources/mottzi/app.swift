@@ -32,8 +32,8 @@ extension Application
         self.get("text")
         { req throws in
             """
-            ALTE VERSION
-            > Bitte updaten.
+            NEU
+            > Danke.
             """
         }
 
