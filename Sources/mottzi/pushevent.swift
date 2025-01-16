@@ -31,9 +31,8 @@ extension Application
         process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
         process.arguments = ["deploy"]
         
-        // Set environment variables
         var environment = ProcessInfo.processInfo.environment
-        environment["HOME"] = "/var/www/mottzi"  // Set HOME to project directory
+        environment["HOME"] = "/var/www/mottzi"
         process.environment = environment
         
         let pipe = Pipe()
@@ -76,17 +75,6 @@ extension Application
         do
         {
             try process.run()
-            process.waitUntilExit()
-            
-            // Log completion
-            self.log("deploy/github/push.log",
-            """
-            \n================================
-            ::::::::::::::::::::::::::::::::
-            Deployment process completed [\(process.terminationStatus)]
-            ::::::::::::::::::::::::::::::::
-            ================================\n\n
-            """)
         }
         catch
         {
