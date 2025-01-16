@@ -75,7 +75,7 @@ extension Application
             // Log completion
             self.log("deploy/github/push.log",
             """
-            ================================
+            \n================================
             ::::::::::::::::::::::::::::::::
             Deployment process completed [\(process.terminationStatus)]
             ::::::::::::::::::::::::::::::::
