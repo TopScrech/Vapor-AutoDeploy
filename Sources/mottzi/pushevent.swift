@@ -92,11 +92,14 @@ extension Application
 
         do
         {
+            request.logger.log(level: .debug, "A")
             try process.run()
+            request.logger.log(level: .debug, "B")
             process.waitUntilExit()
-
+            request.logger.log(level: .debug, "C")
             if let data = try pipe.fileHandleForReading.readToEnd()
             {
+                request.logger.log(level: .debug, "D")
                 let output = String(data: data, encoding: .utf8) ?? ""
                 
                 self.log("deploy/github/push.log",
@@ -112,6 +115,7 @@ extension Application
         }
         catch
         {
+            request.logger.log(level: .debug, "CATCH")
             self.log("deploy/github/push.log", "Error executing deploy command: \(error)")
         }
     }
