@@ -3,7 +3,7 @@ import Vapor
 // GitHub Webhook
 extension Application
 {
-    // listen for github push events on specified route
+    // listen for github push events on specified route...
     func github(_ route: PathComponent...)
     {
         self.post(route)
