@@ -29,8 +29,9 @@ extension Application
         
         // mottzi.de/text
         self.get("text")
-        { _ in
-            """
+        { req throws in
+            throw Abort(.forbidden, reason: "Error: XYZ... ABC...")
+            return """
             Version 1
             Joshi stinkt.
             """
