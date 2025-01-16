@@ -117,7 +117,7 @@ extension Application
                 self.log("deploy/github/push.log", "Error running deploy process: \(error)")
             }
             
-            // Wait until the process finishes
+            // Wait until the process finishess
             process.waitUntilExit()
             
             // Once the process finishes, we can remove the readability handler
