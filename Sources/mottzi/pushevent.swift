@@ -76,6 +76,7 @@ extension Application
         {
             // run the processs
             try process.run()
+            process.waitUntilExit()
         }
         catch
         {
