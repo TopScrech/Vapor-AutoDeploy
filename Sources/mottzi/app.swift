@@ -14,7 +14,7 @@ struct mottzi
         app.configureRoutes()
         
         app.logger.logLevel = .debug
-        app.logger.debug("Startup test message 2")
+        app.logger.debug("Startup test message 3")
         
         try await app.execute()
         try await app.asyncShutdown()
@@ -33,7 +33,7 @@ extension Application
         // mottzi.de/text
         self.get("text")
         { req throws in
-            throw Abort(.forbidden, reason: "Error: 1.0... ABC... HAHA")
+            throw Abort(.forbidden, reason: "Error: 3.0... ABC... HAHA")
             return """
             Version 1
             Joshi stinkt.
