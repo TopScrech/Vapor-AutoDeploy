@@ -32,7 +32,7 @@ extension Application
         self.get("text")
         { req throws in
             """
-            Version 2
+            Version 3
             Joshi stinkt.
             """
         }
