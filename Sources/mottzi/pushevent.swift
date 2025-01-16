@@ -8,16 +8,92 @@ extension Application
     {
         self.post(route)
         { request async -> Response in
-            // verify github signature
-            guard self.validateRequest(request) else { return .denied }
-            // react to push event
-            Task.detached
+            // validate request by verifying github signature header
+            guard self.validateRequest(request) else
             {
-                self.handlePushEvent(request)
+                request.logger.debug("Denied push event!\n Responding with HTTP 400.")
+                return .denied
             }
-           
-            // success http response
-            return .success
+            
+            // #handle accepted request
+            Task.detached { await self.handlePushEvent(request) }
+            
+            // respond immediately to accepted request
+            request.logger.debug("Accepted github push event -> Responding with HTTP 200.\n Background Task deployed...")
+            return .accepted
+        }
+    }
+    
+    func handlePushEvent(_ request: Request) async
+    {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/deploytest")
+        process.arguments = ["deploy"]
+        
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        
+        // log the initial message
+        self.log("deploy/github/push.log",
+        """
+        ====================================
+        ::::::::::::::::::::::::::::::::::::
+        Attempting to run auto deploy script
+        ::::::::::::::::::::::::::::::::::::
+        ====================================\n\n
+        """)
+        
+        request.logger.debug("Attempting to run auto deploy script...")
+        
+        // Set up async reading
+        pipe.fileHandleForReading.readabilityHandler =
+        { stream in
+            let chunk = stream.availableData
+            
+            // EOF reached
+            if chunk.isEmpty
+            {
+                // stop reading
+                stream.readabilityHandler = nil
+                return
+            }
+            
+            if let output = String(data: chunk, encoding: .utf8)
+            {
+                // Log each chunk of output
+                self.log("deploy/github/push.log", output)
+                request.logger.debug("\(output)")
+            }
+        }
+        
+        do
+        {
+            try process.run()
+            process.waitUntilExit()
+            
+            // Log completion
+            self.log("deploy/github/push.log",
+            """
+            \n====================================
+            ::::::::::::::::::::::::::::::::::::
+            Deployment process completed
+            Exit code: \(process.terminationStatus)
+            ::::::::::::::::::::::::::::::::::::
+            ====================================\n
+            """)
+        }
+        catch
+        {
+            self.log("deploy/github/push.log",
+            """
+            \n====================================
+            ::::::::::::::::::::::::::::::::::::
+            Deployment process failed
+            Error: \(error.localizedDescription)
+            ::::::::::::::::::::::::::::::::::::
+            ====================================\n
+            """)
         }
     }
     
@@ -66,65 +142,6 @@ extension Application
         }
     }
     
-    // TEST 1234567
-    func handlePushEvent(_ request: Request)
-    {
-        func handlePushEvent(_ request: Request)
-        {
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
-            process.arguments = ["deploy"]
-            
-            let pipe = Pipe()
-            process.standardOutput = pipe
-            process.standardError = pipe
-            
-            // Log the initial message
-            self.log("deploy/github/push.log",
-            """
-            ====================================
-            ::::::::::::::::::::::::::::::::::::
-            Attempting to run auto deploy script
-            ::::::::::::::::::::::::::::::::::::
-            ====================================\n\n
-            """)
-            
-            // Asynchronously read output from the pipe
-            let handleOutput: (Data) -> Void =
-            { data in
-                if let output = String(data: data, encoding: .utf8)
-                {
-                    // Here we can log the output or handle it as needed
-                    self.log("deploy/github/push.log", output)
-                }
-            }
-            
-            let outputHandle = pipe.fileHandleForReading
-            outputHandle.readabilityHandler = { fileHandle in
-                let data = fileHandle.availableData
-                if !data.isEmpty {
-                    handleOutput(data)
-                }
-            }
-            
-            do
-            {
-                try process.run()
-            }
-            catch
-            {
-                request.logger.log(level: .debug, "CATCH")
-                self.log("deploy/github/push.log", "Error running deploy process: \(error)")
-            }
-            
-            // Wait until the process finishess
-            process.waitUntilExit()
-            
-            // Once the process finishes, we can remove the readability handler
-            outputHandle.readabilityHandler = nil
-        }
-    }
-    
     // appends content at the end of file
     func log(_ filePath: String, _ content: String)
     {
@@ -133,7 +150,7 @@ extension Application
             FileManager.default.createFile(atPath: filePath, contents: nil, attributes: nil)
         }
 
-        // prepare log filee
+        // prepare log file
         guard let file = try? FileHandle(forWritingTo: URL(fileURLWithPath: filePath)) else { return }
         guard (try? file.seekToEnd()) != nil else { return }
         guard let data = content.data(using: .utf8) else { return }
@@ -142,6 +159,13 @@ extension Application
         file.write(data)
         file.closeFile()
     }
+}
+
+// GitHub Webhook
+extension Response
+{
+    static let accepted = Response(status: .ok, body: .init(stringLiteral: "[mottzi] Push event request accepted."))
+    static let denied = Response(status: .forbidden, body: .init(stringLiteral: "[mottzi] Push event request denied."))
 }
 
 // GitHub Webhook
@@ -185,13 +209,6 @@ extension Request
         
         return valid
     }
-}
-
-// GitHub Webhook
-extension Response
-{
-    static let success = Response(status: .ok, body: .init(stringLiteral: "[mottzi] push-event request: valid"))
-    static let denied = Response(status: .forbidden, body: .init(stringLiteral: "[mottzi] push-event request: invalid"))
 }
 
 // GitHub Webhook
