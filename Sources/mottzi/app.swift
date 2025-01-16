@@ -13,11 +13,36 @@ struct mottzi
         app.views.use(.leaf)
         app.configureRoutes()
         
+        app.logger = Logger(label: "com.example.timestampedLogger") { label in
+            return StreamLogHandler.standardOutput(label: label)
+        }
+        
+        // Set custom log formatter for timestamp
         app.logger.logLevel = .debug
-        app.logger.debug("Startup test message 3")
+        
+        // Log a "Startup test message" with timestamp
+        app.logger.logWithTimestamp(level: .debug, message: "Startup test message 9")
         
         try await app.execute()
         try await app.asyncShutdown()
+    }
+}
+
+extension Logger {
+    // Custom log format including timestamp
+    func logWithTimestamp(level: Logger.Level, message: String) {
+        let timestamp = DateFormatter.timestampFormatter.string(from: Date())
+        let logMessage = "[\(timestamp)] [\(level)] \(message)"
+        self.log(level: level, "\(logMessage)")
+    }
+}
+
+extension DateFormatter {
+    // Formatter for the timestamp (you can customize the format here)
+    static var timestampFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return formatter
     }
 }
 
