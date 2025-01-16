@@ -30,7 +30,7 @@ extension Application
         // mottzi.de/text
         self.get("text")
         { req throws in
-            throw Abort(.forbidden, reason: "Error: XYZ... ABC...")
+            throw Abort(.forbidden, reason: "Error: XYZ... ABC... HAHA")
             return """
             Version 1
             Joshi stinkt.
@@ -40,7 +40,8 @@ extension Application
         // mottzi.de/dynamic/world
         self.get("dynamic", ":property")
         { request async in
-            "Hello, \(request.parameters.get("property")!)!"
+            request.logger.error("TestError here")
+            return "Hello, \(request.parameters.get("property")!)!"
         }
         
         // mottzi.de/infile
