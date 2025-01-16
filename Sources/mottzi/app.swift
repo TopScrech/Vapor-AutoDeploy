@@ -13,10 +13,6 @@ struct mottzi
         app.views.use(.leaf)
         app.configureRoutes()
         
-        // Set custom log formatter for timestamp
-        app.logger.logLevel = .debug
-        app.logger.log(level: .debug, "Startup test message 1.")
-        
         try await app.execute()
         try await app.asyncShutdown()
     }
