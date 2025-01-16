@@ -15,7 +15,7 @@ extension Application
                 return .denied
             }
             
-            // #handle accepted request
+            // #handle accepted requestt
             Task.detached { await self.handlePushEvent(request) }
             
             // respond immediately to accepted request
