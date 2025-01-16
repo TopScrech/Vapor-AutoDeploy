@@ -75,24 +75,23 @@ extension Application
             // Log completion
             self.log("deploy/github/push.log",
             """
-            \n====================================
-            ::::::::::::::::::::::::::::::::::::
-            Deployment process completed
-            Exit code: \(process.terminationStatus)
-            ::::::::::::::::::::::::::::::::::::
-            ====================================\n
+            ================================
+            ::::::::::::::::::::::::::::::::
+            Deployment process completed [\(process.terminationStatus)]
+            ::::::::::::::::::::::::::::::::
+            ================================\n\n
             """)
         }
         catch
         {
             self.log("deploy/github/push.log",
             """
-            \n====================================
-            ::::::::::::::::::::::::::::::::::::
+            \n=======================
+            :::::::::::::::::::::::::
             Deployment process failed
             Error: \(error.localizedDescription)
-            ::::::::::::::::::::::::::::::::::::
-            ====================================\n
+            :::::::::::::::::::::::::
+            =========================\n\n
             """)
         }
     }
@@ -104,27 +103,11 @@ extension Application
         {
             self.log("deploy/github/push.log",
             """
-            === [mottzi] Valid github event received at \(Date()) ===
-            
-            Request:
-              Method: \(request.method.rawValue)
-              URL: \(request.url.description)
-            
-            Headers:
-            \(request.headers.map { "  \($0): \($1)" }.joined(separator: "\n"))
-            
-            Payload:
-            \(request.body.string?.readable ?? "{}")
-            
-            Process:
-              Arguments: \(ProcessInfo.processInfo.arguments)
-              Environment: 
-              \(ProcessInfo.processInfo.environment.map {"        \($0): \($1)"}.sorted().joined(separator: "\n"))
-              Process Name: \(ProcessInfo.processInfo.processName)
-              Process ID: \(getpid())
-              Parent Process ID: \(getppid())
-            
-            =====================================\n\n
+            =====================================================
+            :::::::::::::::::::::::::::::::::::::::::::::::::::::
+            Valid push event received [\(Date.now)]
+            :::::::::::::::::::::::::::::::::::::::::::::::::::::
+            =====================================================\n\n
             """)
             
             return true
@@ -133,9 +116,11 @@ extension Application
         {
             self.log("deploy/github/push.log",
             """
-            === [mottzi] >>> Invalid github event received <<< at \(Date()) ===
-                        
-            ==================================================================\n\n
+            =====================================================
+            :::::::::::::::::::::::::::::::::::::::::::::::::::::
+            Valid push event received [\(Date.now)]
+            :::::::::::::::::::::::::::::::::::::::::::::::::::::
+            =====================================================\n\n
             """)
             
             return false
