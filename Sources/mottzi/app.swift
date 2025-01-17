@@ -21,7 +21,7 @@ struct mottzi
 // Routes
 extension Application
 {
-    // the web server will respond to these following http requests
+    // the web server will respond to the following http routes
     func configureRoutes()
     {
         // github webhook push event route
@@ -34,8 +34,8 @@ extension Application
         self.get("text")
         { request in
             """
-            FDPasdasdsdfsdfsdfsfsdfsdf
-            oöp
+            Test version 1.0
+            THX
             """
         }
 
