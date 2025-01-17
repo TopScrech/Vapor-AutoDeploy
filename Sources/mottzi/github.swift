@@ -1,98 +1,28 @@
 import Vapor
 
+enum GitHubEvent
+{
+    case push
+}
+
 extension Application
 {
-    enum WebhookEvent
-    {
-        case githubPush
-    }
-    
     // listen for github  on this route
-    func webhook(_ endpoint: PathComponent..., type: WebhookEvent)
+    func github(_ endpoint: PathComponent..., event: GitHubEvent, handle closure: @escaping @Sendable (Request) async -> Void)
     {
-        switch type
-        {
-            case .githubPush: do
-            {
-                self.post(endpoint)
-                { request async -> Response in
-                    // validate request by verifying github signature header
-                    guard self.validateRequest(request) else { return .denied }
-                    
-                    // handle accepted request
-                    Task.detached { await self.handlePushEvent(request) }
-                    
-                    // respond immediately
-                    return .accepted
-                }
-            }
+        self.post(endpoint)
+        { request async -> Response in
+            // validate request by verifying github signature header
+            guard self.validateRequest(request) else { return .denied }
+            
+            // Handle accepted request with custom action
+            Task.detached { await closure(request) }
+            
+            // Respond immediately
+            return .accepted
         }
     }
     
-    // working
-    func handlePushEvent(_ request: Request) async
-    {
-        let process = Process()
-        process.currentDirectoryURL = URL(fileURLWithPath: "/var/www/mottzi")
-        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
-        process.arguments = ["deploy"]
-        
-        var environment = ProcessInfo.processInfo.environment
-        environment["HOME"] = "/var/www/mottzi"
-        process.environment = environment
-        
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = pipe
-        
-        // log the initial messagee
-        self.log("deploy/github/push.log",
-        """
-        ====================================
-        ::::::::::::::::::::::::::::::::::::
-        Attempting to run auto deploy script
-        ::::::::::::::::::::::::::::::::::::
-        ====================================\n\n
-        """)
-                
-        // read the output as an async stream
-        pipe.fileHandleForReading.readabilityHandler =
-        { stream in
-            // load chunk of output data
-            let data = stream.availableData
-            
-            // stop reading when end of file is reached
-            if data.isEmpty
-            {
-                stream.readabilityHandler = nil
-                return
-            }
-            
-            // log data chunk to file
-            if let chunk = String(data: data, encoding: .utf8)
-            {
-                self.log("deploy/github/push.log", chunk)
-            }
-        }
-        
-        do
-        {
-            // run the processs
-            try process.run()
-        }
-        catch
-        {
-            self.log("deploy/github/push.log",
-            """
-            \n=======================
-            :::::::::::::::::::::::::
-            Deployment process failed
-            Error: \(error.localizedDescription)
-            :::::::::::::::::::::::::
-            =========================\n\n
-            """)
-        }
-    }
     
     // verify that the request has a valid github signature
     func validateRequest(_ request: Request) -> Bool
