@@ -174,8 +174,7 @@ extension GitHubEvent.EventType
             """
                 Commit: \(payload.headCommit.id)
                 Author: \(payload.headCommit.author.name)
-                Message: \(payload.headCommit.message)
-            
+                Message: \(payload.headCommit.message)\n\n
             """
         
         guard !payload.headCommit.modified.isEmpty else { return log }
@@ -183,7 +182,6 @@ extension GitHubEvent.EventType
         
         log +=
             """
-            
                 Changed (\(payload.headCommit.modified.count)): 
                     - \(payload.headCommit.modified.joined(separator: ",\n        - "))"
             """
