@@ -94,14 +94,7 @@ extension Application
         process.standardError = pipe
         
         // log the initial message
-        log("deploy/github/push.log",
-        """
-        ====================================
-        ::::::::::::::::::::::::::::::::::::
-        Attempting to run auto deploy script
-        ::::::::::::::::::::::::::::::::::::
-        ====================================\n\n
-        """)
+        log("deploy/github/push.log", "Auto deploy:\n\n")
         
         // read the output as an async stream
         pipe.fileHandleForReading.readabilityHandler =
