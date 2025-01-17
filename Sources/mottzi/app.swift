@@ -35,7 +35,7 @@ extension Application
         self.get("text")
         { req throws in
             """
-            Speck
+            Speckgürtel
             oöp
             """
         }
