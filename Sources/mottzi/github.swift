@@ -82,7 +82,7 @@ extension Application
 
 extension String
 {
-    // needed for signature verification
+    // needed for signature verification dd
     var hexadecimal: Data?
     {
         var data = Data(capacity: count / 2)
