@@ -175,6 +175,7 @@ extension GitHubEvent.EventType
                 Commit: \(payload.headCommit.id)
                 Author: \(payload.headCommit.author.name)
                 Message: \(payload.headCommit.message)
+            
             """
         
         guard !payload.headCommit.modified.isEmpty else { return log }
