@@ -4,43 +4,6 @@ struct GitHubEvent
 {
     let app: Application
     let type: EventType
-    
-    enum EventType: String
-    {
-        case push
-        
-        func formatLog(_ request: Request) -> String?
-        {
-            switch self
-            {
-                case .push: formatPushLog(request)
-            }
-        }
-        
-        private func formatPushLog(_ request: Request) -> String?
-        {
-            let decoder = JSONDecoder()
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
-            
-            guard let bodyString = request.body.string,
-                  let jsonData = bodyString.data(using: .utf8),
-                  let payload = try? decoder.decode(GitHubEvent.Payload.self, from: jsonData)
-            else { return nil }
-            
-            let log =
-            [
-                "    Commit: \(payload.headCommit.id)",
-                "    Author: \(payload.headCommit.author.name)",
-                "    Message: \(payload.headCommit.message)",
-                "",
-                !payload.headCommit.modified.isEmpty ? "    Changed (\(payload.headCommit.modified.count)): \n    - \(payload.headCommit.modified.joined(separator: ",\n    - "))" : nil,
-            ]
-            .compactMap { $0 }
-            .joined(separator: "\n")
-            
-            return log
-        }
-    }
 
     func listen(to endpoint: [PathComponent], action closure: @Sendable @escaping (Request) async -> Void)
     {
@@ -49,59 +12,20 @@ struct GitHubEvent
         
         app.post(endpoint)
         { request async -> Response in
-            // validate request by verifying github signature header
-            guard self.validateRequest(request) else { return denied }
+            // validate request by verifying github signature
+            let validRequest = self.validateSignature(of: request)
+            
+            // log initial request log based on validity
+            self.type.logRequest(request, valid: validRequest, type: type)
+            
+            // deny request if invalid signature
+            guard validRequest else { return denied }
             
             // Handle accepted request with custom action
             Task.detached { await closure(request) }
             
             // Respond immediately
             return accepted
-        }
-    }
-    
-    // verify that the request has a valid github signature
-    private func validateRequest(_ request: Request) -> Bool
-    {
-        if validateSignature(of: request)
-        {
-            var logContent =
-            """
-            =====================================================
-            :::::::::::::::::::::::::::::::::::::::::::::::::::::
-            Valid \(type.rawValue) event received [\(Date.now)]
-            """
-            
-            if let commitContent = GitHubEvent.EventType.push.formatLog(request)
-            {
-                logContent += "\n\n\(commitContent)\n\n"
-            }
-            else
-            {
-                request.logger.error("Failed to format commit log details")
-            }
-            
-            logContent +=
-            """
-            :::::::::::::::::::::::::::::::::::::::::::::::::::::
-            =====================================================\n\n
-            """
-            
-            log("deploy/github/push.log", logContent)
-            return true
-        }
-        else
-        {
-            log("deploy/github/push.log",
-            """
-            =====================================================
-            :::::::::::::::::::::::::::::::::::::::::::::::::::::
-            Invalid \(type.rawValue) event received [\(Date.now)]
-            :::::::::::::::::::::::::::::::::::::::::::::::::::::
-            =====================================================\n\n
-            """)
-            
-            return false
         }
     }
     
@@ -175,8 +99,105 @@ extension String
     }
 }
 
+extension GitHubEvent.EventType
+{
+    func logRequest(_ request: Request, valid: Bool, type: Self)
+    {
+        var logContent = ""
+        
+        if valid
+        {
+            // valid + details
+            if let details = type.detailsLogMessage(request)
+            {
+                logContent =
+                """
+                =====================================================
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::
+                Valid \(type.rawValue) event received [\(Date.now)]
+                    
+                \(details)
+                
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::
+                =====================================================\n\n
+                """
+            }
+            // valid - details
+            else
+            {
+                logContent =
+                """
+                =====================================================
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::
+                Valid \(type.rawValue) event received [\(Date.now)]
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::
+                =====================================================\n\n
+                """
+            }
+        }
+        // invalid
+        else
+        {
+            logContent =
+            """
+            =====================================================
+            :::::::::::::::::::::::::::::::::::::::::::::::::::::
+            Invalid \(type.rawValue) event received [\(Date.now)]
+            :::::::::::::::::::::::::::::::::::::::::::::::::::::
+            =====================================================\n\n
+            """
+        }
+        
+        log("deploy/github/\(type.rawValue).log", logContent)
+    }
+    
+    func detailsLogMessage(_ request: Request) -> String?
+    {
+        switch self
+        {
+            case .push: detailsLogMessagePush(request)
+            default: nil
+        }
+    }
+    
+    private func detailsLogMessagePush(_ request: Request) -> String?
+    {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        
+        guard let bodyString = request.body.string,
+              let jsonData = bodyString.data(using: .utf8),
+              let payload = try? decoder.decode(GitHubEvent.Payload.self, from: jsonData)
+        else { return nil }
+        
+        var log =
+            """
+                Commit: \(payload.headCommit.id)
+                Author: \(payload.headCommit.author.name)
+                Message: \(payload.headCommit.message)
+            """
+        
+        guard !payload.headCommit.modified.isEmpty else { return log }
+        
+        log +=
+            """
+            
+                Changed (\(payload.headCommit.modified.count)): 
+                    - \(payload.headCommit.modified.joined(separator: ",\n    - "))"
+            """
+        
+        return log
+    }
+}
+
 extension GitHubEvent
 {
+    enum EventType: String
+    {
+        case push
+        case test
+    }
+    
     struct Payload: Codable
     {
         let headCommit: Commit
@@ -187,14 +208,11 @@ extension GitHubEvent
             let author: Author
             let message: String
             let modified: [String]
-            let added: [String]
-            let removed: [String]
-        }
-        
-        struct Author: Codable
-        {
-            let name: String
-            let email: String
+            
+            struct Author: Codable
+            {
+                let name: String
+            }
         }
     }
 }
