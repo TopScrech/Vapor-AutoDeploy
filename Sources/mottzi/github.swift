@@ -34,8 +34,9 @@ struct GitHubEvent
                 !payload.headCommit.modified.isEmpty ? "Changed (\(payload.headCommit.modified.count)): \(payload.headCommit.modified.joined(separator: ", "))" : nil,
                 !payload.headCommit.added.isEmpty ? "Added (\(payload.headCommit.added.count)): \(payload.headCommit.added.joined(separator: ", "))" : nil,
                 !payload.headCommit.removed.isEmpty ? "Removed (\(payload.headCommit.removed.count)): \(payload.headCommit.removed.joined(separator: ", "))" : nil,
-                "Commit URL: \(payload.headCommit.url)",
-                "Compare-Link: \(payload.compare)",
+                "",
+                "Commit: \(payload.headCommit.url)",
+                "Compare: \(payload.compare)",
             ]
             .compactMap { $0 }
             .joined(separator: "\n")
