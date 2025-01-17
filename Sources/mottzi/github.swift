@@ -95,7 +95,7 @@ struct GitHubEvent
             using: SymmetricKey(data: secretData)
         )
         
-        request.logger.debug("\(valid ? "Valid" : "Invalid") payload received: \n\n\(payload)")
+        request.logger.info("\(valid ? "Valid" : "Invalid") payload received: \n\n\(payload)")
 
         return valid
     }
