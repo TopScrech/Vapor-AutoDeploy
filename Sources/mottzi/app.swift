@@ -26,14 +26,14 @@ extension Application
     func configureRoutes()
     {
         // set up github push event webhook handler
-        self.github("pushevent", event: .push)
+        self.github("pushevent")
         { request async in
             await self.handlePushEvent(request)
         }
                 
         // mottzi.de/text
         self.get("text")
-        { req throws in
+        { request in
             """
             Speckgürtel
             oöp
@@ -75,7 +75,10 @@ extension Application
             return response
         }
     }
-    
+}
+
+extension Application
+{
     func handlePushEvent(_ request: Request) async
     {
         let process = Process()
@@ -92,7 +95,7 @@ extension Application
         process.standardError = pipe
         
         // log the initial messagee
-        self.log("deploy/github/push.log",
+        log("deploy/github/push.log",
         """
         ====================================
         ::::::::::::::::::::::::::::::::::::
@@ -117,7 +120,7 @@ extension Application
             // log data chunk to file
             if let chunk = String(data: data, encoding: .utf8)
             {
-                self.log("deploy/github/push.log", chunk)
+                log("deploy/github/push.log", chunk)
             }
         }
         
@@ -128,7 +131,7 @@ extension Application
         }
         catch
         {
-            self.log("deploy/github/push.log",
+            log("deploy/github/push.log",
             """
             \n=======================
             :::::::::::::::::::::::::

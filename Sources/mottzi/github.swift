@@ -1,5 +1,6 @@
 import Vapor
 
+
 enum GitHubEvent
 {
     case push
@@ -7,8 +8,8 @@ enum GitHubEvent
 
 extension Application
 {
-    // listen for github  on this route
-    func github(_ endpoint: PathComponent..., event: GitHubEvent, handle closure: @escaping @Sendable (Request) async -> Void)
+    // adds github webhook event listener
+    func github(_ endpoint: PathComponent..., action closure: @escaping @Sendable (Request) async -> Void)
     {
         self.post(endpoint)
         { request async -> Response in
@@ -23,13 +24,12 @@ extension Application
         }
     }
     
-    
     // verify that the request has a valid github signature
     func validateRequest(_ request: Request) -> Bool
     {
         if request.validateSignature()
         {
-            self.log("deploy/github/push.log",
+            log("deploy/github/push.log",
             """
             =====================================================
             :::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -42,7 +42,7 @@ extension Application
         }
         else
         {
-            self.log("deploy/github/push.log",
+            log("deploy/github/push.log",
             """
             =====================================================
             :::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -53,24 +53,6 @@ extension Application
             
             return false
         }
-    }
-    
-    // appends content at the end of file
-    func log(_ filePath: String, _ content: String)
-    {
-        // create log file if it does not exist
-        if !FileManager.default.fileExists(atPath: filePath) {
-            FileManager.default.createFile(atPath: filePath, contents: nil, attributes: nil)
-        }
-
-        // prepare log file
-        guard let file = try? FileHandle(forWritingTo: URL(fileURLWithPath: filePath)) else { return }
-        guard (try? file.seekToEnd()) != nil else { return }
-        guard let data = content.data(using: .utf8) else { return }
-        
-        // append content
-        file.write(data)
-        file.closeFile()
     }
 }
 
@@ -156,4 +138,22 @@ extension String
         
         return data
     }
+}
+
+// appends content at the end of file
+func log(_ filePath: String, _ content: String)
+{
+    // create log file if it does not exist
+    if !FileManager.default.fileExists(atPath: filePath) {
+        FileManager.default.createFile(atPath: filePath, contents: nil, attributes: nil)
+    }
+    
+    // prepare log file
+    guard let file = try? FileHandle(forWritingTo: URL(fileURLWithPath: filePath)) else { return }
+    guard (try? file.seekToEnd()) != nil else { return }
+    guard let data = content.data(using: .utf8) else { return }
+    
+    // append content
+    file.write(data)
+    file.closeFile()
 }
