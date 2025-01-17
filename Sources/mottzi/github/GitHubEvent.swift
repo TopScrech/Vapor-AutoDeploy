@@ -2,7 +2,7 @@ import Vapor
 
 extension Application
 {
-    // convenience function for use in application context
+    // convenience function for use in application context lol
     func github(_ endpoint: PathComponent..., type: GitHubEvent.EventType, action closure: @Sendable @escaping (Request) async -> Void)
     {
         GitHubEvent(app: self, type: type).listen(to: endpoint, action: closure)

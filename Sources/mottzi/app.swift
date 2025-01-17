@@ -18,7 +18,7 @@ struct mottzi
     }
 }
 
-// Routes
+// Routes lol
 extension Application
 {
     // the web server will respond to the following http routes

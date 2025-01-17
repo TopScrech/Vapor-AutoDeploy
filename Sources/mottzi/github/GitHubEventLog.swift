@@ -102,7 +102,7 @@ extension GitHubEvent
     }
 }
 
-// appends content at the end of file
+// appends content at the end of file lol
 func log(_ filePath: String, _ content: String)
 {
     // vapor logger

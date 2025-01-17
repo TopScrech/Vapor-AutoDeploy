@@ -2,7 +2,7 @@ import Foundation
 
 extension String
 {
-    // needed for signature verification
+    // needed for signature verification lol
     var hexadecimal: Data?
     {
         var data = Data(capacity: count / 2)
