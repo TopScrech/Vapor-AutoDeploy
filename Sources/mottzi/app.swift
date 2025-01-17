@@ -26,7 +26,7 @@ extension Application
     func configureRoutes()
     {
         // github webhook push event route
-        self.github("pushevent")
+        self.github("pushevent", type: .push)
         { request async in
             await self.handlePushEvent(request)
         }

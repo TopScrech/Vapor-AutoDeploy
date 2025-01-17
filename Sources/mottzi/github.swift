@@ -1,33 +1,43 @@
 import Vapor
 
-extension Application
+struct GitHubEvent
 {
-    // adds github webhook event listener
-    func github(_ endpoint: PathComponent..., action closure: @escaping @Sendable (Request) async -> Void)
+    let app: Application
+    let type: EventType
+    
+    enum EventType: String
     {
-        self.post(endpoint)
+        case push
+    }
+    
+    func listen(to endpoint: [PathComponent], action closure: @Sendable @escaping (Request) async -> Void)
+    {
+        let accepted = Response(status: .ok, body: .init(stringLiteral: "[mottzi] \(type.rawValue.capitalized) event request accepted."))
+        let denied = Response(status: .forbidden, body: .init(stringLiteral: "[mottzi] \(type.rawValue.capitalized) event request denied."))
+        
+        app.post(endpoint)
         { request async -> Response in
             // validate request by verifying github signature header
-            guard self.validateRequest(request) else { return .denied }
+            guard self.validateRequest(request) else { return denied }
             
             // Handle accepted request with custom action
             Task.detached { await closure(request) }
             
             // Respond immediately
-            return .accepted
+            return accepted
         }
     }
     
     // verify that the request has a valid github signature
     func validateRequest(_ request: Request) -> Bool
     {
-        if request.validateSignature()
+        if validateSignature(of: request)
         {
             log("deploy/github/push.log",
             """
             =====================================================
-            :::::::::::::::::::::::::::::::::::::::::::::::::::::
-            Valid push event received [\(Date.now)]
+            ::::::::::::::::::::::::::::::::::::::::::::::::::::
+            Valid \(type.rawValue) event received [\(Date.now)]
             :::::::::::::::::::::::::::::::::::::::::::::::::::::
             =====================================================\n\n
             """)
@@ -40,7 +50,7 @@ extension Application
             """
             =====================================================
             :::::::::::::::::::::::::::::::::::::::::::::::::::::
-            Invalid push event received [\(Date.now)]
+            Invalid \(type.rawValue) event received [\(Date.now)]
             :::::::::::::::::::::::::::::::::::::::::::::::::::::
             =====================================================\n\n
             """)
@@ -48,26 +58,15 @@ extension Application
             return false
         }
     }
-}
-
-// GitHub Webhook
-extension Response
-{
-    static let accepted = Response(status: .ok, body: .init(stringLiteral: "[mottzi] Push event request accepted."))
-    static let denied = Response(status: .forbidden, body: .init(stringLiteral: "[mottzi] Push event request denied."))
-}
-
-// GitHub Webhook
-extension Request
-{
+    
     // verify that the request has a valid github signature
-    func validateSignature() -> Bool
+    func validateSignature(of request: Request) -> Bool
     {
         // hard coded secret *** SECURITY RISK ***
         let secret = "4133Pratteln"
         
         // get signature
-        guard let signatureHeader = headers.first(name: "X-Hub-Signature-256") else { return false }
+        guard let signatureHeader = request.headers.first(name: "X-Hub-Signature-256") else { return false }
         
         // ensure signature starts with "sha256="
         guard signatureHeader.hasPrefix("sha256=") else { return false }
@@ -76,7 +75,7 @@ extension Request
         let signatureHex = String(signatureHeader.dropFirst("sha256=".count))
         
         // get raw request body
-        guard let payload = self.body.string else { return false }
+        guard let payload = request.body.string else { return false }
         
         // encode local secret and received payload
         guard let payloadData = payload.data(using: .utf8),
@@ -100,23 +99,17 @@ extension Request
     }
 }
 
-// GitHub Webhook
+extension Application
+{
+    // convenience function for use in application context
+    func github(_ endpoint: PathComponent..., type: GitHubEvent.EventType, action closure: @Sendable @escaping (Request) async -> Void)
+    {
+        GitHubEvent(app: self, type: type).listen(to: endpoint, action: closure)
+    }
+}
+
 extension String
 {
-    // tries to beautify json blobs
-    var readable: String
-    {
-        if let jsonData = self.data(using: .utf8),
-           let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
-           let prettyJsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted]),
-           let formattedString = String(data: prettyJsonData, encoding: .utf8)
-        {
-            return formattedString
-        }
-        
-        return self
-    }
-    
     // needed for signature verification
     var hexadecimal: Data?
     {
@@ -132,22 +125,4 @@ extension String
         
         return data
     }
-}
-
-// appends content at the end of file
-func log(_ filePath: String, _ content: String)
-{
-    // create log file if it does not exist
-    if !FileManager.default.fileExists(atPath: filePath) {
-        FileManager.default.createFile(atPath: filePath, contents: nil, attributes: nil)
-    }
-    
-    // prepare log file
-    guard let file = try? FileHandle(forWritingTo: URL(fileURLWithPath: filePath)) else { return }
-    guard (try? file.seekToEnd()) != nil else { return }
-    guard let data = content.data(using: .utf8) else { return }
-    
-    // append content
-    file.write(data)
-    file.closeFile()
 }
