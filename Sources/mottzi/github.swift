@@ -29,16 +29,11 @@ struct GitHubEvent
             
             let log =
             [
-                "Commit Details:",
-                "----------------",
-                "",
-                "Author: \(payload.headCommit.author)",
+                "Author: \(payload.headCommit.author.name)",
                 "Message: \(payload.headCommit.message)",
-                "",
                 !payload.headCommit.modified.isEmpty ? "Changed (\(payload.headCommit.modified.count)): \(payload.headCommit.modified.joined(separator: ", "))" : nil,
                 !payload.headCommit.added.isEmpty ? "Added (\(payload.headCommit.added.count)): \(payload.headCommit.added.joined(separator: ", "))" : nil,
                 !payload.headCommit.removed.isEmpty ? "Removed (\(payload.headCommit.removed.count)): \(payload.headCommit.removed.joined(separator: ", "))" : nil,
-                "",
                 "Commit URL: \(payload.headCommit.url)",
                 "Compare-Link: \(payload.compare)",
             ]
@@ -81,7 +76,7 @@ struct GitHubEvent
             
             if let commitContent = GitHubEvent.EventType.push.formatLog(request)
             {
-                logContent += "\n\(commitContent)\n"
+                logContent += "\n\n\(commitContent)\n\n"
             }
             else
             {
