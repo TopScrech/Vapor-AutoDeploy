@@ -94,6 +94,7 @@ struct GitHubEvent
             =====================================================\n\n
             """
             
+            log("deploy/github/push.log", logContent)
             return true
         }
         else
