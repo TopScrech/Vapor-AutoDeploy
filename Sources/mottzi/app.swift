@@ -18,7 +18,7 @@ struct mottzi
     }
 }
 
-// Routes lol
+// Routes
 extension Application
 {
     // the web server will respond to the following http routes
@@ -34,8 +34,7 @@ extension Application
         self.get("text")
         { request in
             """
-            Test version 1.0
-            THX
+            Auto deploy: working ("GitHubEvent.swift").
             """
         }
 

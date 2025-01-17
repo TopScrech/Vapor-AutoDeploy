@@ -8,7 +8,7 @@ extension GitHubEvent
         var file: String
         var content = ""
         
-        mutating func build(_ request: Request, valid: Bool)
+        public mutating func build(_ request: Request, valid: Bool)
         {
             var logContent = ""
             
@@ -58,7 +58,7 @@ extension GitHubEvent
             self.content = logContent
         }
         
-        func write()
+        public func write()
         {
             log("deploy/github/\(type.rawValue).log", content)
         }
@@ -94,7 +94,7 @@ extension GitHubEvent
             log +=
             """
                 Changed (\(payload.headCommit.modified.count)): 
-                    - \(payload.headCommit.modified.joined(separator: ",\n        - "))"
+                    - \(payload.headCommit.modified.joined(separator: ",\n        - "))
             """
             
             return log
@@ -102,7 +102,7 @@ extension GitHubEvent
     }
 }
 
-// appends content at the end of file lol
+// appends content at the end of file 
 func log(_ filePath: String, _ content: String)
 {
     // vapor logger
