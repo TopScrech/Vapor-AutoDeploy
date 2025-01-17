@@ -25,7 +25,7 @@ extension Application
     // the web server will respond to these following http requests
     func configureRoutes()
     {
-        // set up github push event webhook handler
+        // github webhook push event route
         self.github("pushevent")
         { request async in
             await self.handlePushEvent(request)
