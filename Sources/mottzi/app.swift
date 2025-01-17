@@ -93,7 +93,7 @@ extension Application
         process.standardOutput = pipe
         process.standardError = pipe
         
-        // log the initial messagee
+        // log the initial message
         log("deploy/github/push.log",
         """
         ====================================

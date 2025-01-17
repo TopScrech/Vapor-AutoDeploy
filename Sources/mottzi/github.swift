@@ -64,16 +64,14 @@ struct GitHubEvent
             authenticating: payloadData,
             using: SymmetricKey(data: secretData)
         )
-        
-        // request.logger.info("\(valid ? "Valid" : "Invalid") webhook received: \n\nheader: \(request.headers.description)\n\n payload: \(payload)")
-
+    
         return valid
     }
 }
 
 extension Application
 {
-    // convenience function for use in application context lol
+    // convenience function for use in application context
     func github(_ endpoint: PathComponent..., type: GitHubEvent.EventType, action closure: @Sendable @escaping (Request) async -> Void)
     {
         GitHubEvent(app: self, type: type).listen(to: endpoint, action: closure)
