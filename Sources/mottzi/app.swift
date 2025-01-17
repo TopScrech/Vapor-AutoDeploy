@@ -13,7 +13,6 @@ struct mottzi
         app.views.use(.leaf)
         app.configureRoutes()
         
-        
         try await app.execute()
         try await app.asyncShutdown()
     }

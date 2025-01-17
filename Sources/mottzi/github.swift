@@ -95,7 +95,7 @@ struct GitHubEvent
             using: SymmetricKey(data: secretData)
         )
         
-        request.logger.info("\(valid ? "Valid" : "Invalid") webhook received: \n\nheader: \(request.headers.description)\n\n payload: \(payload)")
+        // request.logger.info("\(valid ? "Valid" : "Invalid") webhook received: \n\nheader: \(request.headers.description)\n\n payload: \(payload)")
 
         return valid
     }
