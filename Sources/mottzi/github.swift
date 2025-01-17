@@ -63,7 +63,7 @@ struct GitHubEvent
     private func validateSignature(of request: Request) -> Bool
     {
 
-        // hard coded secret *** SECURITY RISK ***
+        // hard coded secret *** SECURITY RISK *** ....
         let secret = "4133Pratteln"
         
         // get signature
