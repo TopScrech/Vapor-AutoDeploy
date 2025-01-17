@@ -11,6 +11,7 @@ func log(_ filePath: String, _ content: String)
         FileManager.default.createFile(atPath: filePath, contents: nil, attributes: nil)
     }
     
+    // abort if content data is empty
     guard let data = content.data(using: .utf8) else { return logger.debug("tried logging empty data") }
 
     do

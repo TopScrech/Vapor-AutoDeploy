@@ -36,7 +36,7 @@ struct GitHubEvent
             log("deploy/github/push.log",
             """
             =====================================================
-            ::::::::::::::::::::::::::::::::::::::::::::::::::::
+            :::::::::::::::::::::::::::::::::::::::::::::::::::::
             Valid \(type.rawValue) event received [\(Date.now)]
             :::::::::::::::::::::::::::::::::::::::::::::::::::::
             =====================================================\n\n
@@ -94,6 +94,8 @@ struct GitHubEvent
             authenticating: payloadData,
             using: SymmetricKey(data: secretData)
         )
+        
+        request.logger.debug("\(valid ? )")
         
         return valid
     }
