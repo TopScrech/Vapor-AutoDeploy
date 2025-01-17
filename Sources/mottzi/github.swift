@@ -30,9 +30,10 @@ struct GitHubEvent
             let log =
             [
                 "    Commit: \(payload.headCommit.id)",
-                !payload.headCommit.modified.isEmpty ? "    Changed (\(payload.headCommit.modified.count)): \n        \(payload.headCommit.modified.joined(separator: ",\n        "))" : nil,
                 "    Author: \(payload.headCommit.author.name)",
                 "    Message: \(payload.headCommit.message)",
+                "",
+                !payload.headCommit.modified.isEmpty ? "    Changed (\(payload.headCommit.modified.count)): \n    - \(payload.headCommit.modified.joined(separator: ",\n    - "))" : nil,
             ]
             .compactMap { $0 }
             .joined(separator: "\n")
