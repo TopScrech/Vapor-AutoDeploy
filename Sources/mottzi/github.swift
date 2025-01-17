@@ -172,8 +172,8 @@ extension GitHubEvent.EventType
         
         var log =
             """
-                Commit: \(payload.headCommit.id)
-                Author: \(payload.headCommit.author.name)
+                Commit:  \(payload.headCommit.id)
+                Author:  \(payload.headCommit.author.name)
                 Message: \(payload.headCommit.message)\n\n
             """
         
