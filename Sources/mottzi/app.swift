@@ -18,7 +18,7 @@ struct mottzi
     }
 }
 
-// Routes ddd
+// Routes
 extension Application
 {
     // the web server will respond to the following http routes
