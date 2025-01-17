@@ -135,7 +135,7 @@ extension GitHubEvent.EventType
                 """
             }
         }
-        // invalid
+        // invalid ffs
         else
         {
             logContent =
