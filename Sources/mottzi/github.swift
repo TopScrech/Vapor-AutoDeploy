@@ -62,6 +62,7 @@ struct GitHubEvent
     // verify that the request has a valid github signature
     private func validateSignature(of request: Request) -> Bool
     {
+
         // hard coded secret *** SECURITY RISK ***
         let secret = "4133Pratteln"
         
@@ -95,8 +96,8 @@ struct GitHubEvent
             using: SymmetricKey(data: secretData)
         )
         
-        request.logger.debug("\(valid ? )")
-        
+        request.logger.debug("\(valid ? "Valid" : "Invalid") payload received: \n\n\(payload)")
+
         return valid
     }
 }
