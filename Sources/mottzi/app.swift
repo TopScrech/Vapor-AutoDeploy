@@ -22,7 +22,7 @@ struct mottzi
 // Routes
 extension Application
 {
-    // the web server will respond to these following http requests
+    // the web server will respond to these following http requests lol
     func configureRoutes()
     {
         // github webhook push event route
