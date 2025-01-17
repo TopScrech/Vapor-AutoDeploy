@@ -178,12 +178,13 @@ extension GitHubEvent.EventType
             """
         
         guard !payload.headCommit.modified.isEmpty else { return log }
+        let modified = payload.headCommit.modified.joined(separator: "")
         
         log +=
             """
             
                 Changed (\(payload.headCommit.modified.count)): 
-                    - \(payload.headCommit.modified.joined(separator: ",\n    - "))"
+                    - \(payload.headCommit.modified.joined(separator: ",\n        - "))"
             """
         
         return log
