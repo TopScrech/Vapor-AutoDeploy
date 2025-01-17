@@ -29,7 +29,7 @@ struct GitHubEvent
     }
     
     // verify that the request has a valid github signature
-    func validateRequest(_ request: Request) -> Bool
+    private func validateRequest(_ request: Request) -> Bool
     {
         if validateSignature(of: request)
         {
@@ -60,7 +60,7 @@ struct GitHubEvent
     }
     
     // verify that the request has a valid github signature
-    func validateSignature(of request: Request) -> Bool
+    private func validateSignature(of request: Request) -> Bool
     {
         // hard coded secret *** SECURITY RISK ***
         let secret = "4133Pratteln"
