@@ -185,146 +185,26 @@ extension GitHubEvent
 {
     struct Payload: Codable
     {
-        // Reference information
-        let ref: String
-        let before: String
-        let after: String
-        let baseRef: String?
-        let compare: String
-        
-        // Core entities
-        let repository: Repository
-        let sender: User
-        let pusher: Pusher
-        
-        // Commit information
-        let commits: [Commit]
         let headCommit: Commit
-        
-        // Event metadata
-        let created: Bool
-        let deleted: Bool
-        let forced: Bool
-        
-        struct Repository: Codable
-        {
-            // Core identifiers
-            let id: Int
-            let nodeId: String
-            let name: String
-            let fullName: String
-            
-            // Repository metadata
-            let description: String?
-            let isPrivate: Bool
-            let fork: Bool
-            let isTemplate: Bool
-            let visibility: String
-            let language: String?
-            let license: String?
-            
-            // Statistics
-            let size: Int
-            let forksCount: Int
-            let forks: Int
-            let stargazersCount: Int
-            let watchersCount: Int
-            let watchers: Int
-            let openIssuesCount: Int
-            let openIssues: Int
-            
-            // Features and flags
-            let hasIssues: Bool
-            let hasProjects: Bool
-            let hasDownloads: Bool
-            let hasWiki: Bool
-            let hasPages: Bool
-            let hasDiscussions: Bool
-            let allowForking: Bool
-            let webCommitSignoffRequired: Bool
-            let archived: Bool
-            let disabled: Bool
-            
-            // URLs
-            let url: String
-            let htmlUrl: String
-            let gitUrl: String
-            let sshUrl: String
-            let cloneUrl: String
-            
-            // Timestamps
-            let createdAt: Int
-            let updatedAt: String
-            let pushedAt: Int
-            
-            // Relations
-            let owner: User
-            let defaultBranch: String
-        }
-        
-        struct User: Codable
-        {
-            // Core identifiers
-            let id: Int
-            let nodeId: String
-            let login: String
-            
-            // Profile information
-            let type: String
-            let userViewType: String
-            let siteAdmin: Bool
-            let gravatarId: String
-            
-            // URLs for user resources
-            let url: String
-            let htmlUrl: String
-            let avatarUrl: String
-            
-            // API endpoints
-            let followersUrl: String
-            let followingUrl: String
-            let gistsUrl: String
-            let starredUrl: String
-            let subscriptionsUrl: String
-            let organizationsUrl: String
-            let reposUrl: String
-            let eventsUrl: String
-            let receivedEventsUrl: String
-        }
-        
-        struct Pusher: Codable
-        {
-            let name: String
-            let email: String
-        }
+        let compare: String
         
         struct Commit: Codable
         {
-            // Core identifiers
-            let id: String
-            let treeId: String
+            let author: Author
             
-            // Commit metadata
             let message: String
-            let distinct: Bool
-            let timestamp: String
             let url: String
             
-            // Changes
+            let modified: [String]
             let added: [String]
             let removed: [String]
-            let modified: [String]
-            
-            // Authors
-            let author: CommitAuthor
-            let committer: CommitAuthor
-            
-            struct CommitAuthor: Codable
-            {
-                let name: String
-                let email: String
-                let username: String
-            }
+        }
+        
+        struct Author: Codable
+        {
+            let name: String
+            let email: String
+            let username: String
         }
     }
 }
