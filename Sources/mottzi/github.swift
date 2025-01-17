@@ -29,14 +29,10 @@ struct GitHubEvent
             
             let log =
             [
-                "Author: \(payload.headCommit.author.name)",
-                "Message: \(payload.headCommit.message)",
-                !payload.headCommit.modified.isEmpty ? "Changed (\(payload.headCommit.modified.count)): \(payload.headCommit.modified.joined(separator: ", "))" : nil,
-                !payload.headCommit.added.isEmpty ? "Added (\(payload.headCommit.added.count)): \(payload.headCommit.added.joined(separator: ", "))" : nil,
-                !payload.headCommit.removed.isEmpty ? "Removed (\(payload.headCommit.removed.count)): \(payload.headCommit.removed.joined(separator: ", "))" : nil,
-                "",
-                "Commit: \(payload.headCommit.url)",
-                "Compare: \(payload.compare)",
+                "    Commit: \(payload.headCommit.id)",
+                !payload.headCommit.modified.isEmpty ? "    Changed (\(payload.headCommit.modified.count)): \n        \(payload.headCommit.modified.joined(separator: ",\n        "))" : nil,
+                "    Author: \(payload.headCommit.author.name)",
+                "    Message: \(payload.headCommit.message)",
             ]
             .compactMap { $0 }
             .joined(separator: "\n")
@@ -183,15 +179,12 @@ extension GitHubEvent
     struct Payload: Codable
     {
         let headCommit: Commit
-        let compare: String
         
         struct Commit: Codable
         {
+            let id: String
             let author: Author
-            
             let message: String
-            let url: String
-            
             let modified: [String]
             let added: [String]
             let removed: [String]
@@ -201,7 +194,6 @@ extension GitHubEvent
         {
             let name: String
             let email: String
-            let username: String
         }
     }
 }
