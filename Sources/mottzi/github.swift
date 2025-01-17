@@ -1,11 +1,5 @@
 import Vapor
 
-
-enum GitHubEvent
-{
-    case push
-}
-
 extension Application
 {
     // adds github webhook event listener
