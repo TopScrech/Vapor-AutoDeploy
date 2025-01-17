@@ -34,7 +34,7 @@ extension Application
         self.get("text")
         { request in
             """
-            FDPDPDPasdasasdads
+            FDP
             oöp
             """
         }
