@@ -2,7 +2,7 @@ import Vapor
 
 extension GitHubEvent
 {
-    struct EventLog
+        struct EventLog
     {
         let file: String
         let type: EventType

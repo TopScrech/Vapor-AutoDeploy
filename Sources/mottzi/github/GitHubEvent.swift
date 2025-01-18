@@ -18,7 +18,7 @@ struct GitHubEvent
     {
         let accepted = Response(status: .ok, body: .init(stringLiteral: "[mottzi] \(type.rawValue.capitalized) event request accepted."))
         let denied = Response(status: .forbidden, body: .init(stringLiteral: "[mottzi] \(type.rawValue.capitalized) event request denied."))
-        
+                
         app.post(endpoint)
         { request async -> Response in
             // validate request by verifying github signature
