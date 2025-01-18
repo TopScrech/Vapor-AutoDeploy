@@ -4,9 +4,16 @@ extension GitHubEvent
 {
     struct EventLog
     {
-        var type: EventType
-        var file: String
-        var content = ""
+        let file: String
+        let type: EventType
+        
+        private var content = ""
+        
+        init(file: String, type: EventType)
+        {
+            self.file = file
+            self.type = type
+        }
         
         public mutating func build(_ request: Request, valid: Bool)
         {

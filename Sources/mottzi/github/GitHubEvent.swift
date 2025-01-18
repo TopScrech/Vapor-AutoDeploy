@@ -3,7 +3,7 @@ import Vapor
 extension Application
 {
     // convenience function for use in application context 
-    func github(_ endpoint: PathComponent..., type: GitHubEvent.EventType, action closure: @Sendable @escaping (Request) async -> Void)
+    func github(_ endpoint: PathComponent..., type: GitHubEvent.EventType, action closure: @Sendable @escaping (Request) async -> ())
     {
         GitHubEvent(app: self, type: type).listen(to: endpoint, action: closure)
     }
@@ -14,7 +14,7 @@ struct GitHubEvent
     let app: Application
     let type: EventType
 
-    func listen(to endpoint: [PathComponent], action closure: @Sendable @escaping (Request) async -> Void)
+    func listen(to endpoint: [PathComponent], action closure: @Sendable @escaping (Request) async -> ())
     {
         let accepted = Response(status: .ok, body: .init(stringLiteral: "[mottzi] \(type.rawValue.capitalized) event request accepted."))
         let denied = Response(status: .forbidden, body: .init(stringLiteral: "[mottzi] \(type.rawValue.capitalized) event request denied."))
@@ -25,7 +25,7 @@ struct GitHubEvent
             let validRequest = self.validateSignature(of: request)
             
             // log initial request log based on validity
-            var logger = EventLog(type: self.type, file: "deploy/github/\(type.rawValue).log")
+            var logger = EventLog(file: "deploy/github/\(type.rawValue).log", type: self.type)
             logger.build(request, valid: validRequest)
             logger.write()
             
