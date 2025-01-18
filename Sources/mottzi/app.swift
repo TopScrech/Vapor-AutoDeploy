@@ -95,7 +95,7 @@ extension Application
         // log the initial message
         log("deploy/github/push.log", "Auto deploy:\n\n")
         
-        // read the output as an async stream
+        // read the output as an async stream old
 //        pipe.fileHandleForReading.readabilityHandler =
 //        { stream in
 //            // load chunk of output data
