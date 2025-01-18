@@ -95,37 +95,30 @@ extension Application
         // log the initial message
         log("deploy/github/push.log", "Auto deploy:\n\n")
         
-        // read the output as an async stream old
-//        pipe.fileHandleForReading.readabilityHandler =
-//        { stream in
-//            // load chunk of output data
-//            let data = stream.availableData
-//            
-//            // stop reading when end of file is reached
-//            if data.isEmpty
-//            {
-//                stream.readabilityHandler = nil
-//                return
-//            }
-//            
-//            // log data chunk to file
-//            if let chunk = String(data: data, encoding: .utf8)
-//            {
-//                log("deploy/github/push.log", chunk)
-//            }
-//        } löl
+        // read the output as an async stream
+        pipe.fileHandleForReading.readabilityHandler =
+        { stream in
+            // load chunk of output data
+            let data = stream.availableData
+            
+            // stop reading when end of file is reached
+            if data.isEmpty
+            {
+                stream.readabilityHandler = nil
+                return
+            }
+            
+            // log data chunk to file
+            if let chunk = String(data: data, encoding: .utf8)
+            {
+                log("deploy/github/push.log", chunk)
+            }
+        }
         
         do
         {
             // run the processs
             try process.run()
-            
-            for try await line in pipe.fileHandleForReading.bytes.lines
-            {
-                log("deploy/github/push.log", line + "\n")
-            }
-            
-            process.waitUntilExit()
         }
         catch
         {
