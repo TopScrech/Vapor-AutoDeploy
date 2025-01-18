@@ -40,7 +40,7 @@ struct GitHubEvent
         }
     }
     
-    // verify that the request has a valid github signature lol
+    // verify that the request has a valid github signature
     private func validateSignature(of request: Request) -> Bool
     {
         // hard coded secret *** SECURITY RISK ***
