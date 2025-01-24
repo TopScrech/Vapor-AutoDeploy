@@ -5,6 +5,6 @@
 </head>
 <body>
     <h1>infile</h1>
-    <p>This html page is defined in htmlFile.leaf. <br> Test2.</p>
+    <p>This html page is defined in htmlFile.leaf. <br> Test after nginx.</p>
 </body>
 </html>
