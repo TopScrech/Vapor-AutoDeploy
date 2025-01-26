@@ -15,7 +15,7 @@ extension Application
         self.get("text")
         { request in
             """
-            Auto deploy: ? status ?
+            Auto deploy: ? YES ?
             """
         }
         
