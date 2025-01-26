@@ -15,8 +15,7 @@ extension Application
         self.get("text")
         { request in
             """
-            Auto deploy: working ("GitHubEvent.swift").
-            Even after nginx subdomain config ???.
+            Auto deploy: ? status ?
             """
         }
         
