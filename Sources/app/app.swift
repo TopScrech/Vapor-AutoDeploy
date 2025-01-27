@@ -62,7 +62,7 @@ extension Application
             
             // 2. Swift Build
             logContent = "> [2/4] Building app\n\n"
-            try await execute(command: "swift build -c debug", step: 2, logPath: logFilePath, task: task, request: request)
+            try await execute(command: "/usr/local/swift/usr/bin/swift build -c debug", step: 2, logPath: logFilePath, task: task, request: request)
             log(logFilePath, logContent)
             
             // 3. Move Executable
