@@ -155,9 +155,12 @@ extension Application
     
     private func getCommitInfo(_ request: Request) -> String?
     {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        
         guard let bodyString = request.body.string,
               let jsonData = bodyString.data(using: .utf8),
-              let payload = try? JSONDecoder().decode(GitHubEvent.Payload.self, from: jsonData)
+              let payload = try? decoder.decode(GitHubEvent.Payload.self, from: jsonData)
         else { return nil }
         
         var commitInfo =
@@ -178,7 +181,7 @@ extension Application
         
         return commitInfo
     }
-    
+
     private func moveExecutable(logPath: String, task: DeploymentTask, request: Request) async throws
     {
         let fileManager = FileManager.default
