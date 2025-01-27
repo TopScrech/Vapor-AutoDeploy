@@ -35,7 +35,7 @@ extension Application
         self.get("text")
         { request in
             """
-            Auto Deploy: Push 7
+            Auto Deploy: Push 8
             """
         }
         
