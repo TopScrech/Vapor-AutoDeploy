@@ -30,84 +30,183 @@ extension Application
     // handle valid push event
     func handlePushEvent(_ request: Request) async
     {
+        let logFilePath = "deploy/github/push.log"
+        
+        var logContent =
+        """
+        =====================================================
+        :::::::::::::::::::::::::::::::::::::::::::::::::::::
+        Valid push event received [\(Date())]
+        
+        """
+        
+        if let commitInfo = getCommitInfo(request)
+        {
+            logContent += commitInfo
+        }
+        
+        logContent += "\n::::::::::::::::::::::::::::::::::::::::::::::::::::::"
+        logContent += "\n=====================================================\n\n"
+        logContent += "Auto deploy:\n\n"
+        log(logFilePath, logContent)
+        
         let task = DeploymentTask(status: "running")
         try? await task.save(on: request.db)
         
-        let process = Process()
-        process.currentDirectoryURL = URL(fileURLWithPath: "/var/www/mottzi")
-        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
-        process.arguments = ["deploy"]
-        
-        var environment = ProcessInfo.processInfo.environment
-        environment["HOME"] = "/var/www/mottzi"
-        process.environment = environment
-        
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = pipe
-        
-        // log the initial message
-        log("deploy/github/push.log", "Auto deploy:\n\n")
-        
-        // read the output as an async stream
-        pipe.fileHandleForReading.readabilityHandler =
-        { stream in
-            // load chunk of output data
-            let data = stream.availableData
+        do
+        {
+            // 1. Git Pull
+            logContent = "> [1/4] Pulling repository\n\n"
+            try await execute(command: "git pull", step: 1, logPath: logFilePath, task: task, request: request)
+            log(logFilePath, logContent)
             
-            // stop reading when end of file is reached
-            if data.isEmpty
-            {
-                stream.readabilityHandler = nil
-                return
-            }
+            // 2. Swift Build
+            logContent = "> [2/4] Building app\n\n"
+            try await execute(command: "swift build -c debug", step: 2, logPath: logFilePath, task: task, request: request)
+            log(logFilePath, logContent)
             
-            // log data chunk to file
-            if let chunk = String(data: data, encoding: .utf8)
-            {
-                log("deploy/github/push.log", chunk)
-            }
+            // 3. Move Executable
+            logContent = "> [3/4] Moving app .build/debug/ -> deploy/\n\n"
+            try await moveExecutable(logPath: logFilePath, task: task, request: request)
+            log(logFilePath, logContent)
+            
+            // 4. Finalize
+            logContent =
+            """
+            > [4/4] Deployment complete - restart will be handled by Vapor
+            
+            ============================
+            ::::::::::::::::::::::::::::
+            Deployment process completed
+            ::::::::::::::::::::::::::::
+            ============================
+            
+            """
+            log(logFilePath, logContent)
+            
+            task.status = "success"
+            task.finishedAt = Date()
+            try await task.save(on: request.db)
+            
+            try await restartService(request: request)
+            
+        } catch {
+            let errorMessage = """
+        \n=======================
+        :::::::::::::::::::::::::
+        Deployment process failed
+        Error: \(error.localizedDescription)
+        :::::::::::::::::::::::::
+        =========================\n\n
+        """
+            log(logFilePath, errorMessage)
+            
+            task.status = "failed"
+            task.log += errorMessage
+            task.finishedAt = Date()
+            try? await task.save(on: request.db)
+            return
         }
+    }
+    
+    private func execute(command: String, step: Int, logPath: String, task: DeploymentTask, request: Request) async throws
+    {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["bash", "-c", command]
+        process.currentDirectoryURL = URL(fileURLWithPath: "/var/www/mottzi")
+        
+        let outputPipe = Pipe()
+        process.standardOutput = outputPipe
+        process.standardError = outputPipe
+        
+        try process.run()
+        process.waitUntilExit()
+        
+        let outputData = try outputPipe.fileHandleForReading.readToEnd()
+        let output = String(data: outputData ?? Data(), encoding: .utf8) ?? ""
+        
+        // Update both file log and database
+        log(logPath, output)
+        task.log += "\n$ \(command)\n\(output)"
+        try await task.save(on: request.db)
+        
+        guard process.terminationStatus == 0 else
+        {
+            throw NSError(domain: "DeploymentError", code: step, userInfo: [NSLocalizedDescriptionKey: "Command failed: \(command)\n\(output)"])
+        }
+    }
+    
+    private func restartService(request: Request) async throws
+    {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
+        process.arguments = ["supervisorctl", "restart", "mottzi"]
+        
+        try process.run()
+        process.waitUntilExit()
+        
+        guard process.terminationStatus == 0 else
+        {
+            throw Abort(.internalServerError, reason: "Failed to restart service")
+        }
+    }
+    
+    private func getCommitInfo(_ request: Request) -> String?
+    {
+        guard let bodyString = request.body.string,
+              let jsonData = bodyString.data(using: .utf8),
+              let payload = try? JSONDecoder().decode(GitHubEvent.Payload.self, from: jsonData)
+        else { return nil }
+        
+        var commitInfo =
+        """
+        Commit:  \(payload.headCommit.id)
+        Author:  \(payload.headCommit.author.name)
+        Message: \(payload.headCommit.message)
+        """
+        
+        if !payload.headCommit.modified.isEmpty
+        {
+            commitInfo +=
+            """
+            \n\nChanged (\(payload.headCommit.modified.count)): 
+                - \(payload.headCommit.modified.joined(separator: ",\n        - "))
+            """
+        }
+        
+        return commitInfo
+    }
+    
+    private func moveExecutable(logPath: String, task: DeploymentTask, request: Request) async throws
+    {
+        let fileManager = FileManager.default
+        let buildPath = "/var/www/mottzi/.build/debug/App"
+        let deployPath = "/var/www/mottzi/deploy/App"
         
         do
         {
-            // run the processs
-            try process.run()
-            process.waitUntilExit()
+            try fileManager.createDirectory(atPath: "/var/www/mottzi/deploy", withIntermediateDirectories: true)
             
-            task.status = process.terminationStatus == 0 ? "success" : "failed"
-            task.finishedAt = Date()
-            request.logger.debug("try to update sqllite Succes/Failure for #\(task.id?.uuidString ?? "unknown")")
+            if fileManager.fileExists(atPath: deployPath)
+            {
+                try fileManager.removeItem(atPath: deployPath)
+            }
+            
+            try fileManager.moveItem(atPath: buildPath, toPath: deployPath)
+            
+            // Log success
+            let successMessage = "Successfully moved executable to deploy directory\n"
+            log(logPath, successMessage)
+            task.log += successMessage
             try await task.save(on: request.db)
             
-            // Only restart if the script succeeded
-            if process.terminationStatus == 0
-            {
-                request.logger.debug("Executing app restart...")
-                
-                log("deploy/github/push.log", "Restarting app...")
-                
-                let restart = Process()
-                restart.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
-                restart.arguments = ["supervisorctl", "restart", "mottzi"]
-                try restart.run()
-            }
         }
         catch
         {
-            log("deploy/github/push.log",
-            """
-            \n=======================
-            :::::::::::::::::::::::::
-            Deployment process failed
-            Error: \(error.localizedDescription)
-            :::::::::::::::::::::::::
-            =========================\n\n
-            """)
-            
-            task.status = "failed"
-            task.finishedAt = Date()
-            try? await task.save(on: request.db)
+            let errorMessage = "Failed to move executable: \(error.localizedDescription)\n"
+            log(logPath, errorMessage)
+            throw error
         }
     }
 }

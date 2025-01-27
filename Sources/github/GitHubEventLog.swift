@@ -1,119 +1,119 @@
 import Vapor
 
-extension GitHubEvent
-{
-    struct EventLog
-    {
-        let file: String
-        let type: EventType
-        
-        private var content = ""
-        
-        init(file: String, type: EventType)
-        {
-            self.file = file
-            self.type = type
-        }
-        
-        public mutating func build(_ request: Request, valid: Bool)
-        {
-            var logContent = ""
-            
-            if valid
-            {
-                // +valid +details
-                if let details = self.details(request, type)
-                {
-                    logContent =
-                    """
-                    =====================================================
-                    :::::::::::::::::::::::::::::::::::::::::::::::::::::
-                    Valid \(type.rawValue) event received [\(Date.now)]
-                        
-                    \(details)
-                    
-                    :::::::::::::::::::::::::::::::::::::::::::::::::::::
-                    =====================================================\n\n
-                    """
-                }
-                // +valid -details
-                else
-                {
-                    logContent =
-                    """
-                    =====================================================
-                    :::::::::::::::::::::::::::::::::::::::::::::::::::::
-                    Valid \(type.rawValue) event received [\(Date.now)]
-                    :::::::::::::::::::::::::::::::::::::::::::::::::::::
-                    =====================================================\n\n
-                    """
-                }
-            }
-            // invalid
-            else
-            {
-                logContent =
-                """
-                =====================================================
-                :::::::::::::::::::::::::::::::::::::::::::::::::::::
-                Invalid \(type.rawValue) event received [\(Date.now)]
-                :::::::::::::::::::::::::::::::::::::::::::::::::::::
-                =====================================================\n\n
-                """
-            }
-            
-            self.content = logContent
-        }
-        
-        public func write()
-        {
-            log("deploy/github/\(type.rawValue).log", content)
-        }
-        
-        private func details(_ request: Request, _ type: EventType) -> String?
-        {
-            switch type
-            {
-                case .push: detailsPush(request)
-                default: nil
-            }
-        }
-        
-        private func detailsPush(_ request: Request) -> String?
-        {
-            let decoder = JSONDecoder()
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
-            
-            guard let bodyString = request.body.string,
-                  let jsonData = bodyString.data(using: .utf8),
-                  let payload = try? decoder.decode(GitHubEvent.Payload.self, from: jsonData)
-            else { return nil }
-            
-            var log =
-            """
-                Commit:  \(payload.headCommit.id)
-                Author:  \(payload.headCommit.author.name)
-                Message: \(payload.headCommit.message)
-            """
-            
-            guard !payload.headCommit.modified.isEmpty else { return log }
-            
-            log +=
-            """
-                \n\nChanged (\(payload.headCommit.modified.count)): 
-                    - \(payload.headCommit.modified.joined(separator: ",\n        - "))
-            """
-            
-            return log
-        }
-    }
-}
+//extension GitHubEvent
+//{
+//    struct EventLog
+//    {
+//        let file: String
+//        let type: EventType
+//        
+//        private var content = ""
+//        
+//        init(file: String, type: EventType)
+//        {
+//            self.file = file
+//            self.type = type
+//        }
+//        
+//        public mutating func build(_ request: Request, valid: Bool)
+//        {
+//            var logContent = ""
+//            
+//            if valid
+//            {
+//                // +valid +details
+//                if let details = self.details(request, type)
+//                {
+//                    logContent =
+//                    """
+//                    =====================================================
+//                    :::::::::::::::::::::::::::::::::::::::::::::::::::::
+//                    Valid \(type.rawValue) event received [\(Date.now)]
+//                        
+//                    \(details)
+//                    
+//                    :::::::::::::::::::::::::::::::::::::::::::::::::::::
+//                    =====================================================\n\n
+//                    """
+//                }
+//                // +valid -details
+//                else
+//                {
+//                    logContent =
+//                    """
+//                    =====================================================
+//                    :::::::::::::::::::::::::::::::::::::::::::::::::::::
+//                    Valid \(type.rawValue) event received [\(Date.now)]
+//                    :::::::::::::::::::::::::::::::::::::::::::::::::::::
+//                    =====================================================\n\n
+//                    """
+//                }
+//            }
+//            // invalid
+//            else
+//            {
+//                logContent =
+//                """
+//                =====================================================
+//                :::::::::::::::::::::::::::::::::::::::::::::::::::::
+//                Invalid \(type.rawValue) event received [\(Date.now)]
+//                :::::::::::::::::::::::::::::::::::::::::::::::::::::
+//                =====================================================\n\n
+//                """
+//            }
+//            
+//            self.content = logContent
+//        }
+//        
+//        public func write()
+//        {
+//            log("deploy/github/\(type.rawValue).log", content)
+//        }
+//        
+//        private func details(_ request: Request, _ type: EventType) -> String?
+//        {
+//            switch type
+//            {
+//                case .push: detailsPush(request)
+//                default: nil
+//            }
+//        }
+//        
+//        private func detailsPush(_ request: Request) -> String?
+//        {
+//            let decoder = JSONDecoder()
+//            decoder.keyDecodingStrategy = .convertFromSnakeCase
+//            
+//            guard let bodyString = request.body.string,
+//                  let jsonData = bodyString.data(using: .utf8),
+//                  let payload = try? decoder.decode(GitHubEvent.Payload.self, from: jsonData)
+//            else { return nil }
+//            
+//            var log =
+//            """
+//                Commit:  \(payload.headCommit.id)
+//                Author:  \(payload.headCommit.author.name)
+//                Message: \(payload.headCommit.message)
+//            """
+//            
+//            guard !payload.headCommit.modified.isEmpty else { return log }
+//            
+//            log +=
+//            """
+//                \n\nChanged (\(payload.headCommit.modified.count)): 
+//                    - \(payload.headCommit.modified.joined(separator: ",\n        - "))
+//            """
+//            
+//            return log
+//        }
+//    }
+//}
 
 // appends content at the end of file 
 func log(_ filePath: String, _ content: String)
 {
     // vapor logger
-    let logger = Logger(label: "mottzi")
+    let logger = Logger(label: "[Deploy]")
     
     // create log file if it does not exist
     if !FileManager.default.fileExists(atPath: filePath) {

@@ -25,9 +25,9 @@ struct GitHubEvent
             let validRequest = self.validateSignature(of: request)
             
             // log initial request log based on validity
-            var logger = EventLog(file: "deploy/github/\(type.rawValue).log", type: self.type)
-            logger.build(request, valid: validRequest)
-            logger.write()
+//            var logger = EventLog(file: "deploy/github/\(type.rawValue).log", type: self.type)
+//            logger.build(request, valid: validRequest)
+//            logger.write()
             
             // deny request if invalid signature
             guard validRequest else { return denied }
