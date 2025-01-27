@@ -44,6 +44,7 @@ extension Application
         {
             logContent += commitInfo
         }
+        else { logContent += "NO COMMIT INFO" }
         
         logContent += "\n::::::::::::::::::::::::::::::::::::::::::::::::::::::"
         logContent += "\n=====================================================\n\n"
@@ -57,18 +58,18 @@ extension Application
         {
             // 1. Git Pull
             logContent = "> [1/4] Pulling repository\n\n"
-            try await execute(command: "git pull", step: 1, logPath: logFilePath, task: task, request: request)
             log(logFilePath, logContent)
+            try await execute(command: "git pull", step: 1, logPath: logFilePath, task: task, request: request)
             
             // 2. Swift Build
             logContent = "> [2/4] Building app\n\n"
-            try await execute(command: "/usr/local/swift/usr/bin/swift build -c debug", step: 2, logPath: logFilePath, task: task, request: request)
             log(logFilePath, logContent)
+            try await execute(command: "/usr/local/swift/usr/bin/swift build -c debug", step: 2, logPath: logFilePath, task: task, request: request)
             
             // 3. Move Executable
             logContent = "> [3/4] Moving app .build/debug/ -> deploy/\n\n"
-            try await moveExecutable(logPath: logFilePath, task: task, request: request)
             log(logFilePath, logContent)
+            try await moveExecutable(logPath: logFilePath, task: task, request: request)
             
             // 4. Finalize
             logContent =
@@ -196,11 +197,10 @@ extension Application
             try fileManager.moveItem(atPath: buildPath, toPath: deployPath)
             
             // Log success
-            let successMessage = "Successfully moved executable to deploy directory\n"
-            log(logPath, successMessage)
-            task.log += successMessage
-            try await task.save(on: request.db)
-            
+//            let successMessage = "Successfully moved executable to deploy directory\n"
+//            log(logPath, successMessage)
+//            task.log += successMessage
+//            try await task.save(on: request.db)
         }
         catch
         {
