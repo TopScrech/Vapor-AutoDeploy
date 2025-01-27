@@ -35,7 +35,7 @@ extension Application
         self.get("text")
         { request in
             """
-            Auto deploy: ? YAS3 ?
+            Auto deploy: ? YAS4 ?
             """
         }
         
