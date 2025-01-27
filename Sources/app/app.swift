@@ -19,6 +19,7 @@ struct mottzi
         app.views.use(.leaf)
         app.useRoutes()
         app.usePushEvents()
+        app.useAdminPanel()
         
         try await app.execute()
         try await app.asyncShutdown()
