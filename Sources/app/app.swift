@@ -37,12 +37,11 @@ extension Application
         =====================================================
         :::::::::::::::::::::::::::::::::::::::::::::::::::::
         Valid push event received [\(Date())]
-        
         """
         
         if let commitInfo = getCommitInfo(request)
         {
-            logContent += commitInfo
+            logContent += "\n\n\(commitInfo)"
         }
         else { logContent += "NO COMMIT INFO" }
         
