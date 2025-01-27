@@ -27,7 +27,7 @@ struct mottzi
 
 extension Application
 {
-    // handle valid push event t
+    // handle valid push event tt
     func handlePushEvent(_ request: Request) async
     {
         let logFile = "deploy/github/push.log"
