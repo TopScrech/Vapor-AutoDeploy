@@ -79,6 +79,19 @@ extension Application
             task.finishedAt = Date()
             request.logger.debug("try to update sqllite Succes/Failure for #\(task.id?.uuidString ?? "unknown")")
             try await task.save(on: request.db)
+            
+            // Only restart if the script succeeded
+            if process.terminationStatus == 0
+            {
+                request.logger.debug("Executing app restart...")
+                
+                log("deploy/github/push.log", "Restarting app...")
+                
+                let restart = Process()
+                restart.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
+                restart.arguments = ["supervisorctl", "restart", "mottzi"]
+                try restart.run()
+            }
         }
         catch
         {
