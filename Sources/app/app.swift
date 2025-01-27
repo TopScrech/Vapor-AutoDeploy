@@ -77,6 +77,7 @@ extension Application
             
             task.status = process.terminationStatus == 0 ? "success" : "failed"
             task.finishedAt = Date()
+            request.logger.debug("try to update sqllite Succes/Failure for #\(task.id?.uuidString ?? "unknown")")
             try await task.save(on: request.db)
         }
         catch

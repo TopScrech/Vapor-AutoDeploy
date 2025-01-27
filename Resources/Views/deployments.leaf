@@ -12,14 +12,20 @@
             <th>Started</th>
             <th>Duration</th>
         </tr>
-        #for(task in tasks) {
+        #for(task in tasks):
             <tr>
                 <td><a href="/admin/deployments/#(task.id)">#(task.id)</a></td>
                 <td>#(task.status)</td>
                 <td>#(task.startedAt)</td>
-                <td>#(task.finishedAt?.timeIntervalSince(task.startedAt))s</td>
+                <td>
+                    #if(task.finishedAt):
+                        #(task.finishedAt.timeIntervalSince(task.startedAt))s
+                    #else:
+                        Ongoing
+                    #endif
+                </td>
             </tr>
-        }
+        #endfor
     </table>
 </body>
 </html>
