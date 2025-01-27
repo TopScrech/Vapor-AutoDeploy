@@ -8,14 +8,34 @@ extension Application
         // github webhook push event route
         self.github("pushevent", type: .push)
         { request async in
+            // handle valid request
             await self.handlePushEvent(request)
+        }
+        
+        self.get("admin")
+        { request async throws -> View in
+            let tasks = try await DeploymentTask.query(on: request.db).all()
+            return try await request.view.render("deployments", ["tasks": tasks])
+        }
+        
+        self.get("admin", "deployments")
+        { request async throws -> [DeploymentTask] in
+            try await DeploymentTask.query(on: request.db).all()
+        }
+        
+        self.get("admin", "deployments", ":id")
+        { request async throws -> DeploymentTask in
+            guard let task = try await DeploymentTask.find(request.parameters.get("id"), on: request.db)
+            else { throw Abort(.notFound) }
+            
+            return task
         }
         
         // mottzi.de/text
         self.get("text")
         { request in
             """
-            Auto deploy: ? YES ?
+            Auto deploy: ? YAS ?
             """
         }
         

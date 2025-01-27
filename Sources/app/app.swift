@@ -1,4 +1,6 @@
 import Vapor
+import Fluent
+import FluentSQLiteDriver
 import Leaf
 
 @main
@@ -10,6 +12,11 @@ struct mottzi
         try LoggingSystem.bootstrap(from: &env)
 
         let app = try await Application.make(env)
+        
+        app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
+        app.migrations.add(CreateDeploymentTask())
+        try await app.autoMigrate()
+        
         app.views.use(.leaf)
         app.useRoutes()
         
@@ -20,8 +27,12 @@ struct mottzi
 
 extension Application
 {
+    // handle valid push event
     func handlePushEvent(_ request: Request) async
     {
+        let task = DeploymentTask(status: "running")
+        try? await task.save(on: request.db)
+        
         let process = Process()
         process.currentDirectoryURL = URL(fileURLWithPath: "/var/www/mottzi")
         process.executableURL = URL(fileURLWithPath: "/usr/local/bin/testscript")
@@ -62,6 +73,11 @@ extension Application
         {
             // run the processs
             try process.run()
+            process.waitUntilExit()
+            
+            task.status = process.terminationStatus == 0 ? "success" : "failed"
+            task.finishedAt = Date()
+            try await task.save(on: request.db)
         }
         catch
         {
@@ -74,6 +90,10 @@ extension Application
             :::::::::::::::::::::::::
             =========================\n\n
             """)
+            
+            task.status = "failed"
+            task.finishedAt = Date()
+            try? await task.save(on: request.db)
         }
     }
 }

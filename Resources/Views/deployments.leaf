@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deployments</title>
+</head>
+<body>
+    <h1>Recent Deployments</h1>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Status</th>
+            <th>Started</th>
+            <th>Duration</th>
+        </tr>
+        #for(task in tasks) {
+            <tr>
+                <td><a href="/admin/deployments/#(task.id)">#(task.id)</a></td>
+                <td>#(task.status)</td>
+                <td>#(task.startedAt)</td>
+                <td>#(task.finishedAt?.timeIntervalSince(task.startedAt))s</td>
+            </tr>
+        }
+    </table>
+</body>
+</html>
