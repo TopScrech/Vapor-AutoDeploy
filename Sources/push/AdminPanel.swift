@@ -23,16 +23,10 @@ extension Application
             
             let data = deployments.map()
             {
-                var duration: Double?
+                var duration: Double? = nil
                 
-                if $0.finishedAt == nil || $0.startedAt == nil
-                {
-                    duration = 0.0
-                }
-                else
-                {
-                    duration = $0.finishedAt!.timeIntervalSince($0.startedAt!)
-                }
+                if let finishedAt = $0.finishedAt, let startedAt = $0.startedAt
+                { duration = finishedAt.timeIntervalSince(startedAt) }
                 
                 return AdminPanel.DeploymentView(
                     id: $0.id,
@@ -43,7 +37,7 @@ extension Application
                 )
             }
             
-            return try await request.view.render("deployments", data)
+            return try await request.view.render("deployments", ["tasks": data])
         }
 
         // mottzi.de/admin/deployments

@@ -18,8 +18,8 @@
                 <td>#(task.status)</td>
                 <td>#(task.startedAt)</td>
                 <td>
-                    #if(task.finishedAt):
-                        #(task.finishedAt.timeIntervalSince(task.startedAt))s
+                    #if(task.duration):
+                        #(task.duration)s
                     #else:
                         Ongoing
                     #endif
