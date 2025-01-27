@@ -127,15 +127,9 @@ extension Application
         try process.run()
         process.waitUntilExit()
         
-        let outputData = try outputPipe.fileHandleForReading.readToEnd()
-        let output = String(data: outputData ?? Data(), encoding: .utf8) ?? ""
-        
-        // Update both file log and database
-        log(logPath, "\(output)\n")
-        
-        guard process.terminationStatus == 0 else
+        if process.terminationStatus != 0
         {
-            throw NSError(domain: "DeploymentError", code: step, userInfo: [NSLocalizedDescriptionKey: "Command failed: \(command)\n\(output)"])
+            throw NSError(domain: "DeploymentError", code: step, userInfo: [NSLocalizedDescriptionKey: "Command failed: \(command)"])
         }
     }
     
@@ -148,7 +142,7 @@ extension Application
         try process.run()
         process.waitUntilExit()
         
-        guard process.terminationStatus == 0 else
+        if process.terminationStatus != 0
         {
             throw Abort(.internalServerError, reason: "Failed to restart service")
         }
@@ -199,17 +193,9 @@ extension Application
             }
             
             try fileManager.moveItem(atPath: buildPath, toPath: deployPath)
-            
-            // Log success
-//            let successMessage = "Successfully moved executable to deploy directory\n"
-//            log(logPath, successMessage)
-//            task.log += successMessage
-//            try await task.save(on: request.db)
         }
         catch
         {
-            let errorMessage = "Failed to move executable: \(error.localizedDescription)\n"
-            log(logPath, errorMessage)
             throw error
         }
     }
