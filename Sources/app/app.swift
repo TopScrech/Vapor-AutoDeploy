@@ -74,14 +74,12 @@ extension Application
             try await moveExecutable(logPath: logFile, task: task, request: request)
             
             // 4. Finalize
-            log(logFile, "\n> [4/4] Deployment complete: ... restarting app ...\n")
+            log(logFile, "\n> [4/4] Restarting app ...\n")
             
             
             log(logFile,
             """
-            \n============================
-            ::::::::::::::::::::::::::::
-            Deployment process completed
+            \nDeployment process completed
             ::::::::::::::::::::::::::::
             ============================\n\n
             """)
