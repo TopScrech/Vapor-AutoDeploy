@@ -34,7 +34,7 @@ extension Application
         
         var logContent =
         """
-        \n=====================================================
+        =====================================================
         :::::::::::::::::::::::::::::::::::::::::::::::::::::
         Valid push event received [\(Date())]
         """
@@ -78,8 +78,7 @@ extension Application
             ::::::::::::::::::::::::::::
             Deployment process completed
             ::::::::::::::::::::::::::::
-            ============================
-            
+            ============================\n\n
             """
             log(logFilePath, logContent)
             
@@ -89,15 +88,16 @@ extension Application
             
             try await restartService(request: request)
             
-        } catch {
+        } catch
+        {
             let errorMessage = """
-        \n=======================
-        :::::::::::::::::::::::::
-        Deployment process failed
-        Error: \(error.localizedDescription)
-        :::::::::::::::::::::::::
-        =========================\n\n
-        """
+            \n=======================
+            :::::::::::::::::::::::::
+            Deployment process failed
+            Error: \(error.localizedDescription)
+            :::::::::::::::::::::::::
+            =========================\n\n
+            """
             log(logFilePath, errorMessage)
             
             task.status = "failed"
