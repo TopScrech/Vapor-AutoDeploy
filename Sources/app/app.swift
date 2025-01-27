@@ -43,9 +43,8 @@ extension Application
         {
             logContent += "\n\n\(commitInfo)"
         }
-        else { logContent += "NO COMMIT INFO" }
         
-        logContent += "\n::::::::::::::::::::::::::::::::::::::::::::::::::::::"
+        logContent += "\n:::::::::::::::::::::::::::::::::::::::::::::::::::::"
         logContent += "\n=====================================================\n\n"
         logContent += "Auto deploy:\n\n"
         log(logFilePath, logContent)
@@ -173,8 +172,8 @@ extension Application
         {
             commitInfo +=
             """
-            \n\nChanged (\(payload.headCommit.modified.count)): 
-                - \(payload.headCommit.modified.joined(separator: ",\n        - "))
+            \n\nChanged (\(payload.headCommit.modified.count)):
+                - \(payload.headCommit.modified.joined(separator: ",\n    - "))
             """
         }
         
