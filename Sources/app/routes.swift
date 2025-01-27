@@ -2,35 +2,42 @@ import Vapor
 
 extension Application
 {
-    // the web server will respond to the following http routes
-    public func useRoutes()
+    // auto deploy setup and control panel
+    func usePushEvents()
     {
         // github webhook push event route
-        self.github("pushevent", type: .push)
+        self.pushed("pushevent")
         { request async in
             // handle valid request
             await self.handlePushEvent(request)
         }
         
+        // mottzi.de/admin
         self.get("admin")
         { request async throws -> View in
-            let tasks = try await DeploymentTask.query(on: request.db).all()
+            let tasks = try await Deployment.query(on: request.db).all()
             return try await request.view.render("deployments", ["tasks": tasks])
         }
         
+        // mottzi.de/admin/deployments
         self.get("admin", "deployments")
-        { request async throws -> [DeploymentTask] in
-            try await DeploymentTask.query(on: request.db).all()
+        { request async throws -> [Deployment] in
+            try await Deployment.query(on: request.db).all()
         }
         
+        // mottzi.de/admin/deployments/UUID...
         self.get("admin", "deployments", ":id")
-        { request async throws -> DeploymentTask in
-            guard let task = try await DeploymentTask.find(request.parameters.get("id"), on: request.db)
+        { request async throws -> Deployment in
+            guard let deployment = try await Deployment.find(request.parameters.get("id"), on: request.db)
             else { throw Abort(.notFound) }
             
-            return task
+            return deployment
         }
-        
+    }
+
+    // the web server will respond to the following http routes
+    public func useRoutes()
+    {
         // mottzi.de/text
         self.get("text")
         { request in

@@ -1,9 +1,9 @@
 import Vapor
 import Fluent
 
-final class DeploymentTask: Model, Content
+final class Deployment: Model, Content
 {
-    static let schema = "deployment_tasks"
+    static let schema = "deployments"
     
     @ID(key: .id) var id: UUID?
     @Field(key: "status") var status: String // "running", "success", "failed"

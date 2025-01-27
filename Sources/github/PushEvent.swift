@@ -3,31 +3,25 @@ import Vapor
 extension Application
 {
     // convenience function for use in application context 
-    func github(_ endpoint: PathComponent..., type: GitHubEvent.EventType, action closure: @Sendable @escaping (Request) async -> ())
+    func pushed(_ endpoint: PathComponent..., action closure: @Sendable @escaping (Request) async -> ())
     {
-        GitHubEvent(app: self, type: type).listen(to: endpoint, action: closure)
+        PushEvent(app: self).listen(to: endpoint, action: closure)
     }
 }
 
-struct GitHubEvent
+struct PushEvent
 {
     let app: Application
-    let type: EventType
 
     func listen(to endpoint: [PathComponent], action closure: @Sendable @escaping (Request) async -> ())
     {
-        let accepted = Response(status: .ok, body: .init(stringLiteral: "[mottzi] \(type.rawValue.capitalized) event request accepted."))
-        let denied = Response(status: .forbidden, body: .init(stringLiteral: "[mottzi] \(type.rawValue.capitalized) event request denied."))
+        let accepted = Response(status: .ok, body: .init(stringLiteral: "[mottzi] Push event accepted."))
+        let denied = Response(status: .forbidden, body: .init(stringLiteral: "[mottzi] Push event denied."))
                 
         app.post(endpoint)
         { request async -> Response in
             // validate request by verifying github signature
             let validRequest = self.validateSignature(of: request)
-            
-            // log initial request log based on validity
-//            var logger = EventLog(file: "deploy/github/\(type.rawValue).log", type: self.type)
-//            logger.build(request, valid: validRequest)
-//            logger.write()
             
             // deny request if invalid signature
             guard validRequest else { return denied }
@@ -77,5 +71,26 @@ struct GitHubEvent
         )
     
         return valid
+    }
+}
+
+extension PushEvent
+{
+    struct Payload: Codable
+    {
+        let headCommit: Commit
+        
+        struct Commit: Codable
+        {
+            let id: String
+            let author: Author
+            let message: String
+            let modified: [String]
+            
+            struct Author: Codable
+            {
+                let name: String
+            }
+        }
     }
 }

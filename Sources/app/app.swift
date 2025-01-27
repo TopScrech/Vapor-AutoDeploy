@@ -12,13 +12,13 @@ struct mottzi
         try LoggingSystem.bootstrap(from: &env)
 
         let app = try await Application.make(env)
-        
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
-        app.migrations.add(CreateDeploymentTask())
+        app.migrations.add(Deployment.Table())
         try await app.autoMigrate()
-        
+
         app.views.use(.leaf)
         app.useRoutes()
+        app.usePushEvents()
         
         try await app.execute()
         try await app.asyncShutdown()
@@ -56,7 +56,7 @@ extension Application
         // log deploy process beginning
         logContent = "\nAuto deploy:\n"
         
-        let task = DeploymentTask(status: "running")
+        let task = Deployment(status: "running")
         try? await task.save(on: request.db)
         
         do
@@ -75,7 +75,6 @@ extension Application
             
             // 4. Finalize
             log(logFile, "\n> [4/4] Restarting app ...\n")
-            
             
             log(logFile,
             """
@@ -111,7 +110,7 @@ extension Application
         }
     }
     
-    private func execute(command: String, step: Int, logPath: String, task: DeploymentTask, request: Request) async throws
+    private func execute(command: String, step: Int, logPath: String, task: Deployment, request: Request) async throws
     {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -153,7 +152,7 @@ extension Application
         
         guard let bodyString = request.body.string,
               let jsonData = bodyString.data(using: .utf8),
-              let payload = try? decoder.decode(GitHubEvent.Payload.self, from: jsonData)
+              let payload = try? decoder.decode(PushEvent.Payload.self, from: jsonData)
         else { return nil }
         
         var commitInfo =
@@ -175,7 +174,7 @@ extension Application
         return commitInfo
     }
 
-    private func moveExecutable(logPath: String, task: DeploymentTask, request: Request) async throws
+    private func moveExecutable(logPath: String, task: Deployment, request: Request) async throws
     {
         let fileManager = FileManager.default
         let buildPath = "/var/www/mottzi/.build/debug/App"
