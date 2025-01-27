@@ -16,7 +16,7 @@
             <tr>
                 <td><a href="/admin/deployments/#(task.id)">#(task.id)</a></td>
                 <td>#(task.status)</td>
-                <td>#(task.startedAt)</td>
+                <td>#date(task.startedAt)</td>
                 <td>
                     #if(task.duration):
                         #(task.duration)s
