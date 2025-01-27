@@ -56,22 +56,23 @@ extension Application
         // log deploy process beginning
         logContent = "\nAuto deploy:\n"
         
-        let task = Deployment(status: "running")
-        try? await task.save(on: request.db)
+        // create new deployment
+        let deployment = Deployment(status: "running")
+        try? await deployment.save(on: request.db)
         
         do
         {
             // 1. Git Pull
             log(logFile, "\n> [1/4] Pulling repository\n")
-            try await execute(command: "git pull", step: 1, logPath: logFile, task: task, request: request)
+            try await execute(command: "git pull", step: 1, logPath: logFile, deployment: deployment, request: request)
             
             // 2. Swift Build
             log(logFile, "\n> [2/4] Building app\n")
-            try await execute(command: "/usr/local/swift/usr/bin/swift build -c debug", step: 2, logPath: logFile, task: task, request: request)
+            try await execute(command: "/usr/local/swift/usr/bin/swift build -c debug", step: 2, logPath: logFile, deployment: deployment, request: request)
             
             // 3. Move Executable
             log(logFile, "\n> [3/4] Moving app .build/debug/ -> deploy/\n")
-            try await moveExecutable(logPath: logFile, task: task, request: request)
+            try await moveExecutable(logPath: logFile, request: request)
             
             // 4. Finalize
             log(logFile, "\n> [4/4] Restarting app ...\n")
@@ -83,12 +84,12 @@ extension Application
             ============================\n\n
             """)
             
-            // update deploy status
-            task.status = "success"
-            task.finishedAt = Date()
-            try await task.save(on: request.db)
+            // ... update deployment status
+            deployment.status = "success"
+            deployment.finishedAt = Date()
+            try? await deployment.save(on: request.db)
             
-            // restart app
+            // ... restart app
             try await restart(request: request)
         }
         catch
@@ -103,14 +104,14 @@ extension Application
             =========================\n\n
             """)
             
-            task.status = "failed"
-            task.finishedAt = Date()
-            try? await task.save(on: request.db)
-            return
+            // ... update deployment status
+            deployment.status = "failed"
+            deployment.finishedAt = Date()
+            try? await deployment.save(on: request.db)
         }
     }
     
-    private func execute(command: String, step: Int, logPath: String, task: Deployment, request: Request) async throws
+    private func execute(command: String, step: Int, logPath: String, deployment: Deployment, request: Request) async throws
     {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -126,6 +127,7 @@ extension Application
         
         if process.terminationStatus != 0
         {
+            // why use NSError here specifically? error?
             throw NSError(domain: "DeploymentError", code: step, userInfo: [NSLocalizedDescriptionKey: "Command failed: \(command)"])
         }
     }
@@ -174,7 +176,7 @@ extension Application
         return commitInfo
     }
 
-    private func moveExecutable(logPath: String, task: Deployment, request: Request) async throws
+    private func moveExecutable(logPath: String, request: Request) async throws
     {
         let fileManager = FileManager.default
         let buildPath = "/var/www/mottzi/.build/debug/App"
