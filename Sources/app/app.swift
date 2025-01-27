@@ -30,8 +30,9 @@ extension Application
     // handle valid push event t
     func handlePushEvent(_ request: Request) async
     {
-        let logFilePath = "deploy/github/push.log"
+        let logFile = "deploy/github/push.log"
         
+        // log initial push event received with commit info
         var logContent =
         """
         =====================================================
@@ -41,13 +42,19 @@ extension Application
         
         if let commitInfo = getCommitInfo(request)
         {
-            logContent += "\n\n\(commitInfo)"
+            logContent += "\n\n\(commitInfo)\n"
         }
         
-        logContent += "\n:::::::::::::::::::::::::::::::::::::::::::::::::::::"
-        logContent += "\n=====================================================\n\n"
-        logContent += "Auto deploy:\n\n"
-        log(logFilePath, logContent)
+        logContent +=
+        """
+        :::::::::::::::::::::::::::::::::::::::::::::::::::::
+        =====================================================\n
+        """
+        
+        log(logFile, logContent)
+        
+        // log deploy process beginning
+        logContent = "\nAuto deploy:\n"
         
         let task = DeploymentTask(status: "running")
         try? await task.save(on: request.db)
@@ -55,53 +62,51 @@ extension Application
         do
         {
             // 1. Git Pull
-            logContent = "> [1/4] Pulling repository\n\n"
-            log(logFilePath, logContent)
-            try await execute(command: "git pull", step: 1, logPath: logFilePath, task: task, request: request)
+            log(logFile, "\n> [1/4] Pulling repository\n")
+            try await execute(command: "git pull", step: 1, logPath: logFile, task: task, request: request)
             
             // 2. Swift Build
-            logContent = "> [2/4] Building app\n\n"
-            log(logFilePath, logContent)
-            try await execute(command: "/usr/local/swift/usr/bin/swift build -c debug", step: 2, logPath: logFilePath, task: task, request: request)
+            log(logFile, "\n> [2/4] Building app\n")
+            try await execute(command: "/usr/local/swift/usr/bin/swift build -c debug", step: 2, logPath: logFile, task: task, request: request)
             
             // 3. Move Executable
-            logContent = "> [3/4] Moving app .build/debug/ -> deploy/\n\n"
-            log(logFilePath, logContent)
-            try await moveExecutable(logPath: logFilePath, task: task, request: request)
+            log(logFile, "\n> [3/4] Moving app .build/debug/ -> deploy/\n")
+            try await moveExecutable(logPath: logFile, task: task, request: request)
             
             // 4. Finalize
-            logContent =
-            """
-            > [4/4] Deployment complete - restart will be handled by Vapor
+            log(logFile, "\n> [4/4] Deployment complete: ... restarting app ...\n")
             
-            ============================
+            
+            log(logFile,
+            """
+            \n============================
             ::::::::::::::::::::::::::::
             Deployment process completed
             ::::::::::::::::::::::::::::
             ============================\n\n
-            """
-            log(logFilePath, logContent)
+            """)
             
+            // update deploy status
             task.status = "success"
             task.finishedAt = Date()
             try await task.save(on: request.db)
             
-            try await restartService(request: request)
-            
-        } catch
+            // restart app
+            try await restart(request: request)
+        }
+        catch
         {
-            let errorMessage = """
-            \n=======================
+            log(logFile,
+            """
+            \n=========================
             :::::::::::::::::::::::::
             Deployment process failed
             Error: \(error.localizedDescription)
             :::::::::::::::::::::::::
             =========================\n\n
-            """
-            log(logFilePath, errorMessage)
+            """)
             
             task.status = "failed"
-            task.log += errorMessage
             task.finishedAt = Date()
             try? await task.save(on: request.db)
             return
@@ -126,9 +131,7 @@ extension Application
         let output = String(data: outputData ?? Data(), encoding: .utf8) ?? ""
         
         // Update both file log and database
-        log(logPath, output)
-        task.log += "\n$ \(command)\n\(output)"
-        try await task.save(on: request.db)
+        log(logPath, "\(output)\n")
         
         guard process.terminationStatus == 0 else
         {
@@ -136,7 +139,7 @@ extension Application
         }
     }
     
-    private func restartService(request: Request) async throws
+    private func restart(request: Request) async throws
     {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
