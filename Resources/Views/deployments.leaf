@@ -218,7 +218,7 @@
                         });
                     })
                     .catch(error => console.error('Error checking for new deployments:', error));
-            }, 10000);
+            }, 5000);
 
             // Initialize monitoring for existing deployments
             document.querySelectorAll('[data-deployment-id]').forEach(monitorDeployment);
