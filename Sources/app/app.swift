@@ -44,7 +44,7 @@ extension Application
         
         if let commitLog = commitInfo.log
         {
-            logContent += "\n\n\(commitInfo)\n"
+            logContent += "\n\n\(commitLog)\n"
         }
         
         logContent +=
