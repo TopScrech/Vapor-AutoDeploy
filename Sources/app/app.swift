@@ -14,7 +14,6 @@ struct mottzi
         let app = try await Application.make(env)
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
         app.migrations.add(Deployment.Table())
-        app.migrations.add(Deployment.LogToMessage())
         try await app.autoMigrate()
 
         app.views.use(.leaf)
