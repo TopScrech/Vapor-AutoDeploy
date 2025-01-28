@@ -2,7 +2,7 @@ import Fluent
 
 extension Deployment
 {
-    struct Table: AsyncMigration
+    struct Table2: AsyncMigration
     {
         func prepare(on database: Database) async throws
         {
