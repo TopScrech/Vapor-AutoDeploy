@@ -20,7 +20,7 @@ extension Application
         self.get("text")
         { request in
             """
-            Auto Deploy: lolol
+            Auto Deploy: please
             """
         }
         
