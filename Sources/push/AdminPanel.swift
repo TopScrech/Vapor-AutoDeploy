@@ -1,15 +1,5 @@
 import Vapor
 
-//struct AdminPanel
-//{
-//    struct AdminContext: Encodable
-//    {
-//        let tasks: [Deployment]
-//        
-//        init(_ tasks: [Deployment]) { self.tasks = tasks }
-//    }
-//}
-
 extension Application
 {
     func useAdminPanel()
