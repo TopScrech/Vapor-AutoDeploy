@@ -24,9 +24,11 @@
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     #for(task in tasks):
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-deployment-id="#(task.id)">
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" 
+                        data-deployment-id="#(task.id)" 
+                        data-started-at="#(task.startedAtTimestamp)">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <a href="/admin/deployments/#(task.id)" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium">#(task.id) ... #(task.durationString)</a>
+                            <a href="/admin/deployments/#(task.id)" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium">#(task.id)</a>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             #if(task.status == "success"):
@@ -68,6 +70,8 @@
                 const durationElement = row.querySelector('.live-duration');
                 const spinner = row.querySelector('svg');
                 const startTimestamp = parseFloat(row.dataset.startedAt);
+
+                if (!durationElement || isNaN(startTimestamp)) return;
 
                 // Immediate first update
                 let lastDuration = 0;
