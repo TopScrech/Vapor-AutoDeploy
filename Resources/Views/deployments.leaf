@@ -82,8 +82,8 @@
             };
             
             const badgeClass = classes[status] || classes.default;
-            const label = status === 'failure' ? 'Failed' : 
-                         status === 'success' ? 'Success' : 
+            const label = status === 'failure' ? 'Failed' :
+                         status === 'success' ? 'Success' :
                          status;
             
             return `<span class="status-badge px-3 py-1 rounded-full ${badgeClass} text-sm">${label}</span>`;
@@ -95,7 +95,7 @@
                 const durationElement = row.querySelector('.live-duration');
                 const spinner = row.querySelector('svg');
                 const startTimestamp = parseFloat(row.dataset.startedAt);
-                const statusCell = row.querySelector('td:nth-child(2)');
+                const statusCell = row.querySelector('td:nth-child(3)'); // Updated index for status column
 
                 if (!durationElement || isNaN(startTimestamp)) return;
 
@@ -133,6 +133,8 @@
                                 if (statusCell) {
                                     statusCell.innerHTML = getStatusBadge(deployment.status);
                                 }
+
+
                             }
                         })
                         .catch(error => console.error('Monitoring error:', error));
