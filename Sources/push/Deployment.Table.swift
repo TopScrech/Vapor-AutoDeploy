@@ -27,7 +27,7 @@ extension Deployment
         {
             try await database.schema(Deployment.schema)
                 .deleteField("log")
-                .field("message", .string, .required, .sql(.default("")))
+                .field("message", .string, .required)
                 .update()
         }
         
