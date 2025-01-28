@@ -50,7 +50,7 @@
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    <span class="live-duration">Calculating...</span>
+                                    <span class="live-duration">0.0s</span>
                                 </div>
                             #endif
                         </td>
@@ -62,20 +62,20 @@
     </div>
 
     <script>
-        // Live duration calculator
         function updateDurations() {
             document.querySelectorAll('[data-started]').forEach(element => {
-                const startTime = parseInt(element.dataset.started) * 1000; // Convert to milliseconds
-                const now = Date.now();
-                const duration = ((now - startTime) / 1000).toFixed(1);
-                element.querySelector('.live-duration').textContent = `${duration}s`;
+                const startTimestamp = parseFloat(element.dataset.started);
+                if (!isNaN(startTimestamp)) {
+                    const now = Date.now() / 1000; // Current time in seconds
+                    const duration = (now - startTimestamp).toFixed(1);
+                    element.querySelector('.live-duration').textContent = `${duration}s`;
+                }
             });
         }
 
-        // Update durations every second
+        // Update every 100ms for smooth animation
         setInterval(updateDurations, 100);
-        // Initial update
-        updateDurations();
+        updateDurations(); // Initial call
     </script>
 </body>
 </html>
