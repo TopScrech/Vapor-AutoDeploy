@@ -7,20 +7,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900">
-    <div class="container mx-auto px-4 py-8">
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Recent Deployments</h1>
+    <div class="container mx-auto px-2 sm:px-4 py-6">
+        <div class="mb-4">
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">Recent Deployments</h1>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Message</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Started</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Duration</th>
+                        <th class="px-4 py-3 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Message</th>
+                        <th class="hidden sm:table-cell px-4 py-3 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID</th>
+                        <th class="px-4 py-3 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                        <th class="hidden sm:table-cell px-4 py-3 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Started</th>
+                        <th class="px-4 py-3 sm:px-6 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Duration</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -29,30 +29,30 @@
                         data-deployment-id="#(task.id)" 
                         data-started-at="#(task.startedAtTimestamp)"
                     >
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="block text-sm text-gray-600 dark:text-gray-300">#(task.message)</span>
+                        <td class="px-4 py-3 sm:px-6 sm:py-4 max-w-[160px]">
+                            <span class="block text-sm text-gray-600 dark:text-gray-300 truncate">#(task.message)</span>
                         </td>
                         
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <a href="/admin/deployments/#(task.id)" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium">#(task.id)</a>
+                        <td class="hidden sm:table-cell px-4 py-3 sm:px-6 sm:py-4">
+                            <a href="/admin/deployments/#(task.id)" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm">#(task.id)</a>
                         </td>
                         
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-3 sm:px-6 sm:py-4">
                             #if(task.status == "success"):
-                                <span class="status-badge px-3 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-200 text-sm">Success</span>
+                                <span class="status-badge px-2 py-1 sm:px-3 rounded-full bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-200 text-sm">Success</span>
                             #elseif(task.status == "failure"):
-                                <span class="status-badge px-3 py-1 rounded-full bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-200 text-sm">Failed</span>
+                                <span class="status-badge px-2 py-1 sm:px-3 rounded-full bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-200 text-sm">Failed</span>
                             #else:
-                                <span class="status-badge px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200 text-sm">#(task.status)</span>
+                                <span class="status-badge px-2 py-1 sm:px-3 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200 text-sm">#(task.status)</span>
                             #endif
                         </td>
                         
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="hidden sm:table-cell px-4 py-3 sm:px-6 sm:py-4">
                             <span class="block text-sm text-gray-600 dark:text-gray-300">#date(task.startedAt, "MMM d, yyyy")</span>
                             <span class="block text-gray-400 dark:text-gray-500 text-xs">#date(task.startedAt, "HH:mm:ss")</span>
                         </td>
                         
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-3 sm:px-6 sm:py-4">
                             #if(task.durationString):
                                 <span class="font-mono text-sm text-gray-600 dark:text-gray-300">#(task.durationString)</span>
                             #else:
@@ -65,13 +65,14 @@
                                 </div>
                             #endif
                         </td>
-                        
                     </tr>
                     #endfor
                 </tbody>
             </table>
         </div>
     </div>
+
+
 
     <script>
         function getStatusBadge(status) {
