@@ -20,3 +20,20 @@ final class Deployment: Model, Content
         self.log = log
     }
 }
+
+extension Deployment
+{
+    var durationString: String?
+    {
+        guard let finishedAt = finishedAt,
+              let startedAt = startedAt
+        else { return nil }
+        
+        return String(format: "%.1fs", finishedAt.timeIntervalSince(startedAt))
+    }
+    
+    var startedAtTimestamp: Double
+    {
+        startedAt?.timeIntervalSince1970 ?? 0
+    }
+}

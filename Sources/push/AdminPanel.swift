@@ -2,14 +2,11 @@ import Vapor
 
 struct AdminPanel
 {
-    struct DeploymentView: Encodable
+    struct AdminContext: Encodable
     {
-        let id: UUID?
-        let status: String
-        let startedAt: Date?
-        let finishedAt: Date?
-        let durationString: String?
-        let startedAtTimestamp: Double
+        let deployments: [Deployment]
+        
+        init(_ deployments: [Deployment]) { self.deployments = deployments }
     }
 }
 
@@ -20,29 +17,12 @@ extension Application
         // mottzi.de/admin
         self.get("admin")
         { request async throws -> View in
-            let deployments = try await Deployment.query(on: request.db).sort(\.$startedAt, .descending).all()
+            let deployments = try await Deployment
+                .query(on: request.db)
+                .sort(\.$startedAt, .descending)
+                .all()
             
-            let data = deployments.map()
-            {
-                var durationString: String? = nil
-                
-                if let finishedAt = $0.finishedAt, let startedAt = $0.startedAt
-                {
-                    let duration = finishedAt.timeIntervalSince(startedAt)
-                    durationString = String(format: "%.1fs", duration)
-                }
-                
-                return AdminPanel.DeploymentView(
-                    id: $0.id,
-                    status: $0.status,
-                    startedAt: $0.startedAt,
-                    finishedAt: $0.finishedAt,
-                    durationString: durationString,
-                    startedAtTimestamp: $0.startedAt?.timeIntervalSince1970 ?? 0
-                )
-            }
-            
-            return try await request.view.render("deployments", ["tasks": data])
+            return try await request.view.render("deployments", AdminPanel.AdminContext(deployments))
         }
 
         // mottzi.de/admin/deployments
