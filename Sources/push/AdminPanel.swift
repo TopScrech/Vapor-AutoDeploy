@@ -1,14 +1,14 @@
 import Vapor
 
-struct AdminPanel
-{
-    struct AdminContext: Encodable
-    {
-        let tasks: [Deployment]
-        
-        init(_ tasks: [Deployment]) { self.tasks = tasks }
-    }
-}
+//struct AdminPanel
+//{
+//    struct AdminContext: Encodable
+//    {
+//        let tasks: [Deployment]
+//        
+//        init(_ tasks: [Deployment]) { self.tasks = tasks }
+//    }
+//}
 
 extension Application
 {
@@ -22,7 +22,7 @@ extension Application
                 .sort(\.$startedAt, .descending)
                 .all()
             
-            return try await request.view.render("deployments", AdminPanel.AdminContext(deployments))
+            return try await request.view.render("deployments", ["tasks": deployments])
         }
 
         // mottzi.de/admin/deployments
