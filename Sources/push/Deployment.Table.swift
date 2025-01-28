@@ -20,4 +20,22 @@ extension Deployment
             try await database.schema(Deployment.schema).delete()
         }
     }
+    
+    struct LogToMessage: AsyncMigration
+    {
+        func prepare(on database: Database) async throws
+        {
+            try await database.schema(Deployment.schema)
+                .deleteField("log")
+                .field("message", .string, .required, .sql(.default("")))
+                .update()
+        }
+        
+        func revert(on database: Database) async throws {
+            try await database.schema(Deployment.schema)
+                .deleteField("message")
+                .field("log", .string, .required)
+                .update()
+        }
+    }
 }

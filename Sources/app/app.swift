@@ -14,6 +14,7 @@ struct mottzi
         let app = try await Application.make(env)
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
         app.migrations.add(Deployment.Table())
+        app.migrations.add(Deployment.LogToMessage())
         try await app.autoMigrate()
 
         app.views.use(.leaf)
@@ -32,6 +33,7 @@ extension Application
     func handlePushEvent(_ request: Request) async
     {
         let logFile = "deploy/github/push.log"
+        let commitInfo = getCommitInfo(request)
         
         // log initial push event received with commit info
         var logContent =
@@ -41,7 +43,7 @@ extension Application
         Valid push event received [\(Date())]
         """
         
-        if let commitInfo = getCommitInfo(request)
+        if let commitLog = commitInfo.log
         {
             logContent += "\n\n\(commitInfo)\n"
         }
@@ -58,7 +60,7 @@ extension Application
         logContent = "\nAuto deploy:\n"
         
         // create new deployment
-        let deployment = Deployment(status: "running")
+        let deployment = Deployment(status: "running", message: commitInfo.message ?? "No message")
         try? await deployment.save(on: request.db)
         
         do
@@ -148,7 +150,7 @@ extension Application
         }
     }
     
-    private func getCommitInfo(_ request: Request) -> String?
+    private func getCommitInfo(_ request: Request) -> (log: String?, author: String?, message: String?)
     {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -156,7 +158,7 @@ extension Application
         guard let bodyString = request.body.string,
               let jsonData = bodyString.data(using: .utf8),
               let payload = try? decoder.decode(PushEvent.Payload.self, from: jsonData)
-        else { return nil }
+        else { return (nil, nil, nil) }
         
         var commitInfo =
         """
@@ -174,7 +176,7 @@ extension Application
             """
         }
         
-        return commitInfo
+        return (commitInfo, payload.headCommit.author.name, payload.headCommit.message)
     }
 
     private func moveExecutable(logPath: String, request: Request) async throws

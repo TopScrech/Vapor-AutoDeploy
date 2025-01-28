@@ -6,18 +6,18 @@ final class Deployment: Model, Content
     static let schema = "deployments"
     
     @ID(key: .id) var id: UUID?
-    @Field(key: "status") var status: String // "running", "success", "failed"
-    @Field(key: "log") var log: String
+    @Field(key: "status") var status: String
+    @Field(key: "message") var message: String
     @Timestamp(key: "started_at", on: .create) var startedAt: Date?
     @Timestamp(key: "finished_at", on: .none) var finishedAt: Date?
     
     init() {}
     
-    init(id: UUID? = nil, status: String, log: String = "")
+    init(id: UUID? = nil, status: String, message: String)
     {
         self.id = id
         self.status = status
-        self.log = log
+        self.message = message
     }
 }
 
@@ -26,7 +26,7 @@ extension Deployment
 {
     enum CodingKeys: String, CodingKey
     {
-        case id, status, log, startedAt, finishedAt
+        case id, status, message, startedAt, finishedAt
         case durationString, startedAtTimestamp
     }
     
@@ -36,7 +36,7 @@ extension Deployment
         
         try container.encode(id, forKey: .id)
         try container.encode(status, forKey: .status)
-        try container.encode(log, forKey: .log)
+        try container.encode(message, forKey: .message)
         try container.encode(startedAt, forKey: .startedAt)
         try container.encode(finishedAt, forKey: .finishedAt)
         
