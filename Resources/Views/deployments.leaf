@@ -24,7 +24,7 @@
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     #for(task in tasks):
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-deployment-id="#(task.id)">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <a href="/admin/deployments/#(task.id)" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium">#(task.id)</a>
                         </td>
@@ -45,10 +45,12 @@
                             #if(task.durationString):
                                 <span class="font-mono text-sm text-gray-600 dark:text-gray-300">#(task.durationString)</span>
                             #else:
-                                <div class="flex items-center text-gray-400 dark:text-gray-500"
-                                     data-started="#(task.startedAtTimestamp)">
-                                    <svg class="animate-spin h-4 w-4 mr-2" ...></svg>
-                                    <span class="live-duration">0.0s</span>
+                                <div class="flex items-center text-gray-600 dark:text-gray-300">
+                                    <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span class="live-duration font-mono text-sm">0.0s</span>
                                 </div>
                             #endif
                         </td>
@@ -60,22 +62,49 @@
     </div>
 
     <script>
-    function updateDurations() {
-        document.querySelectorAll('[data-started]').forEach(element => {
-            const startTimestamp = Number(element.dataset.started);
-            if (startTimestamp > 0) {
-                const now = Date.now() / 1000; // Current UNIX timestamp in seconds
-                const duration = Math.max(0, (now - startTimestamp)).toFixed(1);
-                element.querySelector('.live-duration').textContent = `${duration}s`;
-            }
-        });
-    }
+        // Live duration updater with status checking
+        function initDeploymentMonitoring() {
+            document.querySelectorAll('[data-deployment-id]').forEach(row => {
+                const deploymentId = row.dataset.deploymentId;
+                const durationElement = row.querySelector('.live-duration');
+                const statusElement = row.querySelector('[class*="rounded-full"]');
+                const spinner = row.querySelector('svg');
+                let startTimestamp = null;
 
-    // Start updating immediately
-    requestAnimationFrame(function update() {
-        updateDurations();
-        requestAnimationFrame(update);
-    });
+                // Get initial timestamp from server
+                fetch(`/admin/deployments/${deploymentId}`)
+                    .then(response => response.json())
+                    .then(deployment => {
+                        startTimestamp = new Date(deployment.startedAt).getTime() / 1000;
+                        
+                        // Update duration every 100ms
+                        const updateInterval = setInterval(() => {
+                            const now = Date.now() / 1000;
+                            const duration = (now - startTimestamp).toFixed(1);
+                            durationElement.textContent = `${duration}s`;
+                        }, 100);
+
+                        // Check status every 10 seconds
+                        const statusCheckInterval = setInterval(() => {
+                            fetch(`/admin/deployments/${deploymentId}`)
+                                .then(response => response.json())
+                                .then(deployment => {
+                                    if (deployment.finishedAt) {
+                                        clearInterval(updateInterval);
+                                        clearInterval(statusCheckInterval);
+                                        spinner.remove();
+                                        const duration = (new Date(deployment.finishedAt).getTime()/1000 - startTimestamp).toFixed(1);
+                                        durationElement.textContent = `${duration}s`;
+                                        durationElement.classList.remove('live-duration');
+                                    }
+                                });
+                        }, 10000);
+                    });
+            });
+        }
+
+        // Initialize monitoring when page loads
+        document.addEventListener('DOMContentLoaded', initDeploymentMonitoring);
     </script>
 </body>
 </html>
