@@ -22,7 +22,7 @@ extension Application
                 .sort(\.$startedAt, .descending)
                 .all()
             
-            return try await request.view.render("deployments", ["tasks": deployments])
+            return try await request.view.render("deployments", AdminPanel.AdminContext(deployments))
         }
 
         // mottzi.de/admin/deployments
