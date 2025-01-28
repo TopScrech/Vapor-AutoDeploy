@@ -1,113 +1,64 @@
-#// base.leaf - Master template
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>#import("title")</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .status-badge {
-            padding: 0.35rem 0.65rem;
-            border-radius: 1rem;
-            font-size: 0.875rem;
-        }
-        .deployment-row:hover {
-            background-color: #f8f9fa;
-            cursor: pointer;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployments Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-light">
-    #import("nav")
-    <div class="container-fluid mt-4">
-        <div class="row">
-            <div class="col-lg-12">
-                #import("content")
-            </div>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-6 flex items-center justify-between">
+            <h1 class="text-2xl font-bold text-gray-800">Recent Deployments</h1>
+        </div>
+
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Started</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    #for(task in tasks):
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="/admin/deployments/#(task.id)" class="text-blue-600 hover:text-blue-900 font-medium">#(task.id)</a>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            #if(task.status == "success"):
+                                <span class="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm">Success</span>
+                            #elseif(task.status == "failure"):
+                                <span class="px-3 py-1 rounded-full bg-red-100 text-red-800 text-sm">Failed</span>
+                            #else:
+                                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm">#(task.status)</span>
+                            #endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            <span class="block">#date(task.startedAt, "MMM d, yyyy")</span>
+                            <span class="block text-gray-400 text-xs">#date(task.startedAt, "HH:mm:ss")</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            #if(task.durationString):
+                                <span class="font-mono">#(task.durationString)</span>
+                            #else:
+                                <div class="flex items-center text-gray-400">
+                                    <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Ongoing
+                                </div>
+                            #endif
+                        </td>
+                    </tr>
+                    #endfor
+                </tbody>
+            </table>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-#// deployments.leaf
-#extend("base"):
-    #export("title"): Deployment Dashboard #endexport
-    
-    #export("nav"):
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/admin">Deployment Dashboard</a>
-        </div>
-    </nav>
-    #endexport
-
-    #export("content"):
-    <div class="card shadow">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Recent Deployments</h5>
-            <a href="#" class="btn btn-primary btn-sm">New Deployment</a>
-        </div>
-        
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Status</th>
-                            <th>Started</th>
-                            <th>Duration</th>
-                            <th>Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        #for(task in tasks):
-                        <tr class="deployment-row align-middle">
-                            <td class="text-muted" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-                                #(task.id ?? "N/A")
-                            </td>
-                            <td>
-                                #if(task.status == "success"):
-                                <span class="status-badge bg-success text-white">✅ #capitalized(task.status)</span>
-                                #elseif(task.status == "failed"):
-                                <span class="status-badge bg-danger text-white">❌ #capitalized(task.status)</span>
-                                #else:
-                                <span class="status-badge bg-warning text-dark">⏳ #capitalized(task.status)</span>
-                                #endif
-                            </td>
-                            <td>
-                                #if(task.startedAt):
-                                <span class="text-muted">#date(task.startedAt, "MMM d, yyyy - HH:mm")</span>
-                                #else:
-                                <span class="text-muted">--</span>
-                                #endif
-                            </td>
-                            <td>
-                                #if(task.duration):
-                                <span class="text-primary">#(task.duration)s</span>
-                                #else:
-                                <span class="text-muted">Ongoing</span>
-                                #endif
-                            </td>
-                            <td>
-                                <a href="/admin/deployments/#(task.id)" class="btn btn-sm btn-outline-secondary">
-                                    View Details →
-                                </a>
-                            </td>
-                        </tr>
-                        #endfor
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        #if(count(tasks) == 0):
-        <div class="card-footer text-center text-muted py-5">
-            No deployments found
-        </div>
-        #endif
-    </div>
-    #endexport
-#endextend
