@@ -25,7 +25,9 @@ extension Application
             let data = deployments.map()
             {
                 var durationString: String? = nil
-                if let finishedAt = $0.finishedAt, let startedAt = $0.startedAt {
+                
+                if let finishedAt = $0.finishedAt, let startedAt = $0.startedAt
+                {
                     let duration = finishedAt.timeIntervalSince(startedAt)
                     durationString = String(format: "%.1fs", duration)
                 }
