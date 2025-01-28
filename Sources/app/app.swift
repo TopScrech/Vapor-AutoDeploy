@@ -16,6 +16,7 @@ struct mottzi
         app.migrations.add(Deployment.Table2())
         try await app.autoMigrate()
 
+        app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
         app.views.use(.leaf)
         app.useRoutes()
         app.usePushEvents()
