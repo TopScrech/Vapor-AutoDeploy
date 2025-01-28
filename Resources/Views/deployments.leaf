@@ -1,19 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deployments Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+<body class="bg-gray-50 dark:bg-gray-900">
     <div class="container mx-auto px-4 py-8">
-        <div class="mb-6 flex items-center justify-between">
+        <div class="mb-6">
             <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Recent Deployments</h1>
-            <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                <svg class="w-6 h-6 text-gray-800 dark:text-gray-200 hidden" id="dark-icon" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                <svg class="w-6 h-6 text-gray-800 dark:text-gray-200 hidden" id="light-icon" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-            </button>
         </div>
 
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
@@ -49,12 +45,12 @@
                             #if(task.durationString):
                                 <span class="font-mono text-sm text-gray-600 dark:text-gray-300">#(task.durationString)</span>
                             #else:
-                                <div class="flex items-center text-gray-400 dark:text-gray-500">
-                                    <svg class="animate-spin h-4 w-4 mr-2 dark:text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <div class="flex items-center text-gray-400 dark:text-gray-500" data-started="#(task.startedAt.timeIntervalSince1970)">
+                                    <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Ongoing
+                                    <span class="live-duration">Calculating...</span>
                                 </div>
                             #endif
                         </td>
@@ -66,28 +62,20 @@
     </div>
 
     <script>
-        const htmlEl = document.documentElement;
-        const themeToggle = document.getElementById('theme-toggle');
-        const darkIcon = document.getElementById('dark-icon');
-        const lightIcon = document.getElementById('light-icon');
-
-        // Initial state
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            htmlEl.classList.add('dark');
-            darkIcon.classList.add('hidden');
-            lightIcon.classList.remove('hidden');
-        } else {
-            htmlEl.classList.remove('dark');
-            darkIcon.classList.remove('hidden');
-            lightIcon.classList.add('hidden');
+        // Live duration calculator
+        function updateDurations() {
+            document.querySelectorAll('[data-started]').forEach(element => {
+                const startTime = parseInt(element.dataset.started) * 1000; // Convert to milliseconds
+                const now = Date.now();
+                const duration = ((now - startTime) / 1000).toFixed(1);
+                element.querySelector('.live-duration').textContent = `${duration}s`;
+            });
         }
 
-        themeToggle.addEventListener('click', () => {
-            htmlEl.classList.toggle('dark');
-            localStorage.theme = htmlEl.classList.contains('dark') ? 'dark' : 'light';
-            darkIcon.classList.toggle('hidden');
-            lightIcon.classList.toggle('hidden');
-        });
+        // Update durations every second
+        setInterval(updateDurations, 100);
+        // Initial update
+        updateDurations();
     </script>
 </body>
 </html>
