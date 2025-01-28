@@ -32,11 +32,11 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             #if(task.status == "success"):
-                                <span class="px-3 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-200 text-sm">Success</span>
+                                <span class="status-badge px-3 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-200 text-sm">Success</span>
                             #elseif(task.status == "failure"):
-                                <span class="px-3 py-1 rounded-full bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-200 text-sm">Failed</span>
+                                <span class="status-badge px-3 py-1 rounded-full bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-200 text-sm">Failed</span>
                             #else:
-                                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200 text-sm">#(task.status)</span>
+                                <span class="status-badge px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200 text-sm">#(task.status)</span>
                             #endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -64,12 +64,28 @@
     </div>
 
     <script>
+        function getStatusBadge(status) {
+            const classes = {
+                success: 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-200',
+                failure: 'bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-200',
+                default: 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200'
+            };
+            
+            const badgeClass = classes[status] || classes.default;
+            const label = status === 'failure' ? 'Failed' : 
+                         status === 'success' ? 'Success' : 
+                         status;
+            
+            return `<span class="status-badge px-3 py-1 rounded-full ${badgeClass} text-sm">${label}</span>`;
+        }
+
         function initDeploymentMonitoring() {
             document.querySelectorAll('[data-deployment-id]').forEach(row => {
                 const deploymentId = row.dataset.deploymentId;
                 const durationElement = row.querySelector('.live-duration');
                 const spinner = row.querySelector('svg');
                 const startTimestamp = parseFloat(row.dataset.startedAt);
+                const statusCell = row.querySelector('td:nth-child(2)');
 
                 if (!durationElement || isNaN(startTimestamp)) return;
 
@@ -102,6 +118,11 @@
                                 ).toFixed(1);
                                 durationElement.textContent = `${finalDuration}s`;
                                 durationElement.classList.remove('live-duration');
+                                
+                                // Update the status badge
+                                if (statusCell) {
+                                    statusCell.innerHTML = getStatusBadge(deployment.status);
+                                }
                             }
                         })
                         .catch(error => console.error('Monitoring error:', error));
