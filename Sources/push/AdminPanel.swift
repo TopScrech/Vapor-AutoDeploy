@@ -4,9 +4,9 @@ struct AdminPanel
 {
     struct AdminContext: Encodable
     {
-        let deployments: [Deployment]
+        let tasks: [Deployment]
         
-        init(_ deployments: [Deployment]) { self.deployments = deployments }
+        init(_ tasks: [Deployment]) { self.tasks = tasks }
     }
 }
 
