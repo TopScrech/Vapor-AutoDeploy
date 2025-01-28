@@ -9,6 +9,7 @@ struct AdminPanel
         let startedAt: Date?
         let finishedAt: Date?
         let durationString: String?
+        let startedAtTimestamp: Double
     }
 }
 
@@ -34,7 +35,8 @@ extension Application
                     status: $0.status,
                     startedAt: $0.startedAt,
                     finishedAt: $0.finishedAt,
-                    durationString: durationString
+                    durationString: durationString,
+                    startedAtTimestamp: $0.startedAt?.timeIntervalSince1970 ?? 0
                 )
             }
             
