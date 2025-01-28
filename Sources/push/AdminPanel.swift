@@ -51,7 +51,7 @@ extension Application
             try await Deployment.query(on: request.db).all()
         }
 
-        // mottzi.de/admin/deployments/UUID...
+        // mottzi.de/admin/deployments/UUID....
         self.get("admin", "deployments", ":id")
         { request async throws -> Deployment in
             guard let deployment = try await Deployment.find(request.parameters.get("id"), on: request.db)
