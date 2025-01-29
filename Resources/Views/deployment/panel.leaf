@@ -8,8 +8,8 @@
     <div class="flex flex-col h-screen">
         <!-- Compact Header -->
         #extend("deployment/header"):
-            #export("title"):
-                Welcome to Vapor!
+            #export("title", "Vapor!"):
+               
             #endexport
         #endextend
 
