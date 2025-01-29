@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Meta data -->
     #extend("deployment/head")
 </head>
 <body class="bg-gray-50 dark:bg-gray-900">
     <div class="flex flex-col h-screen">
-        <!-- Compact Header -->
         #extend("deployment/header"):
-            #export("title", "Deploymentss")
+            #export("title", "Deployments")
         #endextend
 
-        <!-- Full-width Table -->
         #extend("deployment/table"):
             #export("table.body"):
                 #for(task in tasks):
