@@ -1,3 +1,20 @@
+function connectWebSocket()
+{
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    socket = new WebSocket(`${protocol}//${host}/admin/ws`);
+    
+    socket.addEventListener('message', (event) => {
+        const { data } = JSON.parse(event.data)
+        console.log('WebSocket message:', data)
+    })
+    
+    socket.addEventListener('close', () => {
+        console.log('WebSocket closed: Reconnecting ...', data)
+        setTimeout(connectWebSocket, 5000); // Reconnect
+    })
+}
+
 function getStatusBadge(status)
 {
     const classes = {
@@ -156,4 +173,8 @@ function monitorDeployments() {
     document.querySelectorAll('[data-deployment-id]').forEach(monitorDeployment);
 }
 
-document.addEventListener('DOMContentLoaded', monitorDeployments);
+document.addEventListener('DOMContentLoaded', () => 
+{
+    monitorDeployments()
+    connectWebSocket()
+});
