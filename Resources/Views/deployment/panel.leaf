@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <!-- Meta data -->
-    #extend("head")
+    #extend("./head")
 </head>
 <body class="bg-gray-50 dark:bg-gray-900">
     <div class="flex flex-col h-screen">
