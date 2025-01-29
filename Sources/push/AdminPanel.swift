@@ -17,8 +17,8 @@ extension Application
 
         // mottzi.de/admin/deployments
         self.get("admin", "deployments")
-        { request async throws -> [Deployment] in
-            try await Deployment.query(on: request.db).all()
+        { request async throws in
+            try await Deployment.query(on: request.db).all().compactMap { deployment in deployment.id?.uuidString }
         }
 
         // mottzi.de/admin/deployments/UUID....
