@@ -15,9 +15,7 @@
         #extend("deployment/table"):
             #export("body"):
                 #for(task in tasks):
-                    #extend("deployment/row"):
-                        #export("message", task.message)
-                    #endextend
+                    #extend("deployment/row")
                 #endfor
             #endexport
         #endextend
