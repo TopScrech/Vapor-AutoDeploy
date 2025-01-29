@@ -1,7 +1,7 @@
 import Vapor
 import Fluent
 
-final class Deployment: Model, Content
+final class Deployment: Model, Content, @unchecked Sendable
 {
     static let schema = "deployments"
     

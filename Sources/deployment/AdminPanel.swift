@@ -4,6 +4,20 @@ extension Application
 {
     func useAdminPanel()
     {
+        self.webSocket("admin", "ws")
+        { request, socket async in
+            do
+            {
+                try await socket.send("Connected")
+            }
+            catch
+            {
+                
+            }
+            
+            socket.onText { _, text in print("Received unexpected message: \(text)") }
+        }
+        
         // mottzi.de/admin
         self.get("admin")
         { request async throws -> View in
