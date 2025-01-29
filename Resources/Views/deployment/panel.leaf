@@ -82,7 +82,6 @@
             </table>
         </div>
     </div>
-
     <script src="deployment/panel.js"></script>
 </body>
 </html>
