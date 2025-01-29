@@ -12,7 +12,7 @@ extension Application
                 .sort(\.$startedAt, .descending)
                 .all()
             
-            return try await request.view.render("deployment/panel", ["tasks": deployments])
+            return try await request.view.render("deployment/body", ["tasks": deployments])
         }
 
         // mottzi.de/admin/deployments
