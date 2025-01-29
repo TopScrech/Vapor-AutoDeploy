@@ -1,4 +1,4 @@
-#extend("panel"):
+#extend("AdminPanel/panel"):
     #export("title", "Deployments Dashboard")
     
     #export("body"):
