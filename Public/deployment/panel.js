@@ -7,6 +7,7 @@ function getStatusBadge(status)
     };
     
     const badgeClass = classes[status] || classes.default;
+    
     const label = status === 'failure' ? 'Failed' :
                  status === 'success' ? 'Success' :
                  status;
@@ -14,23 +15,28 @@ function getStatusBadge(status)
     return `<span class="status-badge px-3 py-1 rounded-full ${badgeClass} text-sm">${label}</span>`;
 }
 
-function formatDateTime(isoString) {
+function formatDateTime(isoString)
+{
     const date = new Date(isoString);
+    
     return {
         date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         time: date.toLocaleTimeString('en-US', { hour12: false })
     };
 }
 
-function createDeploymentRow(deployment) {
+function createDeploymentRow(deployment)
+{
     const row = document.createElement('tr');
     row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors';
     row.dataset.deploymentId = deployment.id;
     row.dataset.startedAt = deployment.startedAtTimestamp;
 
     const datetime = formatDateTime(deployment.startedAt);
-    const durationHtml = deployment.durationString ?
-        `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>` :
+    const durationHtml = deployment.durationString
+    ?
+        `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`
+    :
         `<div class="flex items-center text-gray-600 dark:text-gray-300">
             <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -65,7 +71,57 @@ function createDeploymentRow(deployment) {
     return row;
 }
 
-function initDeploymentMonitoring() {
+function monitorDeployment(row)
+{
+    const durationElement = row.querySelector('.live-duration');
+    const startTimestamp = parseFloat(row.dataset.startedAt);
+    const statusCell = row.querySelector('td:nth-child(3)');
+    
+    // skip if already finished or missing required elements
+    if (!durationElement || isNaN(startTimestamp)) return;
+    
+    // update duration every 100ms
+    let lastDuration = 0;
+    const updateDuration = () => {
+        const now = Date.now() / 1000;
+        lastDuration = (now - startTimestamp).toFixed(1);
+        durationElement.textContent = `${lastDuration}s`;
+    };
+    const durationInterval = setInterval(updateDuration, 100);
+
+    // update status every 5s
+    const updateStatus = () => {
+        fetch(`/admin/deployments/${row.dataset.deploymentId}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Network error');
+            return response.json();
+        })
+        .then(deployment => {
+            if (deployment.finishedAt) {
+                clearInterval(durationInterval);
+                clearInterval(statusInterval);
+                
+                const durationCell = row.querySelector('td:nth-child(5)');
+                if (durationCell) {
+                    durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`;
+                }
+                
+                if (statusCell) {
+                    statusCell.innerHTML = getStatusBadge(deployment.status);
+                }
+            }
+        })
+        .catch(error => console.error('Monitoring error:', error));
+    }
+    const statusInterval = setInterval(updateStatus, 5000);
+    
+    row.addEventListener('remove', () => {
+        clearInterval(durationInterval);
+        clearInterval(statusInterval);
+    });
+}
+
+function monitorDeployments() {
     const tbody = document.querySelector('tbody');
     const existingIds = new Set();
 
@@ -74,68 +130,19 @@ function initDeploymentMonitoring() {
         existingIds.add(row.dataset.deploymentId);
     });
 
-    function monitorDeployment(row) {
-        const deploymentId = row.dataset.deploymentId;
-        const durationElement = row.querySelector('.live-duration');
-        const spinner = row.querySelector('svg');
-        const startTimestamp = parseFloat(row.dataset.startedAt);
-        const statusCell = row.querySelector('td:nth-child(3)');
-
-        // Skip if already finished or missing required elements
-        if (!durationElement || isNaN(startTimestamp)) return;
-
-        let lastDuration = 0;
-        const updateDuration = () => {
-            const now = Date.now() / 1000;
-            lastDuration = (now - startTimestamp).toFixed(1);
-            durationElement.textContent = `${lastDuration}s`;
-        };
-
-        const updateInterval = setInterval(updateDuration, 100);
-        updateDuration();
-
-        const statusCheckInterval = setInterval(() => {
-            fetch(`/admin/deployments/${deploymentId}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network error');
-                    return response.json();
-                })
-                .then(deployment => {
-                    if (deployment.finishedAt) {
-                        clearInterval(updateInterval);
-                        clearInterval(statusCheckInterval);
-                        
-                        const durationCell = row.querySelector('td:nth-child(5)');
-                        if (durationCell) {
-                            durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`;
-                        }
-                        
-                        if (statusCell) {
-                            statusCell.innerHTML = getStatusBadge(deployment.status);
-                        }
-                    }
-                })
-                .catch(error => console.error('Monitoring error:', error));
-        }, 5000);
-
-        row.addEventListener('remove', () => {
-            clearInterval(updateInterval);
-            clearInterval(statusCheckInterval);
-        });
-    }
-
-    // Check for new deployments every 10 seconds
+    // Check for new deployments
     setInterval(() => {
         fetch('/admin/deployments')
             .then(response => response.json())
             .then(deployments => {
                 deployments.forEach(deployment => {
+                    // new deployment found
                     if (!existingIds.has(deployment.id)) {
                         existingIds.add(deployment.id);
                         const newRow = createDeploymentRow(deployment);
                         tbody.insertBefore(newRow, tbody.firstChild);
                         
-                        // Only start monitoring if deployment isn't finished
+                        // start monitoring if it is currently running
                         if (!deployment.finishedAt) {
                             monitorDeployment(newRow);
                         }
@@ -149,4 +156,4 @@ function initDeploymentMonitoring() {
     document.querySelectorAll('[data-deployment-id]').forEach(monitorDeployment);
 }
 
-document.addEventListener('DOMContentLoaded', initDeploymentMonitoring);
+document.addEventListener('DOMContentLoaded', monitorDeployments);
