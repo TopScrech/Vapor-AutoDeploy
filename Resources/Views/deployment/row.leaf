@@ -3,7 +3,7 @@
     data-started-at="#(task.startedAtTimestamp)"
 >
     <td class="px-6 py-4 max-w-[160px]">
-        <span class="block text-sm text-gray-600 dark:text-gray-300 truncate">#(task.message)</span>
+        <span class="block text-sm text-gray-600 dark:text-gray-300 truncate">#import("message")</span>
     </td>
     
     <td class="hidden sm:table-cell px-6 py-4">
