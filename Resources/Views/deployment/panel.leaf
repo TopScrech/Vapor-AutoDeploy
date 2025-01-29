@@ -8,9 +8,7 @@
     <div class="flex flex-col h-screen">
         <!-- Compact Header -->
         #extend("deployment/header"):
-            #export("title", "Vapor!"):
-               
-            #endexport
+            #export("title", "Deployments"):
         #endextend
 
         <!-- Full-width Table -->
