@@ -14,7 +14,7 @@
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900">
-    #import("body")
+    #import("AdminPanel/body")
     <script src="deployment/panel.js"></script>
 </body>
 </html>

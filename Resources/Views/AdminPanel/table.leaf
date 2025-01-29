@@ -11,7 +11,7 @@
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
             #for(task in tasks):
-                #extend("row", ["task": task])
+                #extend("AdminPanel/row", ["task": task])
             #endfor
         </tbody>
     </table>
