@@ -145,7 +145,7 @@ function createDeploymentRow(deployment)
         </td>
         
         <td class="px-6 py-4 whitespace-nowrap">
-            <a href="/admin/deployments/${deployment.id}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium">${deployment.id}</a>
+            <a href="/admin/deployments/${deployment.id}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm">${deployment.id}</a>
         </td>
         
         <td class="px-6 py-4 whitespace-nowrap">
