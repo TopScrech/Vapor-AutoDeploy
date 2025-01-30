@@ -1,6 +1,6 @@
 function connectWebSocket()
 {
-    socket = new WebSocket(`wws://mottzi.de/admin/ws`);
+    socket = new WebSocket('wss://mottzi.de/admin/ws');
     
     socket.onmessage = (event) =>
     {
