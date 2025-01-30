@@ -1,6 +1,7 @@
 import Vapor
 import Fluent
 
+// model
 final class Deployment: Model, Content, @unchecked Sendable
 {
     static let schema = "deployments"
@@ -21,7 +22,25 @@ final class Deployment: Model, Content, @unchecked Sendable
     }
 }
 
-// encoding for Leaf templates
+// cumputated properties
+extension Deployment
+{
+    var durationString: String?
+    {
+        guard let finishedAt = finishedAt,
+              let startedAt = startedAt
+        else { return nil }
+        
+        return String(format: "%.1fs", finishedAt.timeIntervalSince(startedAt))
+    }
+    
+    var startedAtTimestamp: Double
+    {
+        startedAt?.timeIntervalSince1970 ?? 0
+    }
+}
+
+// encoding (cumputated properties)
 extension Deployment
 {
     enum CodingKeys: String, CodingKey
@@ -43,18 +62,28 @@ extension Deployment
         try container.encode(durationString, forKey: .durationString)
         try container.encode(startedAtTimestamp, forKey: .startedAtTimestamp)
     }
-    
-    var durationString: String?
+}
+
+// database table
+extension Deployment
+{
+    struct Table2: AsyncMigration
     {
-        guard let finishedAt = finishedAt,
-              let startedAt = startedAt
-        else { return nil }
+        func prepare(on database: Database) async throws
+        {
+            try await database.schema(Deployment.schema)
+                .id()
+                .field("status", .string, .required)
+                .field("message", .string, .required)
+                .field("started_at", .datetime)
+                .field("finished_at", .datetime)
+                .create()
+        }
         
-        return String(format: "%.1fs", finishedAt.timeIntervalSince(startedAt))
-    }
-    
-    var startedAtTimestamp: Double
-    {
-        startedAt?.timeIntervalSince1970 ?? 0
+        func revert(on database: Database) async throws
+        {
+            try await database.schema(Deployment.schema).delete()
+        }
     }
 }
+

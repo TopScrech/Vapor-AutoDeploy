@@ -1,6 +1,6 @@
 import Vapor
 
-final class WebSocketManager
+final class WebSocketManager: @unchecked Sendable
 {
     static let shared = WebSocketManager()
     

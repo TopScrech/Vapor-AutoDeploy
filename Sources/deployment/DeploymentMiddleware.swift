@@ -4,14 +4,24 @@ import Fluent
 // Message structure for WebSocket communicationn
 struct WebSocketMessage: Codable
 {
-    enum MessageType: String, Codable
+    enum MessageType: Codable
     {
-        case creation
-        case update
+        case creation(Deployment)
+        case update(Deployment)
+        case message(String)
     }
     
     let type: MessageType
-    let deployment: Deployment
+    
+    var typeString: String
+    {
+        switch type
+        {
+            case .creation(let deployment): "creation"
+            case .update(let deployment): "update"
+            case .message(let message): "message"
+        }
+    }
 }
 
 struct DeploymentMiddleware: AsyncModelMiddleware
@@ -20,10 +30,7 @@ struct DeploymentMiddleware: AsyncModelMiddleware
     {
         try await next.create(model, on: db)
         
-        let message = WebSocketMessage(
-            type: .creation,
-            deployment: model
-        )
+        let message = WebSocketMessage(type: .creation(model))
         
         let jsonData = try JSONEncoder().encode(message)
         

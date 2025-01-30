@@ -15,6 +15,7 @@ function connectWebSocket()
                 case 'creation':
                     console.log(`CREATION: ${data.deployment}`)
                     
+                    // create new row and add it to table
                     const tbody = document.querySelector('tbody');
                     const newRow = createDeploymentRow(data.deployment);
                     tbody.insertBefore(newRow, tbody.firstChild);
@@ -50,8 +51,9 @@ function getStatusBadge(status)
     const badgeClass = classes[status] || classes.default;
     
     const label = status === 'failure' ? 'Failed' :
-                 status === 'success' ? 'Success' :
-                 status;
+                  status === 'success' ? 'Success' :
+                  status === 'running' ? 'Running' :
+                  status;
     
     return `<span class="status-badge px-3 py-1 rounded-full ${badgeClass} text-sm">${label}</span>`;
 }
