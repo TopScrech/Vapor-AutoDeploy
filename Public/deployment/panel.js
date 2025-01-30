@@ -197,6 +197,6 @@ class DeploymentManager
 
 document.addEventListener('DOMContentLoaded', () => 
 { 
-    let socket = new DeploymentSocket();
+    socket = new DeploymentSocket();
     socket.connect();
 });
