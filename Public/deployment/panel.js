@@ -1,53 +1,69 @@
-class DeploymentSocket {
-    constructor() {
+class DeploymentSocket 
+{
+    constructor() 
+    {
         this.socket = null;
         this.reconnectDelay = 5000;
         this.deploymentManager = new DeploymentManager();
     }
 
-    connect() {
+    connect()
+    {
         this.socket = new WebSocket('wss://mottzi.de/admin/ws');
-        
-        this.socket.onmessage = (event) => {
-            try {
+        console.log('WebSocket connected to server.')
+
+        this.socket.onmessage = (event) => 
+        {
+            try 
+            {
                 const data = JSON.parse(event.data);
                 this.handleMessage(data);
-            } catch (error) {
+            } 
+            catch (error) 
+            {
                 console.error('Failed to process message:', error);
             }
         };
 
-        this.socket.onclose = () => {
+        this.socket.onclose = () => 
+        {
             console.log('WebSocket closed: Reconnecting...');
             setTimeout(() => this.connect(), this.reconnectDelay);
         };
     }
 
-    handleMessage(data) {
-        switch (data.type) {
+    handleMessage(data)
+    {
+        switch (data.type) 
+        {
             case 'creation':
+                console.log(`CREATION: ${data.deployment.id}`);
                 this.deploymentManager.handleCreation(data.deployment);
                 break;
+
             case 'update':
+                console.log(`UPDATE: ${data.deployment.id}`);
                 this.deploymentManager.handleUpdate(data.deployment);
                 break;
         }
     }
 }
 
-class DeploymentManager {
-    constructor() {
+class DeploymentManager 
+{
+    constructor() 
+    {
         this.activeTimers = new Map();
     }
 
-    handleCreation(deployment) {
-        console.log(`CREATION: ${deployment.id}`);
+    handleCreation(deployment) 
+    {
         const row = this.createRow(deployment);
         this.setupTimer(row, deployment);
     }
 
-    handleUpdate(deployment) {
-        console.log(`UPDATE: ${deployment.id}`);
+    handleUpdate(deployment) 
+    {
         if (!deployment.finishedAt) return;
 
         const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
@@ -57,7 +73,8 @@ class DeploymentManager {
         this.updateCompletedRow(row, deployment);
     }
 
-    createRow(deployment) {
+    createRow(deployment) 
+    {
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors';
         row.dataset.deploymentId = deployment.id;
@@ -70,7 +87,8 @@ class DeploymentManager {
         return row;
     }
 
-    rowTemplate(deployment) {
+    rowTemplate(deployment) 
+    {
         const datetime = this.formatDateTime(deployment.startedAt);
         const durationHtml = deployment.durationString
             ? `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`
@@ -96,13 +114,15 @@ class DeploymentManager {
         `;
     }
 
-    setupTimer(row, deployment) {
+    setupTimer(row, deployment) 
+    {
         const durationElement = row.querySelector('.live-duration');
         const startTimestamp = parseFloat(row.dataset.startedAt);
         
         if (!durationElement || isNaN(startTimestamp)) return;
 
-        const update = () => {
+        const update = () => 
+        {
             const now = Date.now() / 1000;
             durationElement.textContent = `${(now - startTimestamp).toFixed(1)}s`;
         };
@@ -112,33 +132,35 @@ class DeploymentManager {
         update();
     }
 
-    clearTimer(deploymentId) {
-        if (this.activeTimers.has(deploymentId)) {
+    clearTimer(deploymentId) 
+    {
+        if (this.activeTimers.has(deploymentId)) 
+        {
             clearInterval(this.activeTimers.get(deploymentId));
             this.activeTimers.delete(deploymentId);
         }
     }
 
-    updateCompletedRow(row, deployment) {
+    updateCompletedRow(row, deployment) 
+    {
         const durationCell = row.querySelector('td:nth-child(5)');
-        if (durationCell) {
-            durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`;
-        }
+        if (durationCell) { durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`; }
 
         const statusCell = row.querySelector('td:nth-child(3)');
-        if (statusCell) {
-            statusCell.innerHTML = this.statusBadge(deployment.status);
-        }
+        if (statusCell) { statusCell.innerHTML = this.statusBadge(deployment.status); }
     }
 
-    statusBadge(status) {
-        const classes = {
+    statusBadge(status) 
+    {
+        const classes = 
+        {
             success: 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-200',
             failure: 'bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-200',
             running: 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200'
         };
 
-        const labels = {
+        const labels = 
+        {
             success: 'Success',
             failure: 'Failed',
             running: 'Running'
@@ -150,7 +172,8 @@ class DeploymentManager {
         return `<span class="status-badge px-3 py-1 rounded-full ${badgeClass} text-sm">${label}</span>`;
     }
 
-    loadingSpinnerHtml() {
+    loadingSpinnerHtml() 
+    {
         return `
             <div class="flex items-center text-gray-600 dark:text-gray-300">
                 <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -162,7 +185,8 @@ class DeploymentManager {
         `;
     }
 
-    formatDateTime(isoString) {
+    formatDateTime(isoString) 
+    {
         const date = new Date(isoString);
         return {
             date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -171,6 +195,4 @@ class DeploymentManager {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    new DeploymentSocket().connect();
-});
+document.addEventListener('DOMContentLoaded', () => { new DeploymentSocket().connect(); });

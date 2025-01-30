@@ -31,12 +31,12 @@ struct DeploymentMiddleware: AsyncModelMiddleware
     
     func update(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
     {
-        try await next.update(model, on: db)
-        
         let message = WebSocketMessage(type: .update, deployment: model)
         let jsonData = try JSONEncoder().encode(message)
         guard let jsonString = String(data: jsonData, encoding: .utf8) else { return }
         
         await WebSocketManager.shared.broadcast(jsonString)
+        
+        try await next.update(model, on: db)
     }
 }
