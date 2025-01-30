@@ -10,7 +10,7 @@ function connectWebSocket()
     })
     
     socket.addEventListener('close', () => {
-        console.log('WebSocket closed: Reconnecting ...', data)
+        console.log('WebSocket closed: Reconnecting ...')
         setTimeout(connectWebSocket, 5000); // Reconnect
     })
 }
