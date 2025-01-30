@@ -5,6 +5,28 @@ function connectWebSocket()
     socket.onmessage = (event) =>
     {
         console.log(`WebSocket message received: ${event.data}`)
+        
+        console.log('Trying to parse JSON:')
+        
+        try
+        {
+            const data = JSON.parse(event.data)
+            
+            switch (data.type)
+            {
+                case 'creation':
+                    console.log(`CREATION: ${data.deployment}`)
+                    break
+                    
+                case 'update':
+                    console.log(`UPDATE: ${data.deployment}`)
+                    break
+            }
+        }
+        catch (error)
+        {
+            console.error('Failed to process message:', error)
+        }
     }
     
     socket.onclose = () =>
@@ -174,6 +196,6 @@ function monitorDeployments() {
 
 document.addEventListener('DOMContentLoaded', () => 
 {
-    monitorDeployments()
+    //monitorDeployments()
     connectWebSocket()
 });

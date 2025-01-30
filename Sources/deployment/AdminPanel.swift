@@ -6,17 +6,15 @@ extension Application
     {
         self.webSocket("admin", "ws")
         { req, ws async in
-            try? await ws.send("Client-Server-Connection established")
+            let id = UUID()
             
-            // echo received message back to client
-            ws.onText
-            { ws, text in
-                try? await ws.send("Server received: \(text)")
-            }
+            WebSocketManager.shared.addConnection(id: id, socket: ws)
+            try? await ws.send("Connected to deployment monitoring")
             
             ws.onClose.whenComplete
             { _ in
-                print("Client disconnected")
+                WebSocketManager.shared.removeConnection(id: id)
+                print("Client disconnected from deployment monitoring")
             }
         }
         
