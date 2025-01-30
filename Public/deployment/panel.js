@@ -13,11 +13,11 @@ function connectWebSocket()
             switch (data.type)
             {
                 case 'creation':
-                    console.log(`CREATION: ${data.deployment}`)
+                    console.log(`CREATION: ${data.type.creation.deployment}`)
                     
                     // create new row and add it to table
                     const tbody = document.querySelector('tbody');
-                    const newRow = createDeploymentRow(data.deployment);
+                    const newRow = createDeploymentRow(data.type.creation.deployment);
                     tbody.insertBefore(newRow, tbody.firstChild);
                     
                     break
