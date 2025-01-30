@@ -5,9 +5,7 @@ function connectWebSocket()
     socket.onmessage = (event) =>
     {
         console.log(`WebSocket message received: ${event.data}`)
-        
-        console.log('Trying to parse JSON:')
-        
+                
         try
         {
             const data = JSON.parse(event.data)
@@ -16,6 +14,11 @@ function connectWebSocket()
             {
                 case 'creation':
                     console.log(`CREATION: ${data.deployment}`)
+                    
+                    const tbody = document.querySelector('tbody');
+                    const newRow = createDeploymentRow(data.deployment);
+                    tbody.insertBefore(newRow, tbody.firstChild);
+                    
                     break
                     
                 case 'update':
