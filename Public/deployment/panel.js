@@ -15,9 +15,26 @@ function connectWebSocket()
                 case 'creation':
                     console.log(`CREATION: ${data.deployment}`)
                     
+                    // add created deployment row
                     const tbody = document.querySelector('tbody');
                     const newRow = createDeploymentRow(data.deployment);
                     tbody.insertBefore(newRow, tbody.firstChild);
+                    
+                    const durationElement = newRow.querySelector('.live-duration');
+                    const startTimestamp = parseFloat(newRow.dataset.startedAt);
+                    const statusCell = newRow.querySelector('td:nth-child(3)');
+                    
+                    // skip if already finished or missing required elements
+                    if (!durationElement || isNaN(startTimestamp)) return;
+                    
+                    // update duration every 100ms
+                    let lastDuration = 0;
+                    const updateDuration = () => {
+                        const now = Date.now() / 1000;
+                        lastDuration = (now - startTimestamp).toFixed(1);
+                        durationElement.textContent = `${lastDuration}s`;
+                    };
+                    const durationInterval = setInterval(updateDuration, 100);
                     
                     break
                     
