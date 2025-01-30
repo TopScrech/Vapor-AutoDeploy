@@ -1,27 +1,19 @@
 import Vapor
 import Fluent
 
-// Message structure for WebSocket communication
+// Message structure for WebSocket communicationn
 struct WebSocketMessage: Codable
 {
-    enum MessageType: Codable
+    enum MessageType: String, Codable
     {
-        case creation(deployment: Deployment)
-        case update(deployment: Deployment)
-        case message(message: String)
+        case creation
+        case update
+        case message
     }
     
     let type: MessageType
-    
-    var typeString: String
-    {
-        switch type
-        {
-            case .creation(let deployment): "creation"
-            case .update(let deployment): "update"
-            case .message(let message): "message"
-        }
-    }
+    var deployment: Deployment? = nil
+    var message: String? = nil
 }
 
 struct DeploymentMiddleware: AsyncModelMiddleware
@@ -30,7 +22,21 @@ struct DeploymentMiddleware: AsyncModelMiddleware
     {
         try await next.create(model, on: db)
         
-        let message = WebSocketMessage(type: .creation(deployment: model))
+        let message = WebSocketMessage(type: .creation, deployment: model)
+        let jsonData = try JSONEncoder().encode(message)
+        guard let jsonString = String(data: jsonData, encoding: .utf8) else { return }
+        
+        await WebSocketManager.shared.broadcast(jsonString)
+    }
+    
+    func update(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
+    {
+        try await next.update(model, on: db)
+        
+        let message = WebSocketMessage(
+            type: .update,
+            deployment: model
+        )
         
         let jsonData = try JSONEncoder().encode(message)
         
@@ -39,21 +45,4 @@ struct DeploymentMiddleware: AsyncModelMiddleware
             await WebSocketManager.shared.broadcast(jsonString)
         }
     }
-    
-//    func update(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
-//    {
-//        try await next.update(model, on: db)
-//        
-//        let message = WebSocketMessage(
-//            type: .update,
-//            deployment: model
-//        )
-//        
-//        let jsonData = try JSONEncoder().encode(message)
-//        
-//        if let jsonString = String(data: jsonData, encoding: .utf8)
-//        {
-//            await WebSocketManager.shared.broadcast(jsonString)
-//        }
-//    }
 }
