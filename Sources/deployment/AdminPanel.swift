@@ -5,18 +5,34 @@ extension Application
     func useAdminPanel()
     {
         self.webSocket("admin", "ws")
-        { request, socket async in
-            do
-            {
-                try await socket.send("Connected")
-            }
-            catch
-            {
-                
+        { req, ws in
+            print("Client connected")
+            ws.send("Client-Server-Connection established")
+            
+            ws.onText
+            { ws, text in
+                ws.send("Server received: \(text)")
             }
             
-            socket.onText { _, text in print("Received unexpected message: \(text)") }
+            ws.onClose.whenComplete
+            { _ in
+                print("Client disconnected")
+            }
         }
+        
+//        self.webSocket("admin", "ws")
+//        { request, socket async in
+//            do
+//            {
+//                try await socket.send("Connected")
+//            }
+//            catch
+//            {
+//                
+//            }
+//            
+//            socket.onText { _, text in print("Received unexpected message: \(text)") }
+//        }
         
         // mottzi.de/admin
         self.get("admin")
