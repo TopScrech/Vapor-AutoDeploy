@@ -6,9 +6,9 @@ struct WebSocketMessage: Codable
 {
     enum MessageType: Codable
     {
-        case creation(Deployment)
-        case update(Deployment)
-        case message(String)
+        case creation(deployment: Deployment)
+        case update(deployment: Deployment)
+        case message(message: String)
     }
     
     let type: MessageType
