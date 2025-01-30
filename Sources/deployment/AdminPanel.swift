@@ -9,7 +9,7 @@ extension Application
             let id = UUID()
             
             WebSocketManager.shared.addConnection(id: id, socket: ws)
-            try? await ws.send("{ \"msg\": \"Connected to deployment monitoring\" }")
+            try? await ws.send("{ \"msg\": \"Connected...\" }")
             
             ws.onClose.whenComplete
             { _ in
@@ -17,23 +17,6 @@ extension Application
                 print("Client disconnected from deployment monitoring")
             }
         }
-        
-//        self.webSocket("admin", "ws")
-//        { req, ws in
-//            print("Client connected")
-//            ws.send("Client-Server-Connection established")
-//            
-//            // echo received message back to client
-//            ws.onText
-//            { ws, text in
-//                ws.send("Server received: \(text)")
-//            }
-//            
-//            ws.onClose.whenComplete
-//            { _ in
-//                print("Client disconnected")
-//            }
-//        }
         
         // mottzi.de/admin
         self.get("admin")
@@ -46,19 +29,19 @@ extension Application
             return try await request.view.render("deployment/panel", ["tasks": deployments])
         }
 
-        // mottzi.de/admin/deployments
-        self.get("admin", "deployments")
-        { request async throws -> [Deployment] in
-            try await Deployment.query(on: request.db).all()
-        }
-
-        // mottzi.de/admin/deployments/UUID....
-        self.get("admin", "deployments", ":id")
-        { request async throws -> Deployment in
-            guard let deployment = try await Deployment.find(request.parameters.get("id"), on: request.db)
-            else { throw Abort(.notFound) }
-            
-            return deployment
-        }
+//        // mottzi.de/admin/deployments
+//        self.get("admin", "deployments")
+//        { request async throws -> [Deployment] in
+//            try await Deployment.query(on: request.db).all()
+//        }
+//
+//        // mottzi.de/admin/deployments/UUID....
+//        self.get("admin", "deployments", ":id")
+//        { request async throws -> Deployment in
+//            guard let deployment = try await Deployment.find(request.parameters.get("id"), on: request.db)
+//            else { throw Abort(.notFound) }
+//            
+//            return deployment
+//        }
     }
 }

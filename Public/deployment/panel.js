@@ -28,8 +28,6 @@ function connectWebSocket()
     
     socket.onmessage = (event) =>
     {
-        console.log(`WebSocket message received: ${event.data}`)
-                
         try
         {
             const data = JSON.parse(event.data)
@@ -37,12 +35,10 @@ function connectWebSocket()
             switch (data.type)
             {
                 case 'creation':
-                    console.log(`CREATION: ${data.deployment}`)
+                    console.log(`CREATION: ${data.deployment.id}`)
                     
                     // add created deployment row
-                    const tbody = document.querySelector('tbody');
                     const newRow = createDeploymentRow(data.deployment);
-                    tbody.insertBefore(newRow, tbody.firstChild);
                     
                     // start timer
                     setupTimer(newRow)
@@ -50,7 +46,7 @@ function connectWebSocket()
                     break
                     
                 case 'update':
-                    console.log(`UPDATE: ${data.deployment}`)
+                    console.log(`UPDATE: ${data.deployment.id}`)
                     
                     let deployment = data.deployment
                     
@@ -162,92 +158,10 @@ function createDeploymentRow(deployment)
         </td>
     `;
 
-    return row;
-}
-
-function monitorDeployment(row)
-{
-    const durationElement = row.querySelector('.live-duration');
-    const startTimestamp = parseFloat(row.dataset.startedAt);
-    const statusCell = row.querySelector('td:nth-child(3)');
-    
-    // skip if already finished or missing required elements
-    if (!durationElement || isNaN(startTimestamp)) return;
-    
-    // update duration every 100ms
-    let lastDuration = 0;
-    const updateDuration = () => {
-        const now = Date.now() / 1000;
-        lastDuration = (now - startTimestamp).toFixed(1);
-        durationElement.textContent = `${lastDuration}s`;
-    };
-    const durationInterval = setInterval(updateDuration, 100);
-
-    // update status every 5s
-    const updateStatus = () => {
-        fetch(`/admin/deployments/${row.dataset.deploymentId}`)
-        .then(response => {
-            if (!response.ok) throw new Error('Network error');
-            return response.json();
-        })
-        .then(deployment => {
-            if (deployment.finishedAt) {
-                clearInterval(durationInterval);
-                clearInterval(statusInterval);
-                
-                const durationCell = row.querySelector('td:nth-child(5)');
-                if (durationCell) {
-                    durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`;
-                }
-                
-                if (statusCell) {
-                    statusCell.innerHTML = getStatusBadge(deployment.status);
-                }
-            }
-        })
-        .catch(error => console.error('Monitoring error:', error));
-    }
-    const statusInterval = setInterval(updateStatus, 5000);
-    
-    row.addEventListener('remove', () => {
-        clearInterval(durationInterval);
-        clearInterval(statusInterval);
-    });
-}
-
-function monitorDeployments() {
     const tbody = document.querySelector('tbody');
-    const existingIds = new Set();
-
-    // Track existing deployments
-    document.querySelectorAll('[data-deployment-id]').forEach(row => {
-        existingIds.add(row.dataset.deploymentId);
-    });
-
-    // Check for new deployments
-    setInterval(() => {
-        fetch('/admin/deployments')
-            .then(response => response.json())
-            .then(deployments => {
-                deployments.forEach(deployment => {
-                    // new deployment found
-                    if (!existingIds.has(deployment.id)) {
-                        existingIds.add(deployment.id);
-                        const newRow = createDeploymentRow(deployment);
-                        tbody.insertBefore(newRow, tbody.firstChild);
-                        
-                        // start monitoring if it is currently running
-                        if (!deployment.finishedAt) {
-                            monitorDeployment(newRow);
-                        }
-                    }
-                });
-            })
-            .catch(error => console.error('Error checking for new deployments:', error));
-    }, 5000);
-
-    // Initialize monitoring for existing deployments
-    document.querySelectorAll('[data-deployment-id]').forEach(monitorDeployment);
+    tbody.insertBefore(row, tbody.firstChild);
+    
+    return row;
 }
 
 document.addEventListener('DOMContentLoaded', () => 
