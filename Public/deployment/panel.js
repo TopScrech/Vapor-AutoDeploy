@@ -19,7 +19,7 @@ function setupTimer(row)
     };
     
     // ... every 100ms
-    const durationInterval = setInterval(updateDuration, 100);
+    row.durationInterval = setInterval(updateDuration, 100);
 }
 
 function connectWebSocket()
@@ -57,12 +57,12 @@ function connectWebSocket()
                     // if updated deployment has finished
                     if (deployment.finishedAt)
                     {
-                        // remove timer
-                        clearInterval(durationInterval);
-                        
                         // find updated row
                         const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
                         if (!row) return
+                            
+                        // remove timer
+                        clearInterval(row.durationInterval);
                             
                         // replace timer with final duration
                         const durationCell = row.querySelector('td:nth-child(5)');
