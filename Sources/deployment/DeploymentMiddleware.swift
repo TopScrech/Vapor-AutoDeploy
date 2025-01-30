@@ -1,7 +1,7 @@
 import Vapor
 import Fluent
 
-// Message structure for WebSocket communicationn
+// Message structure for WebSocket communication
 struct WebSocketMessage: Codable
 {
     enum MessageType: String, Codable
