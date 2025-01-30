@@ -6,12 +6,12 @@ extension Application
     {
         self.webSocket("admin", "ws")
         { req, ws async in
-            try? await ws.send("Client-Server-Connection established 2")
+            try? await ws.send("Client-Server-Connection established")
             
             // echo received message back to client
             ws.onText
             { ws, text in
-                try? await ws.send("Server received 2: \(text)")
+                try? await ws.send("Server received: \(text)")
             }
             
             ws.onClose.whenComplete

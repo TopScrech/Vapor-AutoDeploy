@@ -1,18 +1,17 @@
 function connectWebSocket()
 {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    socket = new WebSocket(`${protocol}//${host}/admin/ws`);
+    socket = new WebSocket(`wws://mottzi.de/admin/ws`);
     
     socket.onmessage = (event) =>
     {
         console.log(`WebSocket message received: ${event.data}`)
     }
     
-    socket.addEventListener('close', () => {
+    socket.onclose = () =>
+    {
         console.log('WebSocket closed: Reconnecting ...')
         setTimeout(connectWebSocket, 5000); // Reconnect
-    })
+    }
 }
 
 function getStatusBadge(status)
