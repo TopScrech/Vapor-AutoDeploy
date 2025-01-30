@@ -54,6 +54,25 @@ class DeploymentManager
     constructor() 
     {
         this.activeTimers = new Map();
+        this.initExistingTimers();
+    }
+
+    initExistingTimers() 
+    {
+        document.querySelectorAll('tr[data-deployment-id]').forEach(row => 
+        {
+            const statusBadge = row.querySelector('.status-badge');
+            if (statusBadge && statusBadge.textContent.includes('Running')) 
+                {
+                const deploymentId = row.dataset.deploymentId;
+                const durationElement = row.querySelector('.live-duration');
+                const startTimestamp = parseFloat(row.dataset.startedAt);
+                
+                if (durationElement && !isNaN(startTimestamp)) {
+                    this.setupTimer(row, { id: deploymentId });
+                }
+            }
+        });
     }
 
     handleCreation(deployment) 
@@ -195,8 +214,4 @@ class DeploymentManager
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => 
-{ 
-    socket = new DeploymentSocket();
-    socket.connect();
-});
+document.addEventListener('DOMContentLoaded', () => { new DeploymentSocket().connect(); });
