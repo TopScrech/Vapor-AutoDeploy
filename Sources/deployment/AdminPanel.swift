@@ -9,7 +9,7 @@ extension Application
             let id = UUID()
             
             WebSocketManager.shared.addConnection(id: id, socket: ws)
-            try? await ws.send("Connected to deployment monitoring")
+            try? await ws.send("{ \"msg\": \"Connected to deployment monitoring\" }")
             
             ws.onClose.whenComplete
             { _ in
