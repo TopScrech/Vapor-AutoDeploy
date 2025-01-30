@@ -1,3 +1,27 @@
+function setupTimer(row)
+{
+    // set up timer
+    const durationElement = row.querySelector('.live-duration');
+    const startTimestamp = parseFloat(row.dataset.startedAt);
+    const statusCell = row.querySelector('td:nth-child(3)');
+    
+    // skip timer if deployment is already finished or missing required elements
+    if (!durationElement || isNaN(startTimestamp)) return;
+    
+    let lastDuration = 0;
+    
+    // update timer ...
+    const updateDuration = () =>
+    {
+        const now = Date.now() / 1000;
+        lastDuration = (now - startTimestamp).toFixed(1);
+        durationElement.textContent = `${lastDuration}s`;
+    };
+    
+    // ... every 100ms
+    const durationInterval = setInterval(updateDuration, 100);
+}
+
 function connectWebSocket()
 {
     socket = new WebSocket('wss://mottzi.de/admin/ws');
@@ -20,26 +44,37 @@ function connectWebSocket()
                     const newRow = createDeploymentRow(data.deployment);
                     tbody.insertBefore(newRow, tbody.firstChild);
                     
-                    const durationElement = newRow.querySelector('.live-duration');
-                    const startTimestamp = parseFloat(newRow.dataset.startedAt);
-                    const statusCell = newRow.querySelector('td:nth-child(3)');
-                    
-                    // skip if already finished or missing required elements
-                    if (!durationElement || isNaN(startTimestamp)) return;
-                    
-                    // update duration every 100ms
-                    let lastDuration = 0;
-                    const updateDuration = () => {
-                        const now = Date.now() / 1000;
-                        lastDuration = (now - startTimestamp).toFixed(1);
-                        durationElement.textContent = `${lastDuration}s`;
-                    };
-                    const durationInterval = setInterval(updateDuration, 100);
+                    // start timer
+                    setupTimer(newRow)
                     
                     break
                     
                 case 'update':
                     console.log(`UPDATE: ${data.deployment}`)
+                    
+                    let deployment = data.deployment
+                    
+                    // if updated deployment has finished
+                    if (deployment.finishedAt)
+                    {
+                        // remove timer
+                        clearInterval(durationInterval);
+                        
+                        // find updated row
+                        const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
+                        if (!row) return
+                            
+                        // replace timer with final duration
+                        const durationCell = row.querySelector('td:nth-child(5)');
+                        if (!durationCell) return
+                        durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`;
+                        
+                        // refresh status
+                        const statusCell = row.querySelector('td:nth-child(3)');
+                        if (!statusCell) return
+                        statusCell.innerHTML = getStatusBadge(deployment.status);
+                    }
+                    
                     break
             }
         }
