@@ -77,14 +77,20 @@ class DeploymentManager
 
     handleCreation(deployment) 
     {
-        const row = this.createRow(deployment);
+        // abort if row already exists
+        let row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
+        if (row) return;
+        
+        row = this.createRow(deployment);
         this.setupTimer(row, deployment);
     }
 
     handleUpdate(deployment) 
     {
+        // abort if deployment is still running
         if (!deployment.finishedAt) return;
 
+        // abort if row does not exist
         const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
         if (!row) return;
 
