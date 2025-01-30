@@ -67,7 +67,7 @@ extension Deployment
 // database table
 extension Deployment
 {
-    struct Table2: AsyncMigration
+    struct Table: AsyncMigration
     {
         func prepare(on database: Database) async throws
         {

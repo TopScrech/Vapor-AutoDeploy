@@ -12,11 +12,12 @@ struct WebSocketMessage: Codable
     }
     
     let type: MessageType
+    
     var deployment: Deployment? = nil
     var message: String? = nil
 }
 
-struct DeploymentMiddleware: AsyncModelMiddleware
+struct DeploymentListener: AsyncModelMiddleware
 {
     func create(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
     {
