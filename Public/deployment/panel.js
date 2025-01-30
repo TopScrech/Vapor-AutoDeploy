@@ -4,10 +4,10 @@ function connectWebSocket()
     const host = window.location.host;
     socket = new WebSocket(`${protocol}//${host}/admin/ws`);
     
-    socket.addEventListener('message', (event) => {
-        console.log('WebSocket message:')
-        console.log(event.data)
-    })
+    socket.onmessage = (event) =>
+    {
+        console.log('WebSocket message received: ${event.data}')
+    }
     
     socket.addEventListener('close', () => {
         console.log('WebSocket closed: Reconnecting ...')
