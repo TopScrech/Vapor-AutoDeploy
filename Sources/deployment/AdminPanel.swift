@@ -4,7 +4,7 @@ extension Application
 {
     func useAdminPanel()
     {
-        self.webSocket("admin", "ws2")
+        self.webSocket("admin", "ws")
         { req, ws async in
             try? await ws.send("Client-Server-Connection established 2")
             
@@ -20,22 +20,22 @@ extension Application
             }
         }
         
-        self.webSocket("admin", "ws")
-        { req, ws in
-            print("Client connected")
-            ws.send("Client-Server-Connection established")
-            
-            // echo received message back to client
-            ws.onText
-            { ws, text in
-                ws.send("Server received: \(text)")
-            }
-            
-            ws.onClose.whenComplete
-            { _ in
-                print("Client disconnected")
-            }
-        }
+//        self.webSocket("admin", "ws")
+//        { req, ws in
+//            print("Client connected")
+//            ws.send("Client-Server-Connection established")
+//            
+//            // echo received message back to client
+//            ws.onText
+//            { ws, text in
+//                ws.send("Server received: \(text)")
+//            }
+//            
+//            ws.onClose.whenComplete
+//            { _ in
+//                print("Client disconnected")
+//            }
+//        }
         
         // mottzi.de/admin
         self.get("admin")

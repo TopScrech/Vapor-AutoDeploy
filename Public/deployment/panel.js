@@ -2,7 +2,7 @@ function connectWebSocket()
 {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    socket = new WebSocket(`${protocol}//${host}/admin/ws2`);
+    socket = new WebSocket(`${protocol}//${host}/admin/ws`);
     
     socket.onmessage = (event) =>
     {
