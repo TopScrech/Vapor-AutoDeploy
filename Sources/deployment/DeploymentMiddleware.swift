@@ -30,7 +30,7 @@ struct DeploymentMiddleware: AsyncModelMiddleware
     {
         try await next.create(model, on: db)
         
-        let message = WebSocketMessage(type: .creation(model))
+        let message = WebSocketMessage(type: .creation(deployment: model))
         
         let jsonData = try JSONEncoder().encode(message)
         
