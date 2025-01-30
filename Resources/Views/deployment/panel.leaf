@@ -18,6 +18,5 @@
         #endextend
     </div>
     <script src="deployment/panel.js"></script>
-    <script src="deployment/websocket.js"></script>
 </body>
 </html>

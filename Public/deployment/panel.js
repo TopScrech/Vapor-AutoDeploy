@@ -5,8 +5,8 @@ function connectWebSocket()
     socket = new WebSocket(`${protocol}//${host}/admin/ws`);
     
     socket.addEventListener('message', (event) => {
-        const { data } = JSON.parse(event.data)
-        console.log('WebSocket message:', data)
+        console.log('WebSocket message:')
+        console.log(event.data)
     })
     
     socket.addEventListener('close', () => {
