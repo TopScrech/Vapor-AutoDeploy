@@ -228,5 +228,4 @@ class DeploymentManager
     }
 }
 
-let ws = new DeploymentSocket();
-document.addEventListener('DOMContentLoaded', () => { ws.connect(); });
+document.addEventListener('DOMContentLoaded', () => new DeploymentSocket().connect());
