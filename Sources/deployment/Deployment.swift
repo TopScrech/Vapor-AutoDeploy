@@ -27,16 +27,14 @@ extension Deployment
 {
     var durationString: String?
     {
-        guard let finishedAt = finishedAt,
-              let startedAt = startedAt
-        else { return nil }
+        guard let finishedAt, let startedAt else { return nil }
         
         return String(format: "%.1fs", finishedAt.timeIntervalSince(startedAt))
     }
     
-    var startedAtTimestamp: Double
+    var startedAtTimestamp: Double?
     {
-        startedAt?.timeIntervalSince1970 ?? 0
+        startedAt?.timeIntervalSince1970
     }
 }
 
@@ -87,3 +85,22 @@ extension Deployment
     }
 }
 
+// table listener
+struct DeploymentListener: AsyncModelMiddleware
+{
+    func create(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
+    {
+        try await next.create(model, on: db)
+        
+        let message = WebSocketMessage(type: .creation, deployment: model)
+        await WebSocketManager.shared.broadcast(message)
+    }
+    
+    func update(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
+    {
+        try await next.update(model, on: db)
+        
+        let message = WebSocketMessage(type: .update, deployment: model)
+        await WebSocketManager.shared.broadcast(message)
+    }
+}

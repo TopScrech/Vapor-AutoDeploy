@@ -20,8 +20,8 @@ struct mottzi
         app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
         app.views.use(.leaf)
         app.useRoutes()
-        app.usePushEvents()
-        app.useAdminPanel()
+        app.usePushDeploy()
+        app.useDeployPanel()
         
         try await app.execute()
         try await app.asyncShutdown()

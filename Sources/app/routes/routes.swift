@@ -2,17 +2,6 @@ import Vapor
 
 extension Application
 {
-    // auto deploy setup and control panel
-    func usePushEvents()
-    {
-        // github webhook push event route
-        self.pushed("pushevent")
-        { request async in
-            // handle valid request
-            await self.handlePushEvent(request)
-        }
-    }
-
     // the web server will respond to the following http routes
     public func useRoutes()
     {

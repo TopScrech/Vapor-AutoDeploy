@@ -62,13 +62,15 @@ class DeploymentManager
         document.querySelectorAll('tr[data-deployment-id]').forEach(row => 
         {
             const statusBadge = row.querySelector('.status-badge');
-            if (statusBadge && statusBadge.textContent.includes('Running')) 
-                {
+            
+            if (statusBadge && statusBadge.textContent.includes('Running'))
+            {
                 const deploymentId = row.dataset.deploymentId;
                 const durationElement = row.querySelector('.live-duration');
                 const startTimestamp = parseFloat(row.dataset.startedAt);
                 
-                if (durationElement && !isNaN(startTimestamp)) {
+                if (durationElement && !isNaN(startTimestamp))
+                {
                     this.setupTimer(row, { id: deploymentId });
                 }
             }
@@ -88,7 +90,7 @@ class DeploymentManager
     handleUpdate(deployment) 
     {
         // abort if deployment is still running
-        if (!deployment.finishedAt) return;
+        if (deployment.status == 'running') return;
 
         // abort if row does not exist
         const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);

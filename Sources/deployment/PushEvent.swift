@@ -3,7 +3,7 @@ import Vapor
 extension Application
 {
     // convenience function for use in application context 
-    func pushed(_ endpoint: PathComponent..., action closure: @Sendable @escaping (Request) async -> ())
+    func push(_ endpoint: PathComponent..., action closure: @Sendable @escaping (Request) async -> ())
     {
         PushEvent(app: self).listen(to: endpoint, action: closure)
     }

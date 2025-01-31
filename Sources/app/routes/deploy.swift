@@ -2,7 +2,7 @@ import Vapor
 
 extension Application
 {
-    func useAdminPanel()
+    func useDeployPanel()
     {
         self.webSocket("admin", "ws")
         { req, ws async in

@@ -2,8 +2,19 @@ import Vapor
 
 extension Application
 {
-    // handle valid push event tt
-    func handlePushEvent(_ request: Request) async
+    // auto deploy setup
+    func usePushDeploy()
+    {
+        // github webhook push event route
+        self.push("pushevent")
+        { request async in
+            // handle valid request
+            await self.deploy(request)
+        }
+    }
+    
+    // handle valid push event
+    private func deploy(_ request: Request) async
     {
         let logFile = "deploy/github/push.log"
         let commitInfo = getCommitInfo(request)
@@ -86,7 +97,11 @@ extension Application
             try? await deployment.save(on: request.db)
         }
     }
-    
+}
+
+// auto deploy commands
+extension Application
+{
     private func execute(command: String, step: Int, logPath: String, deployment: Deployment, request: Request) async throws
     {
         let process = Process()
@@ -151,7 +166,7 @@ extension Application
         
         return (commitInfo, payload.headCommit.author.name, payload.headCommit.message)
     }
-
+    
     private func moveExecutable(logPath: String, request: Request) async throws
     {
         let fileManager = FileManager.default
@@ -175,3 +190,4 @@ extension Application
         }
     }
 }
+
