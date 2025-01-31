@@ -3,22 +3,41 @@ class DeploymentSocket
     constructor() 
     {
         this.socket = null;
-        this.reconnectDelay = 5000;
         this.deploymentManager = new DeploymentManager();
+        
+        this.isConnected = false;
+        this.reconnectDelay = 5000;
     }
 
     connect()
     {
         this.socket = new WebSocket('wss://mottzi.de/admin/ws');
-        console.log('WebSocket connected to server.')
+        
+        this.socket.onopen = () =>
+        {
+            this.isConnected = true;
+            console.log('WebSocket connected to server.');
+        };
 
         this.socket.onmessage = (event) => 
         {
             try 
             {
                 const data = JSON.parse(event.data);
-                this.handleMessage(data);
-            } 
+                
+                switch (data.type)
+                {
+                    case 'creation':
+                        console.log(`CREATION: ${data.deployment.id}`);
+                        this.deploymentManager.handleCreation(data.deployment);
+                        break;
+                        
+                    case 'update':
+                        console.log(`UPDATE: ${data.deployment.id}`);
+                        this.deploymentManager.handleUpdate(data.deployment);
+                        break;
+                }
+            }
             catch (error) 
             {
                 console.error('Failed to process message:', error);
@@ -27,25 +46,11 @@ class DeploymentSocket
 
         this.socket.onclose = () => 
         {
+            this.isConnected = false
             console.log('WebSocket closed: Reconnecting...');
+            
             setTimeout(() => this.connect(), this.reconnectDelay);
         };
-    }
-
-    handleMessage(data)
-    {
-        switch (data.type) 
-        {
-            case 'creation':
-                console.log(`CREATION: ${data.deployment.id}`);
-                this.deploymentManager.handleCreation(data.deployment);
-                break;
-
-            case 'update':
-                console.log(`UPDATE: ${data.deployment.id}`);
-                this.deploymentManager.handleUpdate(data.deployment);
-                break;
-        }
     }
 }
 
@@ -54,10 +59,10 @@ class DeploymentManager
     constructor() 
     {
         this.activeTimers = new Map();
-        this.initExistingTimers();
+        this.setupExistingTimers();
     }
 
-    initExistingTimers() 
+    setupExistingTimers()
     {
         document.querySelectorAll('tr[data-deployment-id]').forEach(row => 
         {
@@ -222,4 +227,5 @@ class DeploymentManager
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => { new DeploymentSocket().connect(); });
+let ws = new DeploymentSocket();
+document.addEventListener('DOMContentLoaded', () => { ws.connect(); });
