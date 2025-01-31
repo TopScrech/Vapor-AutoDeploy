@@ -13,7 +13,7 @@ class DeploymentSocket
 
     connect()
     {
-        // connect if not already connected or currently connectingg
+        // connect if not already connected or currently connecting
         if (this.isConnected() || this.isConnecting()) return
         this.socket = new WebSocket('wss://mottzi.de/admin/ws');
         
