@@ -122,7 +122,7 @@ class DeploymentManager
 
     rowTemplate(deployment) 
     {
-        const datetime = this.formatDateTime(deployment.startedAt);
+        const datetime = this.formatDateTime(deployment.startedAtTimestamp * 1000);
         const durationHtml = deployment.durationString
             ? `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`
             : this.loadingSpinnerHtml();
