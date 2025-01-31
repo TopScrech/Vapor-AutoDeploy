@@ -1,4 +1,5 @@
-class DeploymentSocket 
+// this js script makes the table auto-update
+class DeploymentSocket
 {
     constructor() 
     {
