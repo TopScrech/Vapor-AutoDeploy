@@ -4,13 +4,24 @@ class DeploymentSocket
     constructor() 
     {
         this.socket = null;
+        this.reconnectDelay = 5000;
+
         this.deploymentManager = new DeploymentManager();
         
-        this.reconnectDelay = 5000;
+        document.addEventListener('visibilitychange', () => this.visibilityChange());
     }
     
     isConnected() { return this.socket?.readyState === WebSocket.OPEN; }
     isConnecting() { return this.socket?.readyState === WebSocket.CONNECTING; }
+    
+    visibilityChange()
+    {
+        if (document.visibilityState !== 'visible') return
+        if (this.isConnected() || this.isConnecting()) return;
+        
+        console.log('Page visible, stale connection: Reconnecting...');
+        this.connect();
+    }
 
     connect()
     {
