@@ -218,9 +218,9 @@ class DeploymentManager
         `;
     }
 
-    formatDateTime(isoString) 
+    formatDateTime(timestamp)
     {
-        const date = new Date(isoString);
+        const date = new Date(timestamp);
         return {
             date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             time: date.toLocaleTimeString('en-US', { hour12: false })
