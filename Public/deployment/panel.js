@@ -5,7 +5,7 @@ class DeploymentSocket
         this.socket = null;
         this.deploymentManager = new DeploymentManager();
         
-        this.reconnectDelay = 5500;
+        this.reconnectDelay = 5000;
     }
     
     isConnected() { return this.socket?.readyState === WebSocket.OPEN; }
