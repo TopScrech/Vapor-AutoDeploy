@@ -5,17 +5,20 @@ class DeploymentSocket
         this.socket = null;
         this.deploymentManager = new DeploymentManager();
         
-        this.isConnected = false;
         this.reconnectDelay = 5000;
     }
+    
+    isConnected() { return this.socket?.readyState === WebSocket.OPEN; }
+    isConnecting() { return this.socket?.readyState === WebSocket.CONNECTING; }
 
     connect()
     {
+        // connect if not already connected or currently connecting
+        if (this.isConnected() || this.isConnecting()) return
         this.socket = new WebSocket('wss://mottzi.de/admin/ws');
         
         this.socket.onopen = () =>
         {
-            this.isConnected = true;
             console.log('WebSocket connected to server.');
         };
 
@@ -46,9 +49,7 @@ class DeploymentSocket
 
         this.socket.onclose = () => 
         {
-            this.isConnected = false
             console.log('WebSocket closed: Reconnecting...');
-            
             setTimeout(() => this.connect(), this.reconnectDelay);
         };
     }
