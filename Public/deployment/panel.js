@@ -1,4 +1,4 @@
-// this js script makes the table auto-update ee
+// this js script makes the table auto-update eee
 class DeploymentSocket
 {
     constructor() 
