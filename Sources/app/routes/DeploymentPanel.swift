@@ -8,15 +8,15 @@ extension Application
         { req, ws async in
             let id = UUID()
             
-            WebSocketManager.shared.addConnection(id: id, socket: ws)
-            if let msg = WebSocketMessage(type: .message, message: "Server: Connected...").jsonString
+            DeploymentPanelManager.shared.addConnection(id: id, socket: ws)
+            if let msg = DeploymentPanalMessage(type: .message, message: "Server: Connected...").jsonString
             {
                 try? await ws.send(msg)
             }
             
             ws.onClose.whenComplete
             { _ in
-                WebSocketManager.shared.removeConnection(id: id)
+                DeploymentPanelManager.shared.removeConnection(id: id)
             }            
         }
         

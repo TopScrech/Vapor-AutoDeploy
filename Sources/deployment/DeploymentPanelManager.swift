@@ -1,8 +1,8 @@
 import Vapor
 
-final class WebSocketManager: @unchecked Sendable
+final class DeploymentPanelManager: @unchecked Sendable
 {
-    static let shared = WebSocketManager()
+    static let shared = DeploymentPanelManager()
     
     private var connections: [(id: UUID, socket: WebSocket)] = []
     
@@ -16,7 +16,7 @@ final class WebSocketManager: @unchecked Sendable
         connections.removeAll { $0.id == id }
     }
     
-    func broadcast(_ message: WebSocketMessage) async
+    func broadcast(_ message: DeploymentPanalMessage) async
     {
         guard let json = message.jsonString else { return }
         
@@ -27,7 +27,7 @@ final class WebSocketManager: @unchecked Sendable
     }
 }
 
-struct WebSocketMessage: Codable
+struct DeploymentPanalMessage: Codable
 {
     enum MessageType: String, Codable
     {

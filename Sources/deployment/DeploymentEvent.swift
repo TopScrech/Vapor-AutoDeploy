@@ -5,11 +5,11 @@ extension Application
     // convenience function for use in application context 
     func push(_ endpoint: PathComponent..., action closure: @Sendable @escaping (Request) async -> ())
     {
-        PushEvent(app: self).listen(to: endpoint, action: closure)
+        DeploymentEvent(app: self).listen(to: endpoint, action: closure)
     }
 }
 
-struct PushEvent
+struct DeploymentEvent
 {
     let app: Application
 
@@ -74,7 +74,7 @@ struct PushEvent
     }
 }
 
-extension PushEvent
+extension DeploymentEvent
 {
     struct Payload: Codable
     {

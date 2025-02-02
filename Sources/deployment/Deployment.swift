@@ -92,15 +92,15 @@ struct DeploymentListener: AsyncModelMiddleware
     {
         try await next.create(model, on: db)
         
-        let message = WebSocketMessage(type: .creation, deployment: model)
-        await WebSocketManager.shared.broadcast(message)
+        let message = DeploymentPanalMessage(type: .creation, deployment: model)
+        await DeploymentPanelManager.shared.broadcast(message)
     }
     
     func update(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
     {
         try await next.update(model, on: db)
         
-        let message = WebSocketMessage(type: .update, deployment: model)
-        await WebSocketManager.shared.broadcast(message)
+        let message = DeploymentPanalMessage(type: .update, deployment: model)
+        await DeploymentPanelManager.shared.broadcast(message)
     }
 }

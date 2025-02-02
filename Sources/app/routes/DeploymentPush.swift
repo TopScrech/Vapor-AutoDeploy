@@ -145,7 +145,7 @@ extension Application
         
         guard let bodyString = request.body.string,
               let jsonData = bodyString.data(using: .utf8),
-              let payload = try? decoder.decode(PushEvent.Payload.self, from: jsonData)
+              let payload = try? decoder.decode(DeploymentEvent.Payload.self, from: jsonData)
         else { return (nil, nil, nil) }
         
         var commitInfo =
