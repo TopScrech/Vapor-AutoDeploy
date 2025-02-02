@@ -120,7 +120,10 @@ class DeploymentManager
     {
         // remove all existing rows
         document.querySelector('tbody').innerHTML = '';
-                
+
+        // clear all existing timers
+        this.activeTimers.forEach((_, deploymentId) => this.clearTimer(deploymentId));
+
         // create new rows for each deployment
         deployments.reverse();
         deployments.forEach(deployment => this.handleCreation(deployment));
