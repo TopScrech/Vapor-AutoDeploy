@@ -160,7 +160,7 @@ class DeploymentManager
         // create duration timer for each deployment row that is currently running
         document.querySelectorAll('tr[data-deployment-id]').forEach(row => 
         {            
-            if (row.querySelector('.status-badge').textContent.includes('Running'))
+            if (row.querySelector('.status-badge')?.textContent.includes('Running'))
             {
                 this.setupTimer(row);
             }
