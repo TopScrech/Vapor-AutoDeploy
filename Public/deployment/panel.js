@@ -222,51 +222,66 @@ class DeploymentManager
 
     rowHTML(deployment) 
     {
-        const datetime = this.formatDateTime(deployment.startedAtTimestamp * 1000);
-        const durationHtml = deployment.durationString
-            ? `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`
-            : this.spinnerHTML();
-
         return `
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="block text-sm text-gray-600 dark:text-gray-300">${deployment.message}</span>
-            </td>
-            <td class="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-                <a href="/admin/deployments/${deployment.id}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm">${deployment.id}</a>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                ${this.statusHTML(deployment.status)}
-            </td>
-            <td class="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-                <span class="block text-sm text-gray-600 dark:text-gray-300">${datetime.date}</span>
-                <span class="block text-gray-400 dark:text-gray-500 text-xs">${datetime.time}</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                ${durationHtml}
-            </td>
-        `;
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" 
+                data-deployment-id="${deployment.id}" 
+                data-started-at="${deployment.startedAtTimestamp}"
+            >
+                <td class="px-6 py-4 max-w-[160px]">
+                    <span class="block text-sm text-gray-600 dark:text-gray-300 truncate">${deployment.message}</span>
+                </td>
+                
+                <td class="hidden sm:table-cell px-6 py-4">
+                    <a href="/admin/deployments/${deployment.id}" class="font-mono text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm">${deployment.id}</a>
+                </td>
+                
+                <td class="px-6 py-4">
+                    ${this.statusHTML(deployment.status)}
+                </td>
+                
+                <td class="hidden sm:table-cell px-6 py-4">
+                    <span class="block text-sm text-gray-600 dark:text-gray-300">${this.formatDate(deployment.startedAtTimestamp * 1000)}</span>
+                    <span class="block text-gray-400 dark:text-gray-500 text-xs">${this.formatTime(deployment.startedAtTimestamp * 1000)}</span>
+                </td>
+                
+                <td class="px-6 py-4">
+                    ${deployment.durationString ? this.durationHTML(deployment.durationString) : this.spinnerHTML()}
+                </td>
+            </tr>`;
     }
 
     statusHTML(status) 
     {
-        const classes = 
+        let className, label;
+        
+        switch(status) 
         {
-            success: 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-200',
-            failure: 'bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-200',
-            running: 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200'
-        };
+            case 'success':
+                className = 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-200';
+                label = 'Success';
+                break;
 
-        const labels = 
-        {
-            success: 'Success',
-            failure: 'Failed',
-            running: 'Running'
-        };
+            case 'failed':
+                className = 'bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-200';
+                label = 'Failed';
+                break;
 
-        const badgeClass = classes[status] || classes.running;
-        const label = labels[status] || status;
+            case 'running':
+                className = 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200';
+                label = 'Running';
+                break;
+                
+            default:
+                className = 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200';
+                label = status;
+        }
+        
+        return `<span class="status-badge px-2 py-1 sm:px-3 rounded-full ${className} text-sm">${label}</span>`;
+    }
 
-        return `<span class="status-badge px-3 py-1 rounded-full ${badgeClass} text-sm">${label}</span>`;
+    durationHTML(durationString) 
+    {
+        return `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${durationString}</span>`;
     }
 
     spinnerHTML() 
@@ -278,17 +293,28 @@ class DeploymentManager
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 <span class="live-duration font-mono text-sm">0.0s</span>
-            </div>
-        `;
+            </div>`;
     }
 
-    formatDateTime(timestamp)
+    formatDate(timestamp) 
     {
-        const date = new Date(timestamp);
-        return {
-            date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            time: date.toLocaleTimeString('en-US', { hour12: false })
-        };
+        return new Date(timestamp).toLocaleDateString('en-US', 
+        { 
+            month: 'short',
+            day: 'numeric', 
+            year: 'numeric'
+        });
+    }
+
+    formatTime(timestamp) 
+    {
+        return new Date(timestamp).toLocaleTimeString('en-US', 
+        { 
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
     }
 }
 
