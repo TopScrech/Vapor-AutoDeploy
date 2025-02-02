@@ -140,7 +140,7 @@ class DeploymentManager
         
         // add row to table
         const tbody = document.querySelector('tbody');
-        tbody.prepend(row);
+        tbody.appendChild(row);
         
         // start new timer
         this.setupTimer(row);
