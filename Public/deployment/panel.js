@@ -48,7 +48,7 @@ class DeploymentSocket
                 switch (data.type)
                 {
                     case 'state':
-                        console.log(`STATE:`);
+                        console.log(`STATE: ${data.deployments.length} Deployments`);
                         this.deploymentManager.handleState(data.deployments);
                         break;
 
