@@ -61,6 +61,9 @@ class DeploymentSocket
                         this.deploymentManager.handleUpdate(data.deployment);
                         break;
 
+                    case 'message':
+                        console.log(`MESSAGE: ${data.message}`);
+                        
                     default:
                         console.log(`Unknown message type: ${data.type}`);
                         break;
