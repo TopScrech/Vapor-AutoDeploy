@@ -9,7 +9,7 @@ class DeploymentSocket
 
         // reconnect
         this.timer = null;
-        this.initialDelay = 5000;    
+        this.initialDelay = 1000;    
         this.interval = 5000;
         
         document.addEventListener('visibilitychange', () => this.visibilityChange());
@@ -83,7 +83,7 @@ class DeploymentSocket
             // abort if a reconnect timer is already running
             if (this.timer) return
                 
-            console.log('WS: ... closed -> Connect in 5s ...');
+            console.log('WS: ... closed -> Connect in 1s ...');
             
             // start trying every 5s
             setTimeout(() => 
