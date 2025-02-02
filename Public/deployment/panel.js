@@ -10,7 +10,7 @@ class DeploymentSocket
         // reconnect
         this.timer = null;
         this.initialDelay = 5000;    
-        this.interval = 10000;  
+        this.interval = 5000;
         
         document.addEventListener('visibilitychange', () => this.visibilityChange());
         window.addEventListener('online', () => this.connect());
@@ -22,23 +22,19 @@ class DeploymentSocket
     connect()
     {
         // abort if already connected or currently connecting
-        if (this.isConnected() || this.isConnecting()) 
-        {
-            console.log('Connection: Already connected or connecting.');
-            return;
-        }
-
+        if (this.isConnected() || this.isConnecting()) return;
+        
         // close existing socket
         if (this.socket) { this.socket.close(); this.socket = null; }
 
         // create new socket and try to connect
-        console.log('WS: Attempting to connect ...'); 
+        console.log('WS: Connecting ...');
         this.socket = new WebSocket('wss://mottzi.de/admin/ws');
         
          // connected: stop existing reconnect timer
         this.socket.onopen = () =>
         {
-            console.log('WS: Client connected to server.');
+            console.log('WS: ... connected!');
             if (this.timer) { clearInterval(this.timer); this.timer = null; }
         };
 
@@ -82,7 +78,7 @@ class DeploymentSocket
             // abort if a reconnect timer is already running
             if (this.timer) return
                 
-            console.log('WS: Conncetion closed. Starting reconnection timer in 5s ...');
+            console.log('WS: ... closed -> Connect in 5s ...');
             
             // wait 5s, then start trying every 10s
             setTimeout(() => 
@@ -101,9 +97,7 @@ class DeploymentSocket
 
     visibilityChange()
     {
-        if (document.visibilityState !== 'visible') return;
-        console.log('Page visible...');
-        this.connect();
+        if (document.visibilityState === 'visible') this.connect();
     }
 }
 
@@ -133,9 +127,9 @@ class DeploymentManager
         // add row to table
         const tbody = document.querySelector('tbody');
         tbody.prepend(row);
-
-        // start timer
-        this.setupTimer(row, deployment);
+        
+        // start new timer
+        this.setupTimer(row);
     }
 
     handleUpdate(deployment) 
@@ -147,7 +141,7 @@ class DeploymentManager
         const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
         if (!row) return;
 
-        // clear timer
+        // clear duartion timer
         this.clearTimer(deployment.id);
 
         // update duration cell
@@ -163,29 +157,25 @@ class DeploymentManager
 
     startExistingTimers()
     {
+        // create duration timer for each deployment row that is currently running
         document.querySelectorAll('tr[data-deployment-id]').forEach(row => 
-        {
-            const statusBadge = row.querySelector('.status-badge');
-            
-            if (statusBadge && statusBadge.textContent.includes('Running'))
+        {            
+            if (row.querySelector('.status-badge').textContent.includes('Running'))
             {
-                const deploymentId = row.dataset.deploymentId;
-                const durationElement = row.querySelector('.live-duration');
-                const startTimestamp = parseFloat(row.dataset.startedAt);
-                
-                if (durationElement && !isNaN(startTimestamp))
-                {
-                    this.setupTimer(row, { id: deploymentId });
-                }
+                this.setupTimer(row);
             }
         });
     }
 
-    setupTimer(row, deployment) 
+    setupTimer(row) 
     {
+        // clear existing deployment duration timer
+        this.clearTimer(row.dataset.deploymentId);
+
         const durationElement = row.querySelector('.live-duration');
         const startTimestamp = parseFloat(row.dataset.startedAt);
         
+        // abort if duration element or start timestamp is missing
         if (!durationElement || isNaN(startTimestamp)) return;
 
         const update = () => 
@@ -194,15 +184,17 @@ class DeploymentManager
             durationElement.textContent = `${(now - startTimestamp).toFixed(1)}s`;
         };
 
+        // create new duration timer for deployment
         const intervalId = setInterval(update, 100);
-        this.activeTimers.set(deployment.id, intervalId);
-        update();
+        this.activeTimers.set(row.dataset.deploymentId, intervalId);
     }
 
     clearTimer(deploymentId) 
     {
+        // if deployment duration timer exists
         if (this.activeTimers.has(deploymentId)) 
         {
+            // clean timer
             clearInterval(this.activeTimers.get(deploymentId));
             this.activeTimers.delete(deploymentId);
         }
