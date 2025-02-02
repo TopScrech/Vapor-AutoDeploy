@@ -1,4 +1,4 @@
-// this js script makes the table auto-update eee
+// this js script makes the table auto-update
 class DeploymentSocket
 {
     constructor() 
@@ -47,6 +47,11 @@ class DeploymentSocket
                 
                 switch (data.type)
                 {
+                    case 'state':
+                        console.log(`STATE:`);
+                        this.deploymentManager.handleState(data.deployments);
+                        break;
+
                     case 'creation':
                         console.log(`CREATION: ${data.deployment.id}`);
                         this.deploymentManager.handleCreation(data.deployment);
@@ -110,6 +115,15 @@ class DeploymentManager
     }
 
     // handle incoming messages
+
+    handleState(deployments)
+    {
+        // remove all existing rows
+        document.querySelectorAll('tr[data-deployment-id]').forEach(row => row.remove());
+        
+        // create new rows for each deployment
+        deployments.forEach(deployment => this.handleCreation(deployment));
+    }
 
     handleCreation(deployment) 
     {

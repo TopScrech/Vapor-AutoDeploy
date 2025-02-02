@@ -6,12 +6,12 @@ final class DeploymentPanelManager: @unchecked Sendable
     
     private var connections: [(id: UUID, socket: WebSocket)] = []
     
-    func addConnection(id: UUID, socket: WebSocket)
+    func add(connection id: UUID, socket: WebSocket)
     {
         connections.append((id: id, socket: socket))
     }
     
-    func removeConnection(id: UUID)
+    func remove(connection id: UUID)
     {
         connections.removeAll { $0.id == id }
     }
@@ -31,6 +31,7 @@ struct DeploymentPanalMessage: Codable
 {
     enum MessageType: String, Codable
     {
+        case state
         case creation
         case update
         case message
@@ -39,6 +40,7 @@ struct DeploymentPanalMessage: Codable
     let type: MessageType
     
     var deployment: Deployment? = nil
+    var deployments: [Deployment]? = nil
     var message: String? = nil
     
     var jsonString: String?

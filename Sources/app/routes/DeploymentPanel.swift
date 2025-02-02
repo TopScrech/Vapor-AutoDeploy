@@ -5,19 +5,34 @@ extension Application
     func useDeployPanel()
     {
         self.webSocket("admin", "ws")
-        { req, ws async in
+        { request, ws async in
+            // on connect
             let id = UUID()
             
-            DeploymentPanelManager.shared.addConnection(id: id, socket: ws)
+            // add client to internal connection list
+            DeploymentPanelManager.shared.add(connection: id, socket: ws)
+            
+            // send welcome message to client
             if let msg = DeploymentPanalMessage(type: .message, message: "Server: Connected...").jsonString
             {
                 try? await ws.send(msg)
             }
             
-            ws.onClose.whenComplete
+            // send current state to client
+            if let deployments = try? await Deployment
+                .query(on: request.db)
+                .sort(\.$startedAt, .descending)
+                .all(),
+               let state = DeploymentPanalMessage(type: .state, deployments: deployments).jsonString
+            {
+                try? await ws.send(state)
+            }
+            
+            // on disconnect: remove client from internal connection list on disconnect
+            ws.onClose.whenComplete()
             { _ in
-                DeploymentPanelManager.shared.removeConnection(id: id)
-            }            
+                DeploymentPanelManager.shared.remove(connection: id)
+            }
         }
         
         // mottzi.de/admin nn
