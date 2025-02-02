@@ -85,7 +85,7 @@ class DeploymentSocket
                 
             console.log('WS: ... closed -> Connect in 5s ...');
             
-            // wait 5s, then start trying every 10s
+            // start trying every 5s
             setTimeout(() => 
             {
                 this.connect();
