@@ -1,4 +1,4 @@
-// this js script makes the table auto-update zz
+// this js script makes the table auto-update
 class DeploymentSocket
 {
     constructor() 
@@ -270,7 +270,7 @@ class DeploymentManager
                 className = 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200';
                 label = 'Running';
                 break;
-                
+
             default:
                 className = 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200';
                 label = status;
