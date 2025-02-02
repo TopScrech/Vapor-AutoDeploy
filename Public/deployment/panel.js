@@ -63,6 +63,7 @@ class DeploymentSocket
 
                     case 'message':
                         console.log(`MESSAGE: ${data.message}`);
+                        break;
                         
                     default:
                         console.log(`Unknown message type: ${data.type}`);
@@ -83,9 +84,10 @@ class DeploymentSocket
             // wait 5s, then start trying every 10s
             setTimeout(() => 
             {
+                this.connect();
+
                 this.timer = setInterval(() => 
                 {
-                    console.log('Attempting scheduled reconnection...');
                     this.connect();
                 }, 
                 this.interval);
