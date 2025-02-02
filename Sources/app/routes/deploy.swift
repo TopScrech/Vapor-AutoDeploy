@@ -9,7 +9,10 @@ extension Application
             let id = UUID()
             
             WebSocketManager.shared.addConnection(id: id, socket: ws)
-            try? await ws.send("{ \"msg\": \"Connected...\" }")
+            if let msg = WebSocketMessage(type: .message, message: "Server: Connected...").jsonString
+            {
+                try? await ws.send(msg)
+            }
             
             ws.onClose.whenComplete
             { _ in
