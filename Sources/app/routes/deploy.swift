@@ -14,7 +14,6 @@ extension Application
             ws.onClose.whenComplete
             { _ in
                 WebSocketManager.shared.removeConnection(id: id)
-                print("Client disconnected from deployment monitoring")
             }
         }
         

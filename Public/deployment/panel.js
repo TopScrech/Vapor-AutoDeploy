@@ -3,37 +3,46 @@ class DeploymentSocket
 {
     constructor() 
     {
+        // websocket
         this.socket = null;
-        this.reconnectDelay = 5000;
-
         this.deploymentManager = new DeploymentManager();
+
+        // reconnect
+        this.timer = null;
+        this.initialDelay = 5000;    
+        this.interval = 10000;  
         
         document.addEventListener('visibilitychange', () => this.visibilityChange());
+        window.addEventListener('online', () => this.connect());
     }
-    
+
     isConnected() { return this.socket?.readyState === WebSocket.OPEN; }
     isConnecting() { return this.socket?.readyState === WebSocket.CONNECTING; }
-    
-    visibilityChange()
-    {
-        if (document.visibilityState !== 'visible') return
-        if (this.isConnected() || this.isConnecting()) return;
-        
-        console.log('Page visible, stale connection: Reconnecting...');
-        this.connect();
-    }
 
     connect()
     {
-        // connect if not already connected or currently connecting
-        if (this.isConnected() || this.isConnecting()) return
+        // abort if already connected or currently connecting
+        if (this.isConnected() || this.isConnecting()) 
+        {
+            console.log('Connection: Already connected or connecting.');
+            return;
+        }
+
+        // close existing socket
+        if (this.socket) { this.socket.close(); this.socket = null; }
+
+        // create new socket and try to connect
+        console.log('WS: Attempting to connect ...'); 
         this.socket = new WebSocket('wss://mottzi.de/admin/ws');
         
+         // connected: stop existing reconnect timer
         this.socket.onopen = () =>
         {
-            console.log('WebSocket connected to server.');
+            console.log('WS: Client connected to server.');
+            if (this.timer) { clearInterval(this.timer); this.timer = null; }
         };
 
+        // parse incoming messages
         this.socket.onmessage = (event) => 
         {
             try 
@@ -51,19 +60,42 @@ class DeploymentSocket
                         console.log(`UPDATE: ${data.deployment.id}`);
                         this.deploymentManager.handleUpdate(data.deployment);
                         break;
+
+                    default:
+                        console.log(`Unknown message type: ${data.type}`);
+                        break;
                 }
             }
             catch (error) 
             {
-                console.error('Failed to process message:', error);
+                console.error(`WS: Failed to parse message: ${error}`);
             }
         };
 
+        // disconnected: start reconnect timer
         this.socket.onclose = () => 
         {
-            console.log('WebSocket closed: Reconnecting...');
-            setTimeout(() => this.connect(), this.reconnectDelay);
+            console.log('WS: Conncetion closed. Starting reconnection timer in 5s ...');
+            
+            // wait 5s, then start trying every 10s
+            setTimeout(() => 
+            {
+                this.timer = setInterval(() => 
+                {
+                    console.log('Attempting scheduled reconnection...');
+                    this.connect();
+                }, 
+                this.interval);
+            }, 
+            this.initialDelay);
         };
+    }
+
+    visibilityChange()
+    {
+        if (document.visibilityState !== 'visible') return;
+        console.log('Page visible...');
+        this.connect();
     }
 }
 
@@ -72,10 +104,56 @@ class DeploymentManager
     constructor() 
     {
         this.activeTimers = new Map();
-        this.setupExistingTimers();
+        this.startExistingTimers();
     }
 
-    setupExistingTimers()
+    // handle incoming messages
+
+    handleCreation(deployment) 
+    {
+        // abort if row already exists
+        let row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
+        if (row) return;
+        
+        // create new row
+        row = document.createElement('tr');
+        row.innerHTML = this.rowHTML(deployment);
+        row.dataset.deploymentId = deployment.id;
+        row.dataset.startedAt = deployment.startedAtTimestamp;
+        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors';
+        
+        // add row to table
+        const tbody = document.querySelector('tbody');
+        tbody.prepend(row);
+
+        // start timer
+        this.setupTimer(row, deployment);
+    }
+
+    handleUpdate(deployment) 
+    {
+        // abort if deployment is still running
+        if (deployment.status == 'running') return;
+
+        // abort if row does not exist
+        const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
+        if (!row) return;
+
+        // clear timer
+        this.clearTimer(deployment.id);
+
+        // update duration cell
+        const durationCell = row.querySelector('td:nth-child(5)');
+        if (durationCell) { durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`; }
+
+        // update status cell
+        const statusCell = row.querySelector('td:nth-child(3)');
+        if (statusCell) { statusCell.innerHTML = this.statusHTML(deployment.status); }
+    }
+
+    // timer management
+
+    startExistingTimers()
     {
         document.querySelectorAll('tr[data-deployment-id]').forEach(row => 
         {
@@ -93,70 +171,6 @@ class DeploymentManager
                 }
             }
         });
-    }
-
-    handleCreation(deployment) 
-    {
-        // abort if row already exists
-        let row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
-        if (row) return;
-        
-        row = this.createRow(deployment);
-        this.setupTimer(row, deployment);
-    }
-
-    handleUpdate(deployment) 
-    {
-        // abort if deployment is still running
-        if (deployment.status == 'running') return;
-
-        // abort if row does not exist
-        const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
-        if (!row) return;
-
-        this.clearTimer(deployment.id);
-        this.updateCompletedRow(row, deployment);
-    }
-
-    createRow(deployment) 
-    {
-        const row = document.createElement('tr');
-        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors';
-        row.dataset.deploymentId = deployment.id;
-        row.dataset.startedAt = deployment.startedAtTimestamp;
-
-        row.innerHTML = this.rowTemplate(deployment);
-        
-        const tbody = document.querySelector('tbody');
-        tbody.prepend(row);
-        return row;
-    }
-
-    rowTemplate(deployment) 
-    {
-        const datetime = this.formatDateTime(deployment.startedAtTimestamp * 1000);
-        const durationHtml = deployment.durationString
-            ? `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`
-            : this.loadingSpinnerHtml();
-
-        return `
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="block text-sm text-gray-600 dark:text-gray-300">${deployment.message}</span>
-            </td>
-            <td class="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-                <a href="/admin/deployments/${deployment.id}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm">${deployment.id}</a>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                ${this.statusBadge(deployment.status)}
-            </td>
-            <td class="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-                <span class="block text-sm text-gray-600 dark:text-gray-300">${datetime.date}</span>
-                <span class="block text-gray-400 dark:text-gray-500 text-xs">${datetime.time}</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                ${durationHtml}
-            </td>
-        `;
     }
 
     setupTimer(row, deployment) 
@@ -186,16 +200,36 @@ class DeploymentManager
         }
     }
 
-    updateCompletedRow(row, deployment) 
-    {
-        const durationCell = row.querySelector('td:nth-child(5)');
-        if (durationCell) { durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`; }
+    // DOM manipulation
 
-        const statusCell = row.querySelector('td:nth-child(3)');
-        if (statusCell) { statusCell.innerHTML = this.statusBadge(deployment.status); }
+    rowHTML(deployment) 
+    {
+        const datetime = this.formatDateTime(deployment.startedAtTimestamp * 1000);
+        const durationHtml = deployment.durationString
+            ? `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`
+            : this.spinnerHTML();
+
+        return `
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="block text-sm text-gray-600 dark:text-gray-300">${deployment.message}</span>
+            </td>
+            <td class="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                <a href="/admin/deployments/${deployment.id}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm">${deployment.id}</a>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                ${this.statusHTML(deployment.status)}
+            </td>
+            <td class="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                <span class="block text-sm text-gray-600 dark:text-gray-300">${datetime.date}</span>
+                <span class="block text-gray-400 dark:text-gray-500 text-xs">${datetime.time}</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                ${durationHtml}
+            </td>
+        `;
     }
 
-    statusBadge(status) 
+    statusHTML(status) 
     {
         const classes = 
         {
@@ -217,7 +251,7 @@ class DeploymentManager
         return `<span class="status-badge px-3 py-1 rounded-full ${badgeClass} text-sm">${label}</span>`;
     }
 
-    loadingSpinnerHtml() 
+    spinnerHTML() 
     {
         return `
             <div class="flex items-center text-gray-600 dark:text-gray-300">
