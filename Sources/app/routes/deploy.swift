@@ -20,7 +20,7 @@ extension Application
             }
         }
         
-        // mottzi.de/admin
+        // mottzi.de/admin nn
         self.get("admin")
         { request async throws -> View in
             let deployments = try await Deployment
