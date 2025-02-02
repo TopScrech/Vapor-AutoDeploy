@@ -119,9 +119,10 @@ class DeploymentManager
     handleState(deployments)
     {
         // remove all existing rows
-        document.querySelectorAll('tr[data-deployment-id]').forEach(row => row.remove());
-        
+        document.querySelector('tbody').innerHTML = '';
+                
         // create new rows for each deployment
+        deployments.reverse();
         deployments.forEach(deployment => this.handleCreation(deployment));
     }
 
@@ -140,7 +141,7 @@ class DeploymentManager
         
         // add row to table
         const tbody = document.querySelector('tbody');
-        tbody.appendChild(row);
+        tbody.prepend(row);
         
         // start new timer
         this.setupTimer(row);
