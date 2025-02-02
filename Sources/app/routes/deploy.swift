@@ -17,7 +17,7 @@ extension Application
             ws.onClose.whenComplete
             { _ in
                 WebSocketManager.shared.removeConnection(id: id)
-            }
+            }            
         }
         
         // mottzi.de/admin nn

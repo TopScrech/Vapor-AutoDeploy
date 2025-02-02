@@ -79,6 +79,9 @@ class DeploymentSocket
         // disconnected: start reconnect timer
         this.socket.onclose = () => 
         {
+            // abort if a reconnect timer is already running
+            if (this.timer) return
+                
             console.log('WS: Conncetion closed. Starting reconnection timer in 5s ...');
             
             // wait 5s, then start trying every 10s
