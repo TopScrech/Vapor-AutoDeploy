@@ -18,7 +18,7 @@ extension Application
                 try? await ws.send(msg)
             }
             
-            // send current state to client
+            // send current state to client (for reconnecting stale clients)
             if let deployments = try? await Deployment
                 .query(on: request.db)
                 .sort(\.$startedAt, .descending)
