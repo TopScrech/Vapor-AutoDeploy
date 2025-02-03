@@ -110,6 +110,7 @@ extension Application
             deployment.finishedAt = Date()
             try? await deployment.save(on: request.db)
             
+            // unlock
             await DeploymentManager.shared.endDeployment()
             
             // ... restart app
@@ -132,6 +133,7 @@ extension Application
             deployment.finishedAt = Date()
             try? await deployment.save(on: request.db)
             
+            // unlock
             await DeploymentManager.shared.endDeployment()
         }
     }
