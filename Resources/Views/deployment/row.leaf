@@ -36,6 +36,8 @@
             <span class="font-mono text-sm text-gray-600 dark:text-gray-300">#(task.durationString)</span>
         #elseif(task.status == "stale"):
             <span class="font-mono text-sm text-gray-600 dark:text-gray-300">NaN</span>
+        #elseif(task.status == "canceled"):
+            <span class="font-mono text-sm text-gray-600 dark:text-gray-300">NaN</span>
         #else:
             <div class="flex items-center text-gray-600 dark:text-gray-300">
                 <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
