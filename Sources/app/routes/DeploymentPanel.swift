@@ -1,5 +1,25 @@
 import Vapor
 
+extension Array where Element == Deployment
+{
+    func markingStaleDeployments() -> [Deployment]
+    {
+        self.map()
+        {
+            // Early return if not running
+            guard $0.status == "running" else { return $0 }
+            // Early return if no start time
+            guard let startedAt = $0.startedAt else { return $0 }
+            // Early return if not stale
+            guard Date().timeIntervalSince(startedAt) > 1800 else { return $0 }
+            
+            $0.status = "stale"
+            
+            return $0
+        }
+    }
+}
+
 extension Application
 {
     func useDeployPanel()
@@ -18,30 +38,15 @@ extension Application
                 try? await ws.send(msg)
             }
             
-            // send current state to client (for reconnecting stale clients)            
+            // send current state to client (for reconnecting stale clients)
             if let deployments = try? await Deployment
                 .query(on: request.db)
                 .sort(\.$startedAt, .descending)
                 .all()
+                .markingStaleDeployments(),
+               let state = DeploymentPanalMessage(type: .state, deployments: deployments).jsonString
             {
-                let alteredDeployments = deployments.map()
-                {
-                    // Early return if not running
-                    guard $0.status == "running" else { return $0 }
-                    // Early return if no start time
-                    guard let startedAt = $0.startedAt else { return $0 }
-                    // Early return if not stale
-                    guard Date().timeIntervalSince(startedAt) > 1800 else { return $0 }
-                    
-                    $0.status = "stale"
-                    
-                    return $0
-                }
-                
-                if let state = DeploymentPanalMessage(type: .state, deployments: deployments).jsonString
-                {
-                    try? await ws.send(state)
-                }
+                try? await ws.send(state)
             }
             
             // on disconnect: remove client from internal connection list on disconnect
@@ -58,19 +63,7 @@ extension Application
                 .query(on: request.db)
                 .sort(\.$startedAt, .descending)
                 .all()
-                .map()
-                {
-                    // Early return if not running
-                    guard $0.status == "running" else { return $0 }
-                    // Early return if no start time
-                    guard let startedAt = $0.startedAt else { return $0 }
-                    // Early return if not stale
-                    guard Date().timeIntervalSince(startedAt) > 1800 else { return $0 }
-                    
-                    $0.status = "stale"
-                    
-                    return $0
-                }
+                .markingStaleDeployments()
             
             return try await request.view.render("deployment/panel", ["tasks": deployments])
         }
