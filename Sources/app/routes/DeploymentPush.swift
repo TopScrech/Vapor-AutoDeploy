@@ -1,21 +1,82 @@
 import Vapor
 
+extension Application
+{
+    func initiateDeployment(message: String?) async
+    {
+        // try to start deployment atomically
+        let running = await DeploymentManager.shared.requestDeployment()
+        
+        // create deployment entry
+        let deployment = Deployment(status: running ? "running" : "canceled", message: message ?? "")
+        try? await deployment.save(on: self.db)
+        
+        // abort if deployment was canceled
+        guard running else { return }
+        
+        // deploy ...
+        do
+        {
+            // 1. git pull
+            try await execute("git pull", step: 1)
+            
+            // 2. swift build
+            try await execute("/usr/local/swift/usr/bin/swift build -c debug", step: 2)
+            
+            // 3. Move Executable
+            try await moveExecutable()
+            
+            // deployment success
+            deployment.status = "success"
+            deployment.finishedAt = Date()
+            try? await deployment.save(on: self.db)
+            
+            // unlock deployment pipeline
+            await DeploymentManager.shared.endDeployment()
+            
+            // check for deployments that were canceled in the meantime
+            if let latestCanceled = try await Deployment.query(on: self.db)
+                .filter(\.$status, .equal, "canceled")
+                .filter(\.$startedAt, .greaterThan, deployment.startedAt)
+                .sort(\.$startedAt, .descending)
+                .first()
+            {
+                // process latest canceled deployment
+                await initiateDeployment(message: latestCanceled.message)
+            }
+            else
+            {
+                // restart if current deployment is up to date
+                try await restart()
+            }
+        }
+        catch
+        {
+            // deployment failed
+            deployment.status = "failed"
+            deployment.finishedAt = Date()
+            try? await deployment.save(on: self.db)
+            
+            // unlock deployment pipeline
+            await DeploymentManager.shared.endDeployment()
+        }
+    }
+}
+
 actor DeploymentManager
 {
     static let shared = DeploymentManager()
-    init() { }
+    private(set) var isDeploying: Bool = false
     
-    var isDeploying: Bool = false
-    
-    func startDeployment() async
+    func requestDeployment() async -> Bool
     {
+        guard !isDeploying else { return false }
+        
         isDeploying = true
+        return true
     }
     
-    func endDeployment() async
-    {
-        isDeploying = false
-    }
+    func endDeployment() async { isDeploying = false }
 }
 
 extension Application
@@ -27,114 +88,7 @@ extension Application
         self.push("pushevent")
         { request async in
             // handle valid request
-            await self.deploy(request)
-        }
-    }
-    
-    // handle valid push event
-    private func deploy(_ request: Request) async
-    {
-        let block = await DeploymentManager.shared.isDeploying
-        
-        let commitInfo = getCommitInfo(request)
-        let deployment = Deployment(status: block ? "canceled" : "running", message: commitInfo.message ?? "No message")
-        try? await deployment.save(on: request.db)
-        
-        let logFile = "deploy/github/push.log"
-        
-        // log initial push event received with commit info
-        var logContent =
-        """
-        =====================================================
-        :::::::::::::::::::::::::::::::::::::::::::::::::::::
-        Valid push event received [\(Date())]
-        """
-        
-        if let commitLog = commitInfo.log
-        {
-            logContent += "\n\n\(commitLog)\n"
-        }
-        
-        logContent +=
-        """
-        :::::::::::::::::::::::::::::::::::::::::::::::::::::
-        =====================================================\n
-        """
-        
-        log(logFile, logContent)
-        log(logFile, block ? "\nCanceled:\n" : "\nAuto deploy:\n")
-    
-        if block
-        {
-            log(logFile,
-            """
-            \n=========================
-            :::::::::::::::::::::::::
-            Deployment process failed
-            Error: Previous deployment still running
-            :::::::::::::::::::::::::
-            =========================\n\n
-            """)
-            
-            return
-        }
-        
-        await DeploymentManager.shared.startDeployment()
-        
-        do
-        {
-            // 1. Git Pull
-            log(logFile, "\n> [1/4] Pulling repository\n")
-            try await execute(command: "git pull", step: 1, logPath: logFile, deployment: deployment, request: request)
-            
-            // 2. Swift Build
-            log(logFile, "\n> [2/4] Building app\n")
-            try await execute(command: "/usr/local/swift/usr/bin/swift build -c debug", step: 2, logPath: logFile, deployment: deployment, request: request)
-            
-            // 3. Move Executable
-            log(logFile, "\n> [3/4] Moving app .build/debug/ -> deploy/\n")
-            try await moveExecutable(logPath: logFile, request: request)
-            
-            // 4. Finalize
-            log(logFile, "\n> [4/4] Restarting app ...\n")
-            
-            log(logFile,
-            """
-            \nDeployment process completed
-            ::::::::::::::::::::::::::::
-            ============================\n\n
-            """)
-            
-            // ... update deployment status
-            deployment.status = "success"
-            deployment.finishedAt = Date()
-            try? await deployment.save(on: request.db)
-            
-            // unlock
-            await DeploymentManager.shared.endDeployment()
-            
-            // ... restart app
-            try await restart(request: request)
-        }
-        catch
-        {
-            log(logFile,
-            """
-            \n=========================
-            :::::::::::::::::::::::::
-            Deployment process failed
-            Error: \(error.localizedDescription)
-            :::::::::::::::::::::::::
-            =========================\n\n
-            """)
-            
-            // ... update deployment status
-            deployment.status = "failed"
-            deployment.finishedAt = Date()
-            try? await deployment.save(on: request.db)
-            
-            // unlock
-            await DeploymentManager.shared.endDeployment()
+            await self.initiateDeployment(message: self.getCommitMessage(request))
         }
     }
 }
@@ -142,7 +96,7 @@ extension Application
 // auto deploy commands
 extension Application
 {
-    private func execute(command: String, step: Int, logPath: String, deployment: Deployment, request: Request) async throws
+    private func execute(_ command: String, step: Int) async throws
     {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -163,7 +117,7 @@ extension Application
         }
     }
     
-    private func restart(request: Request) async throws
+    private func restart() async throws
     {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
@@ -178,7 +132,7 @@ extension Application
         }
     }
     
-    private func getCommitInfo(_ request: Request) -> (log: String?, author: String?, message: String?)
+    private func getCommitMessage(_ request: Request) -> String?
     {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -186,28 +140,12 @@ extension Application
         guard let bodyString = request.body.string,
               let jsonData = bodyString.data(using: .utf8),
               let payload = try? decoder.decode(DeploymentEvent.Payload.self, from: jsonData)
-        else { return (nil, nil, nil) }
+        else { return nil }
         
-        var commitInfo =
-        """
-        Commit:  \(payload.headCommit.id)
-        Author:  \(payload.headCommit.author.name)
-        Message: \(payload.headCommit.message)
-        """
-        
-        if !payload.headCommit.modified.isEmpty
-        {
-            commitInfo +=
-            """
-            \n\nChanged (\(payload.headCommit.modified.count)):
-                - \(payload.headCommit.modified.joined(separator: ",\n    - "))
-            """
-        }
-        
-        return (commitInfo, payload.headCommit.author.name, payload.headCommit.message)
+        return payload.headCommit.message
     }
     
-    private func moveExecutable(logPath: String, request: Request) async throws
+    private func moveExecutable() async throws
     {
         let fileManager = FileManager.default
         let buildPath = "/var/www/mottzi/.build/debug/App"
