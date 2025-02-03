@@ -160,6 +160,9 @@ class DeploymentManager
         const statusCell = row.querySelector('td:nth-child(3)');
         if (statusCell) { statusCell.innerHTML = this.statusHTML(deployment.status); }
         
+        const startedCell = row.querySelector('td:nth-child(4)');
+        if (startedCell) { startedCell.innerHTML = this.startedHTML(deployment); }
+        
         // if status is 'running', setup the timer and update cell with spinner
         if (deployment.status === 'running')
         {
@@ -251,14 +254,20 @@ class DeploymentManager
                 </td>
                 
                 <td class="hidden sm:table-cell px-6 py-4">
-                    <span class="block text-sm text-gray-600 dark:text-gray-300">${this.formatDate(deployment.startedAtTimestamp * 1000)}</span>
-                    <span class="block text-gray-400 dark:text-gray-500 text-xs">${this.formatTime(deployment.startedAtTimestamp * 1000)}</span>
-                </td>
-                
+                    ${this.startedHTML(deployment)}
+                 </td>
+            
                 <td class="px-6 py-4">
                     ${deployment.durationString ? this.durationHTML(deployment.durationString) : deployment.status == "stale" || deployment.status == "canceled" ? this.durationHTML("NaN") : this.spinnerHTML()}
                 </td>
             </tr>`;
+    }
+    
+    startedHTML(deployment)
+    {
+        return `
+            <span class="block text-sm text-gray-600 dark:text-gray-300">${this.formatDate(deployment.startedAtTimestamp * 1000)}</span>
+            <span class="block text-gray-400 dark:text-gray-500 text-xs">${this.formatTime(deployment.startedAtTimestamp * 1000)}</span>`;
     }
 
     statusHTML(status) 

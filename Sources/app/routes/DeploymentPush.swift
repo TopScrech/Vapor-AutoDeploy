@@ -8,6 +8,7 @@ extension Application
         let running = await DeploymentManager.shared.requestDeployment()
         
         let deployment = deployment ?? Deployment(status: running ? "running" : "canceled", message: message ?? "")
+        deployment.startedAt = Date.now
         deployment.status = running ? "running" : "canceled"
         try? await deployment.save(on: self.db)
         
