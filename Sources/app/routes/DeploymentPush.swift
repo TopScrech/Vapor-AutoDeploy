@@ -1,5 +1,23 @@
 import Vapor
 
+actor DeploymentManager
+{
+    static let shared = DeploymentManager()
+    init() { }
+    
+    var isDeploying: Bool = false
+    
+    func startDeployment() async
+    {
+        isDeploying = true
+    }
+    
+    func endDeployment() async
+    {
+        isDeploying = false
+    }
+}
+
 extension Application
 {
     // auto deploy setup
@@ -16,8 +34,13 @@ extension Application
     // handle valid push event
     private func deploy(_ request: Request) async
     {
-        let logFile = "deploy/github/push.log"
+        let block = await DeploymentManager.shared.isDeploying
+        
         let commitInfo = getCommitInfo(request)
+        let deployment = Deployment(status: block ? "canceled" : "running", message: commitInfo.message ?? "No message")
+        try? await deployment.save(on: request.db)
+        
+        let logFile = "deploy/github/push.log"
         
         // log initial push event received with commit info
         var logContent =
@@ -39,13 +62,24 @@ extension Application
         """
         
         log(logFile, logContent)
+        log(logFile, block ? "\nCanceled:\n" : "\nAuto deploy:\n")
+    
+        if block
+        {
+            log(logFile,
+            """
+            \n=========================
+            :::::::::::::::::::::::::
+            Deployment process failed
+            Error: Previous deployment still running
+            :::::::::::::::::::::::::
+            =========================\n\n
+            """)
+            
+            return
+        }
         
-        // log deploy process beginning
-        logContent = "\nAuto deploy:\n"
-        
-        // create new deployment
-        let deployment = Deployment(status: "running", message: commitInfo.message ?? "No message")
-        try? await deployment.save(on: request.db)
+        await DeploymentManager.shared.startDeployment()
         
         do
         {
@@ -76,6 +110,8 @@ extension Application
             deployment.finishedAt = Date()
             try? await deployment.save(on: request.db)
             
+            await DeploymentManager.shared.endDeployment()
+            
             // ... restart app
             try await restart(request: request)
         }
@@ -95,6 +131,8 @@ extension Application
             deployment.status = "failed"
             deployment.finishedAt = Date()
             try? await deployment.save(on: request.db)
+            
+            await DeploymentManager.shared.endDeployment()
         }
     }
 }

@@ -275,6 +275,11 @@ class DeploymentManager
                 className = 'bg-orange-100 text-orange-800 dark:bg-orange-800/30 dark:text-orange-200';
                 label = 'Stale';
                 break;
+                
+            case 'canceled':
+                className = 'bg-orange-100 text-orange-800 dark:bg-orange-800/30 dark:text-orange-200';
+                label = 'Canceled';
+                break;
 
             default:
                 className = 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200';
