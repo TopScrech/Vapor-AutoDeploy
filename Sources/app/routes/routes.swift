@@ -9,7 +9,7 @@ extension Application
         self.get("text")
         { request in
             """
-            Auto Deploy: 3
+            Auto Deploy: 1
             """
         }
         
