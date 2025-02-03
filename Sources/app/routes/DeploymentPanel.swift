@@ -1,25 +1,5 @@
 import Vapor
 
-extension Array where Element == Deployment
-{
-    func markingStaleDeployments() -> [Deployment]
-    {
-        self.map()
-        {
-            // Early return if not running
-            guard $0.status == "running" else { return $0 }
-            // Early return if no start time
-            guard let startedAt = $0.startedAt else { return $0 }
-            // Early return if not stale
-            guard Date().timeIntervalSince(startedAt) > 1800 else { return $0 }
-            
-            $0.status = "stale"
-            
-            return $0
-        }
-    }
-}
-
 extension Application
 {
     func useDeployPanel()
@@ -27,7 +7,7 @@ extension Application
         self.webSocket("admin", "ws")
         { request, ws async in
             // on connect
-            let id = UUID()
+            let id = UUID(
             
             // add client to internal connection list
             DeploymentPanelManager.shared.add(connection: id, socket: ws)
@@ -69,3 +49,24 @@ extension Application
         }
     }
 }
+
+extension Array where Element == Deployment
+{
+    func markingStaleDeployments() -> [Deployment]
+    {
+        self.map()
+        {
+            // Early return if not running
+            guard $0.status == "running" else { return $0 }
+            // Early return if no start time
+            guard let startedAt = $0.startedAt else { return $0 }
+            // Early return if not stale
+            guard Date().timeIntervalSince(startedAt) > 1800 else { return $0 }
+            
+            $0.status = "stale"
+            
+            return $0
+        }
+    }
+}
+
