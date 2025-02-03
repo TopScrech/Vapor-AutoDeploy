@@ -42,6 +42,19 @@ extension Application
                 .query(on: request.db)
                 .sort(\.$startedAt, .descending)
                 .all()
+                .map()
+                {
+                    // Early return if not running
+                    guard $0.status == "running" else { return $0 }
+                    // Early return if no start time
+                    guard let startedAt = $0.startedAt else { return $0 }
+                    // Early return if not stale
+                    guard Date().timeIntervalSince(startedAt) > 1800 else { return $0 }
+                    
+                    $0.status = "stale"
+                    
+                    return $0
+                }
             
             return try await request.view.render("deployment/panel", ["tasks": deployments])
         }
