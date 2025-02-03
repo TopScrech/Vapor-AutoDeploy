@@ -2,19 +2,18 @@ import Vapor
 
 extension Application
 {
-    func initiateDeployment(message: String?) async
+    func initiateDeployment(deployment: Deployment? = nil, message: String? = nil) async
     {
         // try to start deployment atomically
         let running = await DeploymentManager.shared.requestDeployment()
         
-        // create deployment entry
-        let deployment = Deployment(status: running ? "running" : "canceled", message: message ?? "")
+        let deployment = deployment ?? Deployment(status: running ? "running" : "canceled", message: message ?? "")
+        deployment.status = running ? "running" : "canceled"
         try? await deployment.save(on: self.db)
         
         // abort if deployment was canceled
         guard running else { return }
         
-        // deploy ...
         do
         {
             // 1. git pull
@@ -42,7 +41,7 @@ extension Application
                 .first()
             {
                 // process latest canceled deployment
-                await initiateDeployment(message: latestCanceled.message)
+                await initiateDeployment(deployment: latestCanceled)
             }
             else
             {
