@@ -273,7 +273,7 @@ class DeploymentManager
 
             case 'stale':
                 className = 'bg-orange-100 text-orange-800 dark:bg-orange-800/30 dark:text-orange-200';
-                label = 'Running';
+                label = 'Stale';
                 break;
 
             default:
