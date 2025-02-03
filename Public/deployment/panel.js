@@ -53,12 +53,12 @@ class DeploymentSocket
                         break;
 
                     case 'creation':
-                        console.log(`CREATION: ${data.deployment.id}`);
+                        console.log(`CREATION: ${data.deployment.message}`);
                         this.deploymentManager.handleCreation(data.deployment);
                         break;
                         
                     case 'update':
-                        console.log(`UPDATE: ${data.deployment.id}`);
+                        console.log(`UPDATE: ${data.deployment.message}`);
                         this.deploymentManager.handleUpdate(data.deployment);
                         break;
 
