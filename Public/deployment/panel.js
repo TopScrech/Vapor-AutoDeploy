@@ -245,7 +245,7 @@ class DeploymentManager
                 </td>
                 
                 <td class="px-6 py-4">
-                    ${deployment.durationString ? this.durationHTML(deployment.durationString) : deployment.status == "stale" ? this.durationHTML("NaN") : this.spinnerHTML()}
+                    ${deployment.durationString ? this.durationHTML(deployment.durationString) : deployment.status == "stale" || deployment.status == "canceled" ? this.durationHTML("NaN") : this.spinnerHTML()}
                 </td>
             </tr>`;
     }
