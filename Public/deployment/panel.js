@@ -245,7 +245,7 @@ class DeploymentManager
                 </td>
                 
                 <td class="px-6 py-4">
-                    ${deployment.durationString ? this.durationHTML(deployment.durationString) : this.spinnerHTML()}
+                    ${deployment.durationString ? this.durationHTML(deployment.durationString) : deployment.status == "stale" ? this.durationHTML("NaN") : this.spinnerHTML()}
                 </td>
             </tr>`;
     }
@@ -268,6 +268,11 @@ class DeploymentManager
 
             case 'running':
                 className = 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200';
+                label = 'Running';
+                break;
+
+            case 'stale':
+                className = 'bg-orange-100 text-orange-800 dark:bg-orange-800/30 dark:text-orange-200';
                 label = 'Running';
                 break;
 
