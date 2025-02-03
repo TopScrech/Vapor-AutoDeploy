@@ -155,7 +155,8 @@ class DeploymentManager
         // abort if row does not exist
         const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
         if (!row) return;
-        
+        row.dataset.startedAt = deployment.startedAtTimestamp;
+
         // update status cell
         const statusCell = row.querySelector('td:nth-child(3)');
         if (statusCell) { statusCell.innerHTML = this.statusHTML(deployment.status); }
