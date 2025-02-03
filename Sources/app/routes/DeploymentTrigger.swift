@@ -2,6 +2,19 @@ import Vapor
 
 extension Application
 {
+    func usePushDeploy()
+    {
+        // github webhook push event route
+        self.push("pushevent")
+        { request async in
+            // handle valid request
+            await self.initiateDeployment(message: self.getCommitMessage(request))
+        }
+    }
+}
+
+extension Application
+{
     func initiateDeployment(deployment: Deployment? = nil, message: String? = nil) async
     {
         // try to start deployment atomically
@@ -77,20 +90,6 @@ actor DeploymentManager
     }
     
     func endDeployment() async { isDeploying = false }
-}
-
-extension Application
-{
-    // auto deploy setup
-    func usePushDeploy()
-    {
-        // github webhook push event route
-        self.push("pushevent")
-        { request async in
-            // handle valid request
-            await self.initiateDeployment(message: self.getCommitMessage(request))
-        }
-    }
 }
 
 // auto deploy commands

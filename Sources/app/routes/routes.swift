@@ -23,7 +23,7 @@ extension Application
         // mottzi.de/infile
         self.get("infile")
         { request async throws in
-            try await request.view.render("htmlFile")
+            try await request.view.render("demo")
         }
         
         // mottzi.de/inline

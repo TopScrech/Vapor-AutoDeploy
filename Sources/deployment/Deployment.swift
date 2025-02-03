@@ -93,7 +93,7 @@ struct DeploymentListener: AsyncModelMiddleware
         try await next.create(model, on: db)
         
         let message = DeploymentPanalMessage(type: .creation, deployment: model)
-        await DeploymentPanelManager.shared.broadcast(message)
+        await DeploymentClients.shared.broadcast(message)
     }
     
     func update(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
@@ -101,6 +101,6 @@ struct DeploymentListener: AsyncModelMiddleware
         try await next.update(model, on: db)
         
         let message = DeploymentPanalMessage(type: .update, deployment: model)
-        await DeploymentPanelManager.shared.broadcast(message)
+        await DeploymentClients.shared.broadcast(message)
     }
 }
