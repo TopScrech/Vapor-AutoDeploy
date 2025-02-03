@@ -149,52 +149,6 @@ class DeploymentManager
         // start new timer
         this.setupTimer(row);
     }
-
-//    handleUpdate(deployment) 
-//    {
-//        // abort if deployment is still running
-//        if (deployment.status == 'running') return;
-//
-//        // abort if row does not exist
-//        const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
-//        if (!row) return;
-//
-//        // clear duartion timer
-//        this.clearTimer(deployment.id);
-//
-//        // update duration cell
-//        const durationCell = row.querySelector('td:nth-child(5)');
-//        if (durationCell) { durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`; }
-//
-//        // update status cell
-//        const statusCell = row.querySelector('td:nth-child(3)');
-//        if (statusCell) { statusCell.innerHTML = this.statusHTML(deployment.status); }
-//    }
-    
-//    handleUpdate(deployment)
-//    {
-//        // abort if row does not exist
-//        const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
-//        if (!row) return;
-//        
-//        // update status cell
-//        const statusCell = row.querySelector('td:nth-child(3)');
-//        if (statusCell) { statusCell.innerHTML = this.statusHTML(deployment.status); }
-//        
-//        // if status is 'running', setup the timer
-//        if (deployment.status === 'running')
-//        {
-//            this.setupTimer(row);
-//        }
-//        // if status is final (not running), update duration and clear timer
-//        else
-//        {
-//            this.clearTimer(deployment.id);
-//            
-//            const durationCell = row.querySelector('td:nth-child(5)');
-//            if (durationCell) { durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`; }
-//        }
-//    }
     
     handleUpdate(deployment)
     {
@@ -207,20 +161,24 @@ class DeploymentManager
         if (statusCell) { statusCell.innerHTML = this.statusHTML(deployment.status); }
         
         // if status is 'running', setup the timer and update cell with spinner
-        if (deployment.status === 'running') {
+        if (deployment.status === 'running')
+        {
+            // update duration cell with timer
             const durationCell = row.querySelector('td:nth-child(5)');
-            if (durationCell) {
-                durationCell.innerHTML = this.spinnerHTML();
-            }
+            if (durationCell) { durationCell.innerHTML = this.spinnerHTML(); }
+            
+            // start timer
             this.setupTimer(row);
         }
-        // if status is final (not running), update duration and clear timer
-        else {
+        // if status is 'not running' (anymore)
+        else
+        {
+            // clear timer
             this.clearTimer(deployment.id);
+            
+            // update duration cell with deployment duration
             const durationCell = row.querySelector('td:nth-child(5)');
-            if (durationCell) {
-                durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`;
-            }
+            if (durationCell) { durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`; }
         }
     }
 
