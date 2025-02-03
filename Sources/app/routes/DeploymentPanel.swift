@@ -7,7 +7,7 @@ extension Application
         self.webSocket("admin", "ws")
         { request, ws async in
             // on connect
-            let id = UUID(
+            let id = UUID()
             
             // add client to internal connection list
             DeploymentPanelManager.shared.add(connection: id, socket: ws)
