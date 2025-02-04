@@ -16,9 +16,7 @@ extension Application
         // mottzi.de/dynamic/world
         self.get("dynamic", ":property")
         { request async in
-            request.logger.info("RequestInfo 1")
-            request.logger.error("RequestError 2")
-            request.logger.error("RequestError 2", file: #fileID, line: #line)
+            request.logger.error("RequestInfo 1")
         
             return "Hello, \(request.parameters.get("property")!)!\nLogger level: \(request.logger.logLevel)"
         }

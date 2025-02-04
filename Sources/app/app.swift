@@ -23,8 +23,7 @@ struct mottzi
             return ConsoleFragmentLogger(fragment: format, label: $0, console: Terminal(), level: .info)
         }
                 
-        try app.environment.useVariables()
-        
+        app.environment.useVariables()
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
         app.databases.middleware.use(DeploymentListener(), on: .sqlite)
         app.migrations.add(Deployment.Table())

@@ -12,7 +12,7 @@ extension Environment
         }
     }
     
-    func useVariables() throws
+    func useVariables()
     {
         for variable in Variables.allCases
         {
