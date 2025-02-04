@@ -10,7 +10,7 @@ struct mottzi
     {
         var env = try Environment.detect()
         
-//        let fragment = LabelFragment().maxLevel(.trace)
+//        let fragment = LabelFragment().maxLevel(.trace)  
 //            .and(LevelFragment().separated(" ")
 //            .and(MessageFragment().separated(" ")))
 //            .and(MetadataFragment().separated(" "))
