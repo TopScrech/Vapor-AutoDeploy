@@ -37,6 +37,7 @@ extension DeploymentClients
             case creation
             case update
             case message
+            case deletion
         }
         
         let type: MessageType

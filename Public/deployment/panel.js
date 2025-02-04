@@ -14,6 +14,23 @@ class DeploymentSocket
         
         document.addEventListener('visibilitychange', () => this.visibilityChange());
         window.addEventListener('online', () => this.connect());
+        
+        // Add click handler for delete buttons
+        document.addEventListener('click', (event) =>
+        {
+            if (event.target.matches('.delete-button'))
+            {
+                // Find the parent tr to get deployment ID
+                const row = event.target.closest('tr');
+                if (row && row.dataset.deploymentId)
+                {
+                    if (confirm('Are you sure you want to delete this deployment?'))
+                    {
+                        this.deleteDeployment(row.dataset.deploymentId);
+                    }
+                }
+            }
+        });
     }
 
     isConnected() { return this.socket?.readyState === WebSocket.OPEN; }
@@ -66,6 +83,11 @@ class DeploymentSocket
                         console.log(`MESSAGE: ${data.message}`);
                         break;
                         
+                    case 'deletion':
+                        console.log(`DELETION: ${data.deployment.id}`);
+                        this.deploymentManager.handleDeletion(data.deployment.id);
+                        break;
+                        
                     default:
                         console.log(`Unknown message type: ${data.type}`);
                         break;
@@ -104,6 +126,20 @@ class DeploymentSocket
     {
         if (document.visibilityState === 'visible') this.connect();
     }
+    
+    deleteDeployment(id)
+    {
+        if (this.isConnected())
+        {
+            const message =
+            {
+                type: 'deletion',
+                deployment: { id: id }
+            };
+            
+            this.socket.send(JSON.stringify(message));
+        }
+    }
 }
 
 class DeploymentManager 
@@ -127,6 +163,17 @@ class DeploymentManager
         // create new rows for each deployment
         deployments.reverse();
         deployments.forEach(deployment => this.handleCreation(deployment));
+    }
+    
+    handleDeletion(deploymentId)
+    {
+        const row = document.querySelector(`tr[data-deployment-id="${deploymentId}"]`);
+        
+        if (row)
+        {
+            this.clearTimer(deploymentId);
+            row.remove();
+        }
     }
 
     handleCreation(deployment) 

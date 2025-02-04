@@ -21,6 +21,23 @@ extension Application
                 let state = DeploymentClients.Message(.state, deployments)
                 await state.send(on: ws)
             }
+            
+            ws.onText()
+            { ws, msg async in
+                guard let data = msg.data(using: .utf8) else { return }
+                guard let message = try? JSONDecoder().decode(DeploymentClients.Message.self, from: data) else { return }
+                
+                switch message.type
+                {
+                    case .deletion:
+                        guard let id = message.deployment?.id else { return }
+                        guard let deployment = try? await Deployment.find(id, on: request.db) else { return }
+                        try? await deployment.delete(on: request.db)
+                        await DeploymentClients.shared.broadcast(message)
+                        
+                    default: break
+                }
+            }
                         
             // remove client from broadcasting register
             ws.onClose.whenComplete() { _ in Task { await DeploymentClients.shared.remove(connection: id) } }
