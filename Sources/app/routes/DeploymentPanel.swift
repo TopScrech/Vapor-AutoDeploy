@@ -16,11 +16,12 @@ extension Application
             await DeploymentClients.Message(.message, "Server: Connected...").send(on: ws)
             
             // 2. send full state
-            if let deployments = try? await Deployment.query(on: request.db).sort(\.$startedAt, .descending).all().stale()
+            if let deployments = try? await Deployment.all(on: request.db)
             {
-                await DeploymentClients.Message(.state, deployments).send(on: ws)
+                let state = DeploymentClients.Message(.state, deployments)
+                await state.send(on: ws)
             }
-            
+                        
             // remove client from broadcasting register
             ws.onClose.whenComplete() { _ in DeploymentClients.shared.remove(connection: id) }
         }
@@ -28,7 +29,7 @@ extension Application
         // mottzi.de/admin
         self.get("admin")
         { request async throws -> View in
-            let deployments = try await Deployment.query(on: request.db).sort(\.$startedAt, .descending).all().stale()
+            let deployments = try await Deployment.all(on: request.db)
             
             return try await request.view.render("deployment/panel", ["tasks": deployments])
         }

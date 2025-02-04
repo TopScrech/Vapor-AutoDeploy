@@ -19,6 +19,14 @@ final class Deployment: Model, Content, @unchecked Sendable
         self.status = status
         self.message = message
     }
+    
+    static func all(on database: Database) async throws -> [Deployment]
+    {
+        try await self.query(on: database)
+            .sort(\.$startedAt, .descending)
+            .all()
+            .stale()
+    }
 }
 
 // cumputated properties
