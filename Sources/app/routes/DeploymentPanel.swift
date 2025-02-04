@@ -10,7 +10,7 @@ extension Application
             let id = UUID()
             
             // register client for broadcasting
-            DeploymentClients.shared.add(connection: id, socket: ws)
+            await DeploymentClients.shared.add(connection: id, socket: ws)
             
             // 1. welcome message
             await DeploymentClients.Message(.message, "Server: Connected...").send(on: ws)
@@ -23,7 +23,7 @@ extension Application
             }
                         
             // remove client from broadcasting register
-            ws.onClose.whenComplete() { _ in DeploymentClients.shared.remove(connection: id) }
+            ws.onClose.whenComplete() { _ in Task { await DeploymentClients.shared.remove(connection: id) } }
         }
         
         // mottzi.de/admin

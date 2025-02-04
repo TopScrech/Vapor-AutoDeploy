@@ -1,6 +1,6 @@
 import Vapor
 
-final class DeploymentClients: @unchecked Sendable
+actor DeploymentClients
 {
     static let shared = DeploymentClients()
     
