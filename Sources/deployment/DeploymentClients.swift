@@ -57,9 +57,15 @@ extension DeploymentClients
 
 extension DeploymentClients.Message
 {
-    init(type: MessageType, _ message: String)
+    init(_ type: MessageType, _ message: String)
     {
         self.type = type
         self.message = message
+    }
+    
+    init(_ type: MessageType, _ deployment: Deployment)
+    {
+        self.type = type
+        self.deployment = deployment
     }
 }

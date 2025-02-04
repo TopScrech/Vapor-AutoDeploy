@@ -14,9 +14,8 @@ final class Deployment: Model, Content, @unchecked Sendable
     
     init() {}
     
-    init(id: UUID? = nil, status: String, message: String)
+    init(status: String, message: String)
     {
-        self.id = id
         self.status = status
         self.message = message
     }
@@ -92,7 +91,7 @@ struct DeploymentListener: AsyncModelMiddleware
     {
         try await next.create(model, on: db)
         
-        let message = DeploymentClients.Message(type: .creation, deployment: model)
+        let message = DeploymentClients.Message(.creation, model)
         await DeploymentClients.shared.broadcast(message)
     }
     
@@ -100,7 +99,7 @@ struct DeploymentListener: AsyncModelMiddleware
     {
         try await next.update(model, on: db)
         
-        let message = DeploymentClients.Message(type: .update, deployment: model)
+        let message = DeploymentClients.Message(.update, model)
         await DeploymentClients.shared.broadcast(message)
     }
 }
