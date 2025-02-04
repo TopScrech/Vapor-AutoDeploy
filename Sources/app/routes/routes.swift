@@ -16,16 +16,18 @@ extension Application
         // mottzi.de/dynamic/world
         self.get("dynamic", ":property")
         { request async in
-            request.logger.error("RequestError 1")
-            request.logger.debug("RequestDebug 2")
-            self.logger.error("AppError 1")
-            self.logger.debug("AppDebug 2")
+            request.logger.debug("RequestDebug 1")
+            request.logger.info("RequestInfo 2")
+            request.logger.error("RequestError 3")
+            
+            self.logger.debug("AppDebug 1")
+            self.logger.info("AppInfo 2")
+            self.logger.error("AppError 3")
             return "Hello, \(request.parameters.get("property")!)!"
         }
         
         self.get("dynamic2", ":property")
         { request async throws in
-            
             return "Hello, \(request.parameters.get("property")!)!"
         }
         

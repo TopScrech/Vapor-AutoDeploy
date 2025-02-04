@@ -12,7 +12,6 @@ struct mottzi
         try LoggingSystem.bootstrap(from: &env)
         
         let app = try await Application.make(env)
-        app.logger.logLevel = .debug
         app.environment.useVariables()
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
         app.databases.middleware.use(DeploymentListener(), on: .sqlite)
