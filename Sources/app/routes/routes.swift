@@ -18,14 +18,16 @@ extension Application
         { request async in
             request.logger.info("RequestInfo 1")
             request.logger.error("RequestError 2")
-            request.logger.error("RequestError2", file: #file, line: #line)
+            request.logger.error("RequestError 2", file: #file, line: #line)
         
             return "Hello, \(request.parameters.get("property")!)!\nLogger level: \(request.logger.logLevel)"
         }
         
         self.get("dynamic2", ":property")
         { request async throws in
-            return "Hello, \(request.parameters.get("property")!)!"
+            throw Abort(.badRequest, reason: "Test error")
+            
+            return "hi"
         }
         
         // mottzi.de/infile
