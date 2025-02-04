@@ -28,10 +28,12 @@ struct mottzi
             .and(MetadataFragment().separated(" "))
             .and(SourceLocationFragment().separated(" ").maxLevel(.info))
         
-        app.logger = .init(label: "app")
+        app.logger = Logger(label: "app")
         {
             ConsoleFragmentLogger(fragment: fragment, label: $0, console: Terminal())
         }
+        
+        app.logger.logLevel = .info
         
         app.environment.useVariables()
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
