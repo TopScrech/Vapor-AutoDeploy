@@ -19,7 +19,7 @@ extension Application
             request.logger.error("RequestError 1")
             request.logger.debug("RequestDebug 2")
             self.logger.error("AppError 1")
-            self.logger.error("AppDebug 2")
+            self.logger.debug("AppDebug 2")
             return "Hello, \(request.parameters.get("property")!)!"
         }
         
