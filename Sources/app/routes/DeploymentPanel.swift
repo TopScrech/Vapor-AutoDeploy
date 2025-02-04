@@ -9,41 +9,26 @@ extension Application
             // connection is identifiable
             let id = UUID()
             
-            // add client to internal connection list
+            // register client for broadcasting
             DeploymentClients.shared.add(connection: id, socket: ws)
             
-            // send welcome message to client
-            if let msg = DeploymentClients.Message(type: .message, "Server: Connected...").jsonString
+            // 1. welcome message
+            await DeploymentClients.Message(.message, "Server: Connected...").send(on: ws)
+            
+            // 2. send full state
+            if let deployments = try? await Deployment.query(on: request.db).sort(\.$startedAt, .descending).all().stale()
             {
-                try? await ws.send(msg)
+                await DeploymentClients.Message(.state, deployments).send(on: ws)
             }
             
-            // send current state to client (for reconnecting stale clients)
-            if let deployments = try? await Deployment
-                .query(on: request.db)
-                .sort(\.$startedAt, .descending)
-                .all()
-                .markingStaleDeployments(),
-               let state = DeploymentClients.Message(type: .state, deployments: deployments).jsonString
-            {
-                try? await ws.send(state)
-            }
-            
-            // on disconnect: remove client from internal connection list on disconnect
-            ws.onClose.whenComplete()
-            { _ in
-                DeploymentClients.shared.remove(connection: id)
-            }
+            // remove client from broadcasting register
+            ws.onClose.whenComplete() { _ in DeploymentClients.shared.remove(connection: id) }
         }
         
         // mottzi.de/admin
         self.get("admin")
         { request async throws -> View in
-            let deployments = try await Deployment
-                .query(on: request.db)
-                .sort(\.$startedAt, .descending)
-                .all()
-                .markingStaleDeployments()
+            let deployments = try await Deployment.query(on: request.db).sort(\.$startedAt, .descending).all().stale()
             
             return try await request.view.render("deployment/panel", ["tasks": deployments])
         }
@@ -52,7 +37,7 @@ extension Application
 
 extension Array where Element == Deployment
 {
-    func markingStaleDeployments() -> [Deployment]
+    func stale() -> [Deployment]
     {
         self.map()
         {

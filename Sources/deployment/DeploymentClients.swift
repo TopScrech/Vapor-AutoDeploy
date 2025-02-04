@@ -52,6 +52,13 @@ extension DeploymentClients
             
             return jsonString
         }
+        
+        func send(on ws: WebSocket) async
+        {
+            guard let jsonString = self.jsonString else { return }
+            
+            try? await ws.send(jsonString)
+        }
     }
 }
 
@@ -67,5 +74,11 @@ extension DeploymentClients.Message
     {
         self.type = type
         self.deployment = deployment
+    }
+    
+    init(_ type: MessageType, _ deployments: [Deployment])
+    {
+        self.type = type
+        self.deployments = deployments
     }
 }
