@@ -23,6 +23,12 @@ extension Application
             return "Hello, \(request.parameters.get("property")!)!"
         }
         
+        self.get("dynamic2", ":property")
+        { request async throws in
+            
+            return "Hello, \(request.parameters.get("property")!)!"
+        }
+        
         // mottzi.de/infile
         self.get("infile")
         { request async throws in
