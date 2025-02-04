@@ -18,9 +18,7 @@ extension Environment
         {
             if Environment.get(variable.rawValue) == nil
             {
-                //fatalError("\(variable.rawValue): Environment variable not found.")
-                
-                throw Abort(.internalServerError, reason: "\(variable.rawValue): Environment variable not found.")
+                fatalError("\(variable.rawValue): Environment variable not found.")
             }
         }
     }
