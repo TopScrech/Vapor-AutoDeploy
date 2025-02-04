@@ -15,16 +15,16 @@ struct mottzi
         
         app.logger = Logger(label: "mottzi")
         {
-            let format = LabelFragment().maxLevel(.trace)
-                .and(LevelFragment().separated(" ")
-                .and(MessageFragment().separated(" ")))
+            let format = LevelFragment().separated(" ")
+                .and(MessageFragment().separated(" "))
                 .and(MetadataFragment().separated(" "))
-                .and(SourceLocationFragment().separated(" ").maxLevel(.info))
+                .and(SourceLocationFragment().separated(" "))
             
             return ConsoleFragmentLogger(fragment: format, label: $0, console: Terminal(), level: .info)
         }
                 
         app.environment.useVariables()
+        
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
         app.databases.middleware.use(DeploymentListener(), on: .sqlite)
         app.migrations.add(Deployment.Table())

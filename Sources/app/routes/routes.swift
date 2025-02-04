@@ -25,9 +25,14 @@ extension Application
         
         self.get("dynamic2", ":property")
         { request async throws in
-            throw Abort(.badRequest, reason: "Test error")
-            
-            return "hi"
+            if true
+            {
+                throw Abort(.badRequest, reason: "Test error")
+            }
+            else
+            {
+                "This will never go to client as error will be thrown before."
+            }
         }
         
         // mottzi.de/infile
