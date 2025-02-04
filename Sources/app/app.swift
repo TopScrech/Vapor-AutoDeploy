@@ -10,8 +10,9 @@ struct mottzi
     {
         var env = try Environment.detect()
         try LoggingSystem.bootstrap(from: &env)
-
+        
         let app = try await Application.make(env)
+        app.environment.useVariables()
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
         app.databases.middleware.use(DeploymentListener(), on: .sqlite)
         app.migrations.add(Deployment.Table())
@@ -25,5 +26,29 @@ struct mottzi
         
         try await app.execute()
         try await app.asyncShutdown()
+    }
+}
+
+extension Environment
+{
+    enum Variables: String, CaseIterable
+    {
+        case GITHUB_WEBHOOK_SECRET
+        
+        var value: String
+        {
+            Environment.get(self.rawValue)!
+        }
+    }
+    
+    func useVariables()
+    {
+        for variable in Variables.allCases
+        {
+            if Environment.get(variable.rawValue) == nil
+            {
+                fatalError("\(variable.rawValue): Environment variable not found.")
+            }
+        }
     }
 }

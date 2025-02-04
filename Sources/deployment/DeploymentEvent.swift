@@ -37,9 +37,9 @@ struct DeploymentEvent
     // verify that the request has a valid github signature
     private func validateSignature(of request: Request) -> Bool
     {
-        // hard coded secret *** SECURITY RISK ***
-        let secret = "4133Pratteln"
-        
+        // get github secret from env file
+        let secret = Environment.Variables.GITHUB_WEBHOOK_SECRET.value
+
         // get signature
         guard let signatureHeader = request.headers.first(name: "X-Hub-Signature-256") else { return false }
         
