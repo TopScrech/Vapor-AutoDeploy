@@ -57,6 +57,9 @@ class DeploymentSocket
             {
                 const data = JSON.parse(event.data);
                 
+                console.log(data);
+                return;
+                
                 switch (data.type)
                 {
                     case 'state':

@@ -99,7 +99,8 @@ struct DeploymentListener: AsyncModelMiddleware
     {
         try await next.create(model, on: db)
         
-        let message = DeploymentClients.Message(.creation, model)
+        //let message = DeploymentClients.Message(.creation, model)
+        let message = DeploymentMessage.create(deployment: model)
         await DeploymentClients.shared.broadcast(message)
     }
     
@@ -107,7 +108,8 @@ struct DeploymentListener: AsyncModelMiddleware
     {
         try await next.update(model, on: db)
         
-        let message = DeploymentClients.Message(.update, model)
+//        let message = DeploymentClients.Message(.update, model)
+        let message = DeploymentMessage.update(deployment: model)
         await DeploymentClients.shared.broadcast(message)
     }
 }

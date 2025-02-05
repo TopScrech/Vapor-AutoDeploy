@@ -13,36 +13,36 @@ extension Application
             await DeploymentClients.shared.add(connection: id, socket: ws)
             
             // 1. welcome message
-            await DeploymentClients.Message(.message, "Server: Connected...").send(on: ws)
+            await DeploymentMessage.message(message: "Client connected to Server").send(on: ws)
             
             // 2. send full state
-            if let deployments = try? await Deployment.all(on: request.db)
-            {
-                let state = DeploymentClients.Message(.state, deployments)
-                await state.send(on: ws)
-            }
-            
-            ws.onText()
-            { ws, msg async in
-                
-                // decode client delete message
-                guard let data = msg.data(using: .utf8),
-                      let deleteMessage = try? JSONDecoder().decode(DeploymentClients.DeleteMessage.self, from: data),
-                      deleteMessage.type == "deletion"
-                else { return }
-                
-                // find entry and delete it
-                guard let deployment = try? await Deployment.find(deleteMessage.deployment.id, on: request.db) else { return }
-                guard (try? await deployment.delete(on: request.db)) != nil else { return }
-                
-                // encode and echo back the same message structure
-                guard let jsonData = try? JSONEncoder().encode(deleteMessage) else { return }
-                guard let jsonString = String(data: jsonData, encoding: .utf8) else { return }
-                
-                // echo back
-                try? await ws.send(jsonString)
-            }
-                        
+//            if let deployments = try? await Deployment.all(on: request.db)
+//            {
+//                let state = DeploymentClients.Message(.state, deployments)
+//                await state.send(on: ws)
+//            }
+//            
+//            // Handle incoming messages
+//            ws.onText()
+//            { ws, text async in
+//                
+//                guard let data = text.data(using: .utf8),
+//                      let message = try? JSONDecoder().decode(DeploymentDeletionMessage.self, from: data),
+//                      message.type == .deletion
+//                else { return }
+//                
+//                // find entry and delete it
+//                guard let deployment = try? await Deployment.find(message.payload.id, on: request.db) else { return }
+//                guard (try? await deployment.delete(on: request.db)) != nil else { return }
+//                
+//                // encode and echo back the same message structure
+//                guard let jsonData = try? JSONEncoder().encode(message) else { return }
+//                guard let jsonString = String(data: jsonData, encoding: .utf8) else { return }
+//                
+//                // echo back
+//                try? await ws.send(jsonString)
+//            }
+//                        
             // remove client from broadcasting register
             ws.onClose.whenComplete() { _ in Task { await DeploymentClients.shared.remove(connection: id) } }
         }
