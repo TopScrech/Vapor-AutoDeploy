@@ -16,33 +16,38 @@ extension Application
             await DeploymentMessage.message(payload: "Client connected to Server").send(on: ws)
             
             // 2. send full state
-//            if let deployments = try? await Deployment.all(on: request.db)
-//            {
-//                let state = DeploymentClients.Message(.state, deployments)
-//                await state.send(on: ws)
-//            }
-//            
-//            // Handle incoming messages
-//            ws.onText()
-//            { ws, text async in
-//                
-//                guard let data = text.data(using: .utf8),
-//                      let message = try? JSONDecoder().decode(DeploymentDeletionMessage.self, from: data),
-//                      message.type == .deletion
-//                else { return }
-//                
-//                // find entry and delete it
-//                guard let deployment = try? await Deployment.find(message.payload.id, on: request.db) else { return }
-//                guard (try? await deployment.delete(on: request.db)) != nil else { return }
-//                
-//                // encode and echo back the same message structure
-//                guard let jsonData = try? JSONEncoder().encode(message) else { return }
-//                guard let jsonString = String(data: jsonData, encoding: .utf8) else { return }
-//                
-//                // echo back
-//                try? await ws.send(jsonString)
-//            }
-//                        
+            if let deployments = try? await Deployment.all(on: request.db)
+            {
+                await DeploymentMessage.state(payload: deployments).send(on: ws)
+            }
+            
+            // Handle incoming messages
+            ws.onText()
+            { ws, text async in
+                
+                guard let data = text.data(using: .utf8),
+                      let message = try? JSONDecoder().decode(DeploymentMessage.self, from: data)
+                else { return }
+                
+                switch message
+                {
+                    case .delete(let id): do
+                    {
+                        guard let deployment = try? await Deployment.find(id, on: request.db) else { return }
+                        guard (try? await deployment.delete(on: request.db)) != nil else { return }
+        
+                        // encode and echo back the same message structure
+                        guard let jsonData = try? JSONEncoder().encode(message) else { return }
+                        guard let jsonString = String(data: jsonData, encoding: .utf8) else { return }
+        
+                        // echo back
+                        try? await ws.send(jsonString)
+                    }
+                    
+                    default: return
+                }
+            }
+            
             // remove client from broadcasting register
             ws.onClose.whenComplete() { _ in Task { await DeploymentClients.shared.remove(connection: id) } }
         }

@@ -7,7 +7,10 @@ enum DeploymentMessage: Codable
     case delete(payload: UUID)
     case state(payload: [Deployment])
     case message(payload: String)
-    
+}
+
+extension DeploymentMessage
+{
     var jsonString: String?
     {
         guard let jsonData = try? JSONEncoder().encode(self) else { return nil }
@@ -22,9 +25,4 @@ enum DeploymentMessage: Codable
         
         try? await on.send(jsonString)
     }
-}
-
-func blob()
-{
-    let create = DeploymentMessage.create(payload: Deployment(status: "running", message: "Hello World"))
 }
