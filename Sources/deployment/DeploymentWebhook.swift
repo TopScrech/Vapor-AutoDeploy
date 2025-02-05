@@ -5,11 +5,11 @@ extension Application
     // convenience function for use in application context 
     func push(_ endpoint: PathComponent..., action closure: @Sendable @escaping (Request) async -> ())
     {
-        DeploymentEvent(app: self).listen(to: endpoint, action: closure)
+        DeploymentWebhook(app: self).listen(to: endpoint, action: closure)
     }
 }
 
-struct DeploymentEvent
+struct DeploymentWebhook
 {
     let app: Application
 
@@ -26,10 +26,10 @@ struct DeploymentEvent
             // deny request if invalid signature
             guard validRequest else { return denied }
             
-            // Handle accepted request with custom action
+            // handle accepted request with custom action
             Task.detached { await closure(request) }
             
-            // Respond immediately
+            // respond immediately
             return accepted
         }
     }
@@ -74,7 +74,7 @@ struct DeploymentEvent
     }
 }
 
-extension DeploymentEvent
+extension DeploymentWebhook
 {
     struct Payload: Codable
     {

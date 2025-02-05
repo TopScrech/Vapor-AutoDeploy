@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>HTML Template</title>
+</head>
+<body>
+    <h2>Leaf Template</h2>
+    <p>This html page is defined in template.leaf</p>
+</body>
+</html>

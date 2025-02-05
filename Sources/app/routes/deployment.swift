@@ -1,5 +1,35 @@
 import Vapor
 
+extension Application
+{
+    func useDeployPanel()
+    {
+        self.webSocket("deployment", "ws")
+        { request, ws async in
+            // make client connection identifiable
+            let id = UUID()
+            // register client for broadcasting
+            await DeploymentClients.shared.add(connection: id, socket: ws)
+            // server welcome message to client
+            await Deployment.Message.message("Client connected to Server").send(on: ws)
+            // send full server state to client (try db fetch)
+            if let deployments = try? await Deployment.all(on: request.db)
+            { await Deployment.Message.state(deployments).send(on: ws) }
+            // Handle incoming messages
+            ws.onText() { ws, text async in await WebSocket.handleDeploymentMessage(ws, text, request) }
+            // remove client from broadcasting register
+            ws.onClose.whenComplete() { _ in Task { await DeploymentClients.shared.remove(connection: id) } }
+        }
+        
+        self.get("deployment")
+        { request async throws -> View in
+            let deployments = try await Deployment.all(on: request.db)
+            
+            return try await request.view.render("deployment/panel", ["tasks": deployments])
+        }
+    }
+}
+
 extension WebSocket
 {
     // handles incoming deployment messages from client
@@ -24,36 +54,6 @@ extension WebSocket
             }
                 
             default: return
-        }
-    }
-}
-
-extension Application
-{
-    func useDeployPanel()
-    {
-        self.webSocket("admin", "ws")
-        { request, ws async in
-            // make client connection identifiable
-            let id = UUID()
-            // register client for broadcasting
-            await DeploymentClients.shared.add(connection: id, socket: ws)
-            // server welcome message to client
-            await Deployment.Message.message("Client connected to Server").send(on: ws)
-            // send full server state to client (try db fetch)
-            if let deployments = try? await Deployment.all(on: request.db)
-            { await Deployment.Message.state(deployments).send(on: ws) }
-            // Handle incoming messages
-            ws.onText() { ws, text async in await WebSocket.handleDeploymentMessage(ws, text, request) }
-            // remove client from broadcasting register
-            ws.onClose.whenComplete() { _ in Task { await DeploymentClients.shared.remove(connection: id) } }
-        }
-        
-        self.get("admin")
-        { request async throws -> View in
-            let deployments = try await Deployment.all(on: request.db)
-            
-            return try await request.view.render("deployment/panel", ["tasks": deployments])
         }
     }
 }
