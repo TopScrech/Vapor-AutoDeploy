@@ -4,7 +4,7 @@ extension Application
 {
     func useDeployPanel()
     {
-        self.webSocket("panel", "ws")
+        self.webSocket("admin", "ws")
         { request, ws async in
             // make client connection identifiable
             let id = UUID()
@@ -21,7 +21,7 @@ extension Application
             ws.onClose.whenComplete() { _ in Task { await DeploymentClients.shared.remove(connection: id) } }
         }
         
-        self.get("panel")
+        self.get("admin")
         { request async throws -> View in
             let deployments = try await Deployment.all(on: request.db)
             
