@@ -71,7 +71,7 @@ class DeploymentSocket
                 }
                 else if (data.hasOwnProperty("delete"))
                 {
-                    console.log(`DELETION: ${data.deployment.id}`);
+                    console.log(`DELETION: ${data.delete.payload}`);
                     this.deploymentManager.handleDeletion(data.deletion.payload);
                 }
                 else if (data.hasOwnProperty("update"))
