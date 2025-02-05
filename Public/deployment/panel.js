@@ -46,7 +46,6 @@ class DeploymentSocket
          // connected: stop existing reconnect timer
         this.socket.onopen = () =>
         {
-            console.log('WS: ... connected!');
             if (this.timer) { clearInterval(this.timer); this.timer = null; }
         };
 
@@ -398,4 +397,4 @@ class DeploymentManager
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => new DeploymentSocket().connect());
+document.addEventListener('DOMContentLoaded', () => ws = new DeploymentSocket().connect());
