@@ -62,12 +62,12 @@ class DeploymentSocket
                     console.log(`STATE: ${data.state.payload.length} Deployments`);
                     this.deploymentManager.handleState(data.state.payload);
                 }
-                else if (data.hasOwnProperty("creation"))
+                else if (data.hasOwnProperty("create"))
                 {
                     console.log(`CREATION: ${data.creation.payload.message}`);
                     this.deploymentManager.handleCreation(data.creation.payload);
                 }
-                else if (data.hasOwnProperty("deletion"))
+                else if (data.hasOwnProperty("delete"))
                 {
                     console.log(`DELETION: ${data.deployment.id}`);
                     this.deploymentManager.handleDeletion(data.deletion.payload);
