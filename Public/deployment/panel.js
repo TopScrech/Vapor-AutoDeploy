@@ -15,21 +15,16 @@ class DeploymentSocket
         document.addEventListener('visibilitychange', () => this.visibilityChange());
         window.addEventListener('online', () => this.connect());
         
-        // Add click handler for delete buttons
         document.addEventListener('click', (event) =>
         {
-            if (event.target.matches('.delete-button'))
-            {
-                // Find the parent tr to get deployment ID
-                const row = event.target.closest('tr');
-                if (row && row.dataset.deploymentId)
-                {
-                    if (confirm('Are you sure you want to delete this deployment?'))
-                    {
-                        this.deleteDeployment(row.dataset.deploymentId);
-                    }
-                }
-            }
+            if (!event.target.matches('.delete-button')) return;
+            
+            const row = event.target.closest('tr');
+            if (!row || !row.dataset.deploymentId) return;
+            
+            if (!confirm('Are you sure you want to delete this deployment?')) return
+            
+            this.deleteDeployment(row.dataset.deploymentId);
         });
     }
 
@@ -129,19 +124,15 @@ class DeploymentSocket
     
     deleteDeployment(id)
     {
-        console.log(`delete 1 -> ${id}`);
-        if (this.isConnected())
+        if (!this.isConnected) return;
+        
+        const message =
         {
-            console.log(`delete 2 -> ${id}`);
-            const message =
-            {
-                type: 'deletion',
-                deployment: { id: id }
-            };
+            type: 'deletion',
+            deployment: { id: id }
+        };
             
-            console.log(JSON.stringify(message));
-            this.socket.send(JSON.stringify(message));
-        }
+        this.socket.send(JSON.stringify(message));
     }
 }
 
