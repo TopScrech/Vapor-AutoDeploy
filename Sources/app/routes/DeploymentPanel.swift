@@ -24,6 +24,8 @@ extension Application
             
             ws.onText()
             { ws, msg async in
+                print("OnText called!")
+                
                 guard let data = msg.data(using: .utf8) else
                 {
                     print("Failed to get UTF8 data from message")
