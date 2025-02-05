@@ -26,6 +26,7 @@ extension Application
             { ws, text async in
                 
                 request.logger.info("--- 1 ---")
+                request.logger.info("Text: \(text)")
                 guard let data = text.data(using: .utf8),
                       let message = try? JSONDecoder().decode(DeploymentMessage.self, from: data)
                 else { return }
