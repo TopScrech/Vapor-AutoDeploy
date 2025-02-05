@@ -308,6 +308,12 @@ class DeploymentManager
                 <td class="px-6 py-4">
                     ${deployment.durationString ? this.durationHTML(deployment.durationString) : deployment.status == "stale" || deployment.status == "canceled" ? this.durationHTML("NaN") : this.spinnerHTML()}
                 </td>
+            
+                <td class="px-6 py-4">
+                    <button class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 font-medium text-sm delete-button">
+                        Delete
+                    </button>
+                </td>
             </tr>`;
     }
     
