@@ -55,6 +55,8 @@ class DeploymentSocket
         {
             try 
             {
+                console.log(event.data)
+                
                 const data = JSON.parse(event.data);
                 
                 if (data.hasOwnProperty("state"))
