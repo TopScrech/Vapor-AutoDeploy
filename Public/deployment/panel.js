@@ -55,7 +55,7 @@ class DeploymentSocket
         {
             try 
             {
-                console.log(event.data)
+                //console.log(event.data)
                 
                 const data = JSON.parse(event.data);
                 
@@ -72,7 +72,7 @@ class DeploymentSocket
                 else if (data.hasOwnProperty("delete"))
                 {
                     console.log(`DELETION: ${data.delete.payload}`);
-                    this.deploymentManager.handleDeletion(data.deletion.payload);
+                    this.deploymentManager.handleDeletion(data.delete.payload);
                 }
                 else if (data.hasOwnProperty("update"))
                 {
