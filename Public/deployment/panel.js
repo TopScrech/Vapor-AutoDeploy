@@ -61,27 +61,27 @@ class DeploymentSocket
                 
                 if (data.hasOwnProperty("state"))
                 {
-                    console.log(`STATE: ${data.state.payload.length} Deployments`);
-                    this.deploymentManager.handleState(data.state.payload);
+                    console.log(`STATE: ${data.state.deployments.length} Deployments`);
+                    this.deploymentManager.handleState(data.state.deployments);
                 }
                 else if (data.hasOwnProperty("create"))
                 {
-                    console.log(`CREATION: ${data.creation.payload.message}`);
-                    this.deploymentManager.handleCreation(data.create.payload);
+                    console.log(`CREATION: ${data.creation.deployment.message}`);
+                    this.deploymentManager.handleCreation(data.create.deployment);
                 }
                 else if (data.hasOwnProperty("delete"))
                 {
-                    console.log(`DELETION: ${data.delete.payload}`);
-                    this.deploymentManager.handleDeletion(data.delete.payload);
+                    console.log(`DELETION: ${data.delete.id}`);
+                    this.deploymentManager.handleDeletion(data.delete.id);
                 }
                 else if (data.hasOwnProperty("update"))
                 {
-                    console.log(`UPDATE: ${data.update.payload.message}`);
-                    this.deploymentManager.handleUpdate(data.update.payload);
+                    console.log(`UPDATE: ${data.update.deployment.message}`);
+                    this.deploymentManager.handleUpdate(data.update.deployment);
                 }
                 else if (data.hasOwnProperty("message"))
                 {
-                    console.log(`MESSAGE: ${data.message.payload}`);
+                    console.log(`MESSAGE: ${data.message.message}`);
                 }
                 else
                 {

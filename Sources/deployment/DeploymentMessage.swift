@@ -2,11 +2,11 @@ import Vapor
 
 enum DeploymentMessage: Codable
 {
-    case create(payload: Deployment)
-    case update(payload: Deployment)
-    case delete(payload: UUID)
-    case state(payload: [Deployment])
-    case message(payload: String)
+    case create(deployment: Deployment)
+    case update(deployment: Deployment)
+    case delete(id: UUID)
+    case state(deployments: [Deployment])
+    case message(message: String)
 }
 
 extension DeploymentMessage
