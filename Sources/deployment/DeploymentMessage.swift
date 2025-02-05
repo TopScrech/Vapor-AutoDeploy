@@ -2,11 +2,11 @@ import Vapor
 
 enum DeploymentMessage: Codable
 {
-    case create(deployment: Deployment)
-    case update(deployment: Deployment)
-    case delete(id: UUID)
-    case state(deployments: [Deployment])
-    case message(String)
+    case create(_ payload: Deployment)
+    case update(_ payload: Deployment)
+    case delete(_ payload: UUID)
+    case state(_ payload: [Deployment])
+    case message(_ payload: String)
     
     var jsonString: String?
     {
@@ -26,5 +26,5 @@ enum DeploymentMessage: Codable
 
 func blob()
 {
-    let create = DeploymentMessage.create(deployment: Deployment(status: "running", message: "Hello World"))
+    let create = DeploymentMessage.create(Deployment(status: "running", message: "Hello World"))
 }
