@@ -57,7 +57,7 @@ class DeploymentSocket
             {
                 const data = JSON.parse(event.data);
                 
-                console.log(data);
+                console.log(event.data);
                 return;
                 
                 switch (data.type)
