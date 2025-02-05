@@ -58,6 +58,12 @@ class DeploymentSocket
                 const data = JSON.parse(event.data);
                 
                 console.log(event.data);
+                
+                if (data.hasOwnProperty("message"))
+                {
+                    console.log(`MESSAGE: ${data.message.payload}`);
+                }
+                
                 return;
                 
                 switch (data.type)
