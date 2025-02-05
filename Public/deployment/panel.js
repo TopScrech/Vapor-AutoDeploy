@@ -59,23 +59,23 @@ class DeploymentSocket
                 
                 if (data.hasOwnProperty("state"))
                 {
-                    console.log(`STATE: ${data.deployments.length} Deployments`);
-                    this.deploymentManager.handleState(data.deployments);
+                    console.log(`STATE: ${data.state.payload.length} Deployments`);
+                    this.deploymentManager.handleState(data.state.payload);
                 }
                 else if (data.hasOwnProperty("creation"))
                 {
-                    console.log(`CREATION: ${data.deployment.message}`);
-                    this.deploymentManager.handleCreation(data.deployment);
+                    console.log(`CREATION: ${data.creation.payload.message}`);
+                    this.deploymentManager.handleCreation(data.creation.payload);
                 }
                 else if (data.hasOwnProperty("deletion"))
                 {
                     console.log(`DELETION: ${data.deployment.id}`);
-                    this.deploymentManager.handleDeletion(data.deployment.id);
+                    this.deploymentManager.handleDeletion(data.deletion.payload);
                 }
                 else if (data.hasOwnProperty("update"))
                 {
-                    console.log(`UPDATE: ${data.deployment.message}`);
-                    this.deploymentManager.handleUpdate(data.deployment);
+                    console.log(`UPDATE: ${data.update.payload.message}`);
+                    this.deploymentManager.handleUpdate(data.update.payload);
                 }
                 else if (data.hasOwnProperty("message"))
                 {
@@ -83,7 +83,7 @@ class DeploymentSocket
                 }
                 else
                 {
-                    console.log(`Unknown message type: ${data.type}`);
+                    console.log(`Unknown message type`);
                 }
             }
             catch (error) 
