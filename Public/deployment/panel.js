@@ -66,7 +66,7 @@ class DeploymentSocket
                 }
                 else if (data.hasOwnProperty("create"))
                 {
-                    console.log(`CREATION: ${data.creation.deployment.message}`);
+                    console.log(`CREATION: ${data.create.deployment.message}`);
                     this.deploymentManager.handleCreation(data.create.deployment);
                 }
                 else if (data.hasOwnProperty("delete"))
