@@ -130,7 +130,7 @@ class DeploymentSocket
         {
             'delete':
             {
-                'payload': id
+                'id': id
             }
         };
         
