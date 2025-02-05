@@ -16,7 +16,7 @@ actor DeploymentClients
         connections.removeAll { $0.id == id }
     }
     
-    func broadcast(_ message: DeploymentMessage) async
+    func broadcast(_ message: Deployment.Message) async
     {
         guard let payload = message.jsonString else { return }
         

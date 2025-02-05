@@ -6,10 +6,7 @@ extension Environment
     {
         case GITHUB_WEBHOOK_SECRET
         
-        var value: String
-        {
-            Environment.get(self.rawValue)!
-        }
+        var value: String { Environment.get(self.rawValue)! }
     }
     
     func useVariables()

@@ -93,21 +93,24 @@ extension Deployment
 }
 
 // table listener
-struct DeploymentListener: AsyncModelMiddleware
+extension Deployment
 {
-    func create(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
+    struct Listener: AsyncModelMiddleware
     {
-        try await next.create(model, on: db)
+        func create(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
+        {
+            try await next.create(model, on: db)
+            
+            let message = Message.create(model)
+            await DeploymentClients.shared.broadcast(message)
+        }
         
-        let message = DeploymentMessage.create(model)
-        await DeploymentClients.shared.broadcast(message)
-    }
-    
-    func update(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
-    {
-        try await next.update(model, on: db)
-        
-        let message = DeploymentMessage.update(model)
-        await DeploymentClients.shared.broadcast(message)
+        func update(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
+        {
+            try await next.update(model, on: db)
+            
+            let message = Message.update(model)
+            await DeploymentClients.shared.broadcast(message)
+        }
     }
 }

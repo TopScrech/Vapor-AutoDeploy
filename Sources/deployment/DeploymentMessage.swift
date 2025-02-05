@@ -1,16 +1,26 @@
 import Vapor
 
-enum DeploymentMessage: Codable
+extension Deployment
 {
-    case create(deployment: Deployment)
-    case update(deployment: Deployment)
-    case delete(id: UUID)
-    case state(deployments: [Deployment])
-    case message(message: String)
+    // server-client message protocol
+    enum Message: Codable
+    {
+        case create(deployment: Deployment)
+        case update(deployment: Deployment)
+        case delete(id: UUID)
+        case state(deployments: [Deployment])
+        case message(message: String)
+    }
 }
 
-extension DeploymentMessage
+// send message
+extension Deployment.Message
 {
+    func send(on: WebSocket) async
+    {
+        if let jsonString { try? await on.send(jsonString) }
+    }
+    
     var jsonString: String?
     {
         guard let jsonData = try? JSONEncoder().encode(self) else { return nil }
@@ -18,16 +28,10 @@ extension DeploymentMessage
         
         return jsonString
     }
-    
-    func send(on: WebSocket) async
-    {
-        guard let jsonString else { return }
-        
-        try? await on.send(jsonString)
-    }
 }
 
-extension DeploymentMessage
+// convenience message factories
+extension Deployment.Message
 {
     static func create(_ deployment: Deployment) -> Self { Self.create(deployment: deployment) }
     static func update(_ deployment: Deployment) -> Self { Self.update(deployment: deployment) }
