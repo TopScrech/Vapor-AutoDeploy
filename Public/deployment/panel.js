@@ -67,7 +67,7 @@ class DeploymentSocket
                 else if (data.hasOwnProperty("create"))
                 {
                     console.log(`CREATION: ${data.creation.payload.message}`);
-                    this.deploymentManager.handleCreation(data.creation.payload);
+                    this.deploymentManager.handleCreation(data.create.payload);
                 }
                 else if (data.hasOwnProperty("delete"))
                 {
