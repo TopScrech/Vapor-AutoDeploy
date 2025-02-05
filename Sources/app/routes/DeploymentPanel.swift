@@ -13,7 +13,7 @@ extension Application
             await DeploymentClients.shared.add(connection: id, socket: ws)
             
             // 1. welcome message
-            await DeploymentMessage.message(message: "Client connected to Server").send(on: ws)
+            await DeploymentMessage.message("Client connected to Server").send(on: ws)
             
             // 2. send full state
 //            if let deployments = try? await Deployment.all(on: request.db)
