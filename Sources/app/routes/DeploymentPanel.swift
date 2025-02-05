@@ -24,51 +24,23 @@ extension Application
             
             ws.onText()
             { ws, msg async in
-                print("OnText called!")
                 
-                guard let data = msg.data(using: .utf8) else
-                {
-                    print("Failed to get UTF8 data from message")
-                    return
-                }
+                // decode client delete message
+                guard let data = msg.data(using: .utf8),
+                      let deleteMessage = try? JSONDecoder().decode(DeploymentClients.DeleteMessage.self, from: data),
+                      deleteMessage.type == "deletion"
+                else { return }
                 
-                do
-                {
-                    let message = try JSONDecoder().decode(DeploymentClients.Message.self, from: data)
-                    
-                    switch message.type
-                    {
-                        case .deletion:
-                            guard let id = message.deployment?.id else
-                            {
-                                print("No deployment ID in deletion message")
-                                return
-                            }
-                            
-                            guard let deployment = try? await Deployment.find(id, on: request.db) else
-                            {
-                                print("No deployment found with ID: \(id)")
-                                return
-                            }
-                            
-                            try? await deployment.delete(on: request.db)
-                            await DeploymentClients.shared.broadcast(message)
-                            
-                        default: break
-                    }
-                }
-                catch
-                {
-                    // Log the actual message content and error
-                    print("Failed to decode message: \(msg)")
-                    print("Decode error: \(error)")
-                    
-                    // If it's a type mismatch, dump the expected vs received format
-                    if let decodingError = error as? DecodingError
-                    {
-                        print("Decoding error details: \(decodingError)")
-                    }
-                }
+                // find entry and delete it
+                guard let deployment = try? await Deployment.find(deleteMessage.deployment.id, on: request.db) else { return }
+                guard (try? await deployment.delete(on: request.db)) != nil else { return }
+                
+                // encode and echo back the same message structure
+                guard let jsonData = try? JSONEncoder().encode(deleteMessage) else { return }
+                guard let jsonString = String(data: jsonData, encoding: .utf8) else { return }
+                
+                // echo back
+                try? await ws.send(jsonString)
             }
                         
             // remove client from broadcasting register

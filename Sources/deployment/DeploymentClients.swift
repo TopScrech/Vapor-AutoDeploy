@@ -29,6 +29,20 @@ actor DeploymentClients
 
 extension DeploymentClients
 {
+    struct DeleteMessage: Codable
+    {
+        let type: String
+        let deployment: DeploymentIdentifier
+        
+        struct DeploymentIdentifier: Codable
+        {
+            let id: UUID
+        }
+    }
+}
+
+extension DeploymentClients
+{
     struct Message: Codable
     {
         enum MessageType: String, Codable
