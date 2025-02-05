@@ -57,44 +57,33 @@ class DeploymentSocket
             {
                 const data = JSON.parse(event.data);
                 
-                console.log(event.data);
-                
-                if (data.hasOwnProperty("message"))
+                if (data.hasOwnProperty("state"))
+                {
+                    console.log(`STATE: ${data.deployments.length} Deployments`);
+                    this.deploymentManager.handleState(data.deployments);
+                }
+                else if (data.hasOwnProperty("creation"))
+                {
+                    console.log(`CREATION: ${data.deployment.message}`);
+                    this.deploymentManager.handleCreation(data.deployment);
+                }
+                else if (data.hasOwnProperty("deletion"))
+                {
+                    console.log(`DELETION: ${data.deployment.id}`);
+                    this.deploymentManager.handleDeletion(data.deployment.id);
+                }
+                else if (data.hasOwnProperty("update"))
+                {
+                    console.log(`UPDATE: ${data.deployment.message}`);
+                    this.deploymentManager.handleUpdate(data.deployment);
+                }
+                else if (data.hasOwnProperty("message"))
                 {
                     console.log(`MESSAGE: ${data.message.payload}`);
                 }
-                
-                return;
-                
-                switch (data.type)
+                else
                 {
-                    case 'state':
-                        console.log(`STATE: ${data.deployments.length} Deployments`);
-                        this.deploymentManager.handleState(data.deployments);
-                        break;
-
-                    case 'creation':
-                        console.log(`CREATION: ${data.deployment.message}`);
-                        this.deploymentManager.handleCreation(data.deployment);
-                        break;
-                        
-                    case 'update':
-                        console.log(`UPDATE: ${data.deployment.message}`);
-                        this.deploymentManager.handleUpdate(data.deployment);
-                        break;
-
-                    case 'message':
-                        console.log(`MESSAGE: ${data.message}`);
-                        break;
-                        
-                    case 'deletion':
-                        console.log(`DELETION: ${data.deployment.id}`);
-                        this.deploymentManager.handleDeletion(data.deployment.id);
-                        break;
-                        
-                    default:
-                        console.log(`Unknown message type: ${data.type}`);
-                        break;
+                    console.log(`Unknown message type: ${data.type}`);
                 }
             }
             catch (error) 
