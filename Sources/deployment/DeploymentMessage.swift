@@ -6,7 +6,7 @@ enum DeploymentMessage: Codable
     case update(deployment: Deployment)
     case delete(id: UUID)
     case state(deployments: [Deployment])
-    case message(message: String)
+    case message(String)
     
     var jsonString: String?
     {
