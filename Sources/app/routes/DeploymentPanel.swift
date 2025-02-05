@@ -25,35 +25,21 @@ extension Application
             ws.onText()
             { ws, text async in
                 
-                request.logger.info("--- 1 ---")
-                request.logger.info("Text: \(text)")
-                
+                // decode client message
                 guard let data = text.data(using: .utf8),
                       let message = try? JSONDecoder().decode(DeploymentMessage.self, from: data)
                 else { return }
-                
-                request.logger.info("--- 2 ---")
-                
+                                
                 switch message
                 {
                     case .delete(let id): do
                     {
-                        request.logger.info("--- 3 ---")
-                        
+                        // remove datbase entry
                         guard let deployment = try? await Deployment.find(id, on: request.db) else { return }
                         guard (try? await deployment.delete(on: request.db)) != nil else { return }
-                        
-                        request.logger.info("--- 4 ---")
         
-                        // encode and echo back the same message structure
-                        guard let jsonData = try? JSONEncoder().encode(message) else { return }
-                        guard let jsonString = String(data: jsonData, encoding: .utf8) else { return }
-        
-                        request.logger.info("--- 5 ---")
-                        // echo back
-                        try? await ws.send(jsonString)
-                        
-                        request.logger.info("--- 6 ---")
+                        // echo back the same message
+                        try? await ws.send(text)
                     }
                     
                     default: return
