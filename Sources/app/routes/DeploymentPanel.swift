@@ -24,18 +24,48 @@ extension Application
             
             ws.onText()
             { ws, msg async in
-                guard let data = msg.data(using: .utf8) else { return }
-                guard let message = try? JSONDecoder().decode(DeploymentClients.Message.self, from: data) else { return }
-                
-                switch message.type
+                guard let data = msg.data(using: .utf8) else
                 {
-                    case .deletion:
-                        guard let id = message.deployment?.id else { return }
-                        guard let deployment = try? await Deployment.find(id, on: request.db) else { return }
-                        try? await deployment.delete(on: request.db)
-                        await DeploymentClients.shared.broadcast(message)
-                        
-                    default: break
+                    print("Failed to get UTF8 data from message")
+                    return
+                }
+                
+                do
+                {
+                    let message = try JSONDecoder().decode(DeploymentClients.Message.self, from: data)
+                    
+                    switch message.type
+                    {
+                        case .deletion:
+                            guard let id = message.deployment?.id else
+                            {
+                                print("No deployment ID in deletion message")
+                                return
+                            }
+                            
+                            guard let deployment = try? await Deployment.find(id, on: request.db) else
+                            {
+                                print("No deployment found with ID: \(id)")
+                                return
+                            }
+                            
+                            try? await deployment.delete(on: request.db)
+                            await DeploymentClients.shared.broadcast(message)
+                            
+                        default: break
+                    }
+                }
+                catch
+                {
+                    // Log the actual message content and error
+                    print("Failed to decode message: \(msg)")
+                    print("Decode error: \(error)")
+                    
+                    // If it's a type mismatch, dump the expected vs received format
+                    if let decodingError = error as? DecodingError
+                    {
+                        print("Decoding error details: \(decodingError)")
+                    }
                 }
             }
                         
