@@ -129,14 +129,17 @@ class DeploymentSocket
     
     deleteDeployment(id)
     {
+        console.log(`delete 1 -> ${id}`);
         if (this.isConnected())
         {
+            console.log(`delete 2 -> ${id}`);
             const message =
             {
                 type: 'deletion',
                 deployment: { id: id }
             };
             
+            console.log(JSON.stringify(message));
             this.socket.send(JSON.stringify(message));
         }
     }
