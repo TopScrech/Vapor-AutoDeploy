@@ -126,7 +126,7 @@ class DeploymentSocket
         
         const message =
         {
-            'deletion':
+            'delete':
             {
                 'payload':
                 {
