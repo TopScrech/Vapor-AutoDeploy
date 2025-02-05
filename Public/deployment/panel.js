@@ -126,10 +126,15 @@ class DeploymentSocket
         
         const message =
         {
-            type: 'deletion',
-            deployment: { id: id }
+            'deletion':
+            {
+                'payload':
+                {
+                    'id': id
+                }
+            }
         };
-            
+        
         this.socket.send(JSON.stringify(message));
     }
 }
