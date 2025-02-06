@@ -8,7 +8,7 @@ extension Application
         self.push("pushevent")
         { request async in
             // valid request leads to execution of deployment process
-            let commitMessage = DeploymentPipeline.getCommitMessage(request)
+            let commitMessage = DeploymentPipeline.getCommitMessage(inside: request)
             await DeploymentPipeline.initiateDeployment(message: commitMessage, on: request.db)
         }
     }

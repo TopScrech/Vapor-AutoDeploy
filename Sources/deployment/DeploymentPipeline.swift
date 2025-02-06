@@ -165,7 +165,7 @@ extension DeploymentPipeline
         }
     }
     
-    public static func getCommitMessage(_ request: Request) -> String?
+    public static func getCommitMessage(inside request: Request) -> String?
     {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
