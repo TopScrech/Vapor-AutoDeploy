@@ -6,7 +6,7 @@ extension Application
     public func useRoutes()
     {
         // mottzi.de/route
-        self.get("route") { _ in "5" }
+        self.get("route") { _ in "6" }
         
         // mottzi.de/template
         self.get("template")
