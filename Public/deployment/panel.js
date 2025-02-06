@@ -84,7 +84,7 @@ class DeploymentSocket
                 }
                 else
                 {
-                    console.log(`Unknown message type`);
+                    console.log("Unknown message type");
                 }
             }
             catch (error) 
@@ -99,7 +99,7 @@ class DeploymentSocket
             // abort if a reconnect timer is already running
             if (this.timer) return
                 
-            console.log('WS: ... closed -> Connect in 1s ...');
+            console.log("WS: ... closed -> Connect in 1s ...");
             
             // start trying every 5s
             setTimeout(() => 
@@ -118,7 +118,11 @@ class DeploymentSocket
 
     visibilityChange()
     {
-        if (document.visibilityState === 'visible') this.connect();
+        if (document.visibilityState === "visible")
+        {
+            console.log('visibilityState === "visible" -> calling connect()')
+            this.connect();
+        }
     }
     
     deleteDeployment(id)
