@@ -10,13 +10,17 @@ extension Application
             let id = UUID()
             // register client for broadcasting
             await DeploymentClients.shared.add(connection: id, socket: ws)
+            
             // server welcome message to client
             await Deployment.Message.message("Client connected to Server").send(on: ws)
+            
             // send full server state to client (try db fetch)
             if let deployments = try? await Deployment.all(on: request.db)
             { await Deployment.Message.state(deployments).send(on: ws) }
+            
             // Handle incoming messages
             ws.onText() { ws, text async in await WebSocket.handleDeploymentMessage(ws, text, request) }
+            
             // remove client from broadcasting register
             ws.onClose.whenComplete() { _ in Task { await DeploymentClients.shared.remove(connection: id) } }
         }
