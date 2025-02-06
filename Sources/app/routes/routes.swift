@@ -6,7 +6,7 @@ extension Application
     public func useRoutes()
     {
         // mottzi.de/route
-        self.get("route") { _ in "7 This is the simplest endpoint possible. Static as can be" }
+        self.get("route") { _ in "8 This is the simplest endpoint possible. Static as can be" }
         
         // mottzi.de/template
         self.get("template")
