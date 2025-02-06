@@ -2,7 +2,7 @@ import Vapor
 
 extension Application
 {
-    // convenience function for use in application context 
+    // convenience function to register github webhook listener
     func push(_ endpoint: PathComponent..., action closure: @Sendable @escaping (Request) async -> ())
     {
         DeploymentWebhook(app: self).listen(to: endpoint, action: closure)
@@ -13,6 +13,7 @@ struct DeploymentWebhook
 {
     let app: Application
 
+    // register github webhook listener
     func listen(to endpoint: [PathComponent], action closure: @Sendable @escaping (Request) async -> ())
     {
         let accepted = Response(status: .ok, body: .init(stringLiteral: "[mottzi] Push event accepted."))
@@ -92,5 +93,24 @@ extension DeploymentWebhook
                 let name: String
             }
         }
+    }
+}
+
+extension String
+{
+    // needed for signature verification
+    var hexadecimal: Data?
+    {
+        var data = Data(capacity: count / 2)
+        let regex = try! NSRegularExpression(pattern: "[0-9a-f]{1,2}", options: .caseInsensitive)
+        
+        regex.enumerateMatches(in: self, range: NSRange(startIndex..., in: self))
+        { match, _, _ in
+            let byteString = (self as NSString).substring(with: match!.range)
+            let num = UInt8(byteString, radix: 16)!
+            data.append(num)
+        }
+        
+        return data
     }
 }
