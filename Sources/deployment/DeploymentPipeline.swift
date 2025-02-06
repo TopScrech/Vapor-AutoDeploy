@@ -1,119 +1,122 @@
 import Vapor
 import Fluent
 
-struct DeploymentPipeline
+extension Deployment
 {
-    /// Creates and processes a new `Deployment`. After successfull deployment, this will check for previously
-    /// cancelled deployments and re-runs the latest one found.
-    ///
-    /// - Parameter message: The commit message of this deployment
-    /// - Note: This is called when a valid GitHub pushevent is received.
-    public static func initiateDeployment(message: String?, on database: Database) async
+    struct Pipeline
     {
-        await internalDeployment(existingDeployment: nil, message: message, on: database)
-    }
-    
-    /// Re-runs an existing `Deployment`.
-    ///
-    /// - Parameter deployment: Deployment to re-run
-    /// - Note: This is called on the latest cancelled deployment whenever any deployment finishes successfully.
-    private static func rerunDeployment(deployment: Deployment, on database: Database) async
-    {
-        await internalDeployment(existingDeployment: deployment, message: nil, on: database)
-    }
-    
-    /// Internal recursive deployment pipeline. It can re-process exisiting deployments or create and process new deployments..
-    ///
-    /// - Parameters:
-    ///   - existingDeployment: Pass a Deployment to re-run it.
-    ///   - message: Pass a commit message for newly created Deployments.
-    private static func internalDeployment(existingDeployment: Deployment?, message: String?, on database: Database) async
-    {
-        // make sure deployment pipeline is not already busy
-        let canDeploy = await DeploymentManager.shared.requestDeployment()
-        
-        // local deployment
-        let deployment: Deployment
-        
-        // re-run of previously canceled deployment
-        if let existingDeployment
+        /// Creates and processes a new `Deployment`. After successfull deployment, this will check for previously
+        /// cancelled deployments and re-runs the latest one found.
+        ///
+        /// - Parameter message: The commit message of this deployment
+        /// - Note: This is called when a valid GitHub pushevent is received.
+        public static func initiateDeployment(message: String?, on database: Database) async
         {
-            // this function was called at the end of a previous deployment
-            deployment = existingDeployment
-            
-            // reset start time for canceled deployment
-            deployment.startedAt = Date.now
-            
-            // pipline status determines this deployment
-            deployment.status = canDeploy ? "running" : "canceled"
-        }
-        // original deployment triggered by push event
-        else
-        {
-            // create new deployment entry
-            deployment = Deployment(status: canDeploy ? "running" : "canceled", message: message ?? "")
+            await internalDeployment(existingDeployment: nil, message: message, on: database)
         }
         
-        // save or update deployment
-        try? await deployment.save(on: database)
-        
-        // abort deployment if pipeline is busy
-        guard canDeploy else { return }
-        
-        // deplyment pipeline:
-        do
+        /// Re-runs an existing `Deployment`.
+        ///
+        /// - Parameter deployment: Deployment to re-run
+        /// - Note: This is called on the latest cancelled deployment whenever any deployment finishes successfully.
+        private static func rerunDeployment(deployment: Deployment, on database: Database) async
         {
-            // 1: git pull
-            try await execute("git pull", step: 1)
+            await internalDeployment(existingDeployment: deployment, message: nil, on: database)
+        }
+        
+        /// Internal recursive deployment pipeline. It can re-process exisiting deployments or create and process new deployments..
+        ///
+        /// - Parameters:
+        ///   - existingDeployment: Pass a Deployment to re-run it.
+        ///   - message: Pass a commit message for newly created Deployments.
+        private static func internalDeployment(existingDeployment: Deployment?, message: String?, on database: Database) async
+        {
+            // make sure deployment pipeline is not already busy
+            let canDeploy = await Deployment.Pipeline.Manager.shared.requestDeployment()
             
-            // 2: swift build
-            try await execute("/usr/local/swift/usr/bin/swift build -c debug", step: 2)
+            // local deployment
+            let deployment: Deployment
             
-            // 3: move executable
-            try await moveExecutable()
-            
-            // success: update deployment entry
-            deployment.status = "success"
-            deployment.finishedAt = Date()
-            try? await deployment.save(on: database)
-            
-            // unlock deployment pipeline
-            await DeploymentManager.shared.endDeployment()
-            
-            // check for deployments that were canceled in the meantime
-            if let latestCanceled = try await Deployment.query(on: database)
-                .filter(\.$status, .equal, "canceled")
-                .filter(\.$startedAt, .greaterThan, deployment.startedAt)
-                .sort(\.$startedAt, .descending)
-                .first()
+            // re-run of previously canceled deployment
+            if let existingDeployment
             {
-                // re-run latest canceled deployment
-                await rerunDeployment(deployment: latestCanceled, on: database)
+                // this function was called at the end of a previous deployment
+                deployment = existingDeployment
+                
+                // reset start time for canceled deployment
+                deployment.startedAt = Date.now
+                
+                // pipline status determines this deployment
+                deployment.status = canDeploy ? "running" : "canceled"
             }
+            // original deployment triggered by push event
             else
             {
-                // restart if current deployment is up to date
-                try await restart()
+                // create new deployment entry
+                deployment = Deployment(status: canDeploy ? "running" : "canceled", message: message ?? "")
             }
-        }
-        catch
-        {
-            // failure: update deployment entry
-            deployment.status = "failed"
-            deployment.finishedAt = Date()
+            
+            // save or update deployment
             try? await deployment.save(on: database)
             
-            // unlock deployment pipeline
-            await DeploymentManager.shared.endDeployment()
+            // abort deployment if pipeline is busy
+            guard canDeploy else { return }
+            
+            // deplyment pipeline:
+            do
+            {
+                // 1: git pull
+                try await execute("git pull", step: 1)
+                
+                // 2: swift build
+                try await execute("/usr/local/swift/usr/bin/swift build -c debug", step: 2)
+                
+                // 3: move executable
+                try await moveExecutable()
+                
+                // success: update deployment entry
+                deployment.status = "success"
+                deployment.finishedAt = Date()
+                try? await deployment.save(on: database)
+                
+                // unlock deployment pipeline
+                await Deployment.Pipeline.Manager.shared.endDeployment()
+                
+                // check for deployments that were canceled in the meantime
+                if let latestCanceled = try await Deployment.query(on: database)
+                    .filter(\.$status, .equal, "canceled")
+                    .filter(\.$startedAt, .greaterThan, deployment.startedAt)
+                    .sort(\.$startedAt, .descending)
+                    .first()
+                {
+                    // re-run latest canceled deployment
+                    await rerunDeployment(deployment: latestCanceled, on: database)
+                }
+                else
+                {
+                    // restart if current deployment is up to date
+                    try await restart()
+                }
+            }
+            catch
+            {
+                // failure: update deployment entry
+                deployment.status = "failed"
+                deployment.finishedAt = Date()
+                try? await deployment.save(on: database)
+                
+                // unlock deployment pipeline
+                await Deployment.Pipeline.Manager.shared.endDeployment()
+            }
         }
     }
 }
 
-extension DeploymentPipeline
+extension Deployment.Pipeline
 {
-    actor DeploymentManager
+    actor Manager
     {
-        static let shared = DeploymentManager()
+        static let shared = Manager()
         private(set) var isDeploying: Bool = false
         
         func requestDeployment() async -> Bool
@@ -127,7 +130,7 @@ extension DeploymentPipeline
 }
 
 // auto deploy commands
-extension DeploymentPipeline
+extension Deployment.Pipeline
 {
     private static func execute(_ command: String, step: Int) async throws
     {
