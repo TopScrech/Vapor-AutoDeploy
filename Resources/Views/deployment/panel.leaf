@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deployments Dashboard</title>
+    <title>Deployment Dashboard</title>
     <link rel="icon" type="image/png" href="/mottzi.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
@@ -14,11 +14,13 @@
         }
     </style>
 </head>
-<body class="h-full bg-gray-50 dark:bg-gray-900">
+<body class="h-full bg-gray-50 dark:bg-gray-800">
     <div class="min-h-full flex flex-col">
         <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-none">
             <div class="px-6 py-3">
-                <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Deployments</h1>
+                <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    Auto Deployment System
+                </h1>
             </div>
         </header>
         
