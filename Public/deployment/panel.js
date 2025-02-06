@@ -41,7 +41,7 @@ class DeploymentSocket
 
         // create new socket and try to connect
         //console.log('WS: Connecting ...');
-        this.socket = new WebSocket('wss://mottzi.de/admin/ws/');
+        this.socket = new WebSocket('wss://mottzi.de/deployment/ws/');
         
          // connected: stop existing reconnect timer
         this.socket.onopen = () =>

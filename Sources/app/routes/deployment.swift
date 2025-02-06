@@ -4,7 +4,7 @@ extension Application
 {
     func useDeployPanel()
     {
-        self.webSocket("admin", "ws")
+        self.webSocket("deployment", "ws")
         { request, ws async in
             // make client connection identifiable
             let id = UUID()
