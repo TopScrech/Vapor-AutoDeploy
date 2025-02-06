@@ -21,7 +21,7 @@ extension Application
             ws.onClose.whenComplete() { _ in Task { await DeploymentClients.shared.remove(connection: id) } }
         }
         
-        self.get("admin")
+        self.get("deployment")
         { request async throws -> View in
             let deployments = try await Deployment.all(on: request.db)
             
