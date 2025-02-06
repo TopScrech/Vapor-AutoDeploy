@@ -3,6 +3,8 @@ import Fluent
 
 extension Deployment
 {
+    /// Handles deployment process execution (pull, build, queue check, restart).
+    /// Ensures chronological execution by re-running latest canceled commit after successfull deployments.
     struct Pipeline
     {
         /// Creates and processes a new `Deployment`. After successfull deployment, this will check for previously
@@ -56,13 +58,14 @@ extension Deployment
                 deployment = Deployment(status: canDeploy ? "running" : "canceled", message: message ?? "")
             }
             
-            // save or update deployment
+            // save newly created deployment
+            // or update re-running deployment
             try? await deployment.save(on: database)
             
             // abort deployment if pipeline is busy
             guard canDeploy else { return }
             
-            // deplyment pipeline:
+            //  pipeline:
             do
             {
                 // 1: git pull
@@ -114,17 +117,23 @@ extension Deployment
 
 extension Deployment.Pipeline
 {
+    // Serializes deployment processes through actor isolation.
     actor Manager
     {
+        // singleton instance for deployment coordination
         static let shared = Manager()
+        
+        // deployment state, synchronized via actor
         private(set) var isDeploying: Bool = false
         
+        // attempts to acquire deployment lock
         func requestDeployment() async -> Bool
         {
             if isDeploying { return false }
             else { isDeploying = true; return true}
         }
         
+        // releases deployment lock for new operations
         func endDeployment() async { isDeploying = false }
     }
 }
