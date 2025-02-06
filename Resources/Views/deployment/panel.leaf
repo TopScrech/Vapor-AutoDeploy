@@ -43,6 +43,6 @@
             </div>
         </div>
     </div>
-    <script src="deployment/panel.js"></script>
+    <script src="/deployment/panel.js"></script>
 </body>
 </html>
