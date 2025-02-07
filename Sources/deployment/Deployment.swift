@@ -57,7 +57,8 @@ extension Deployment
         try await Deployment.query(on: database)
             .sort(\.$startedAt, .descending)
             .all()
-            .stale()
+            .adjustStale()
+            .adjustDeploy()
     }
 }
 

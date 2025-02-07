@@ -73,7 +73,7 @@ extension WebSocket
 
 extension Array where Element == Deployment
 {
-    func stale() -> [Deployment]
+    func adjustStale() -> [Deployment]
     {
         self.map()
         {
@@ -85,6 +85,18 @@ extension Array where Element == Deployment
             guard Date().timeIntervalSince(startedAt) > 1800 else { return $0 }
             
             $0.status = "stale"
+            
+            return $0
+        }
+    }
+    
+    func adjustDeploy() -> [Deployment]
+    {
+        self.map()
+        {
+            guard $0.isCurrent else { return $0 }
+            
+            $0.status = "deployed"
             
             return $0
         }
