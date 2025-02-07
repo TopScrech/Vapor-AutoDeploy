@@ -112,6 +112,8 @@ extension Deployment
                 
                 // unlock deployment pipeline
                 await Deployment.Pipeline.Manager.shared.endDeployment()
+                
+                Logger(label: "mottzi").error("failed with error: \(error.localizedDescription)")
             }
         }
     }
@@ -167,8 +169,11 @@ extension Deployment.Pipeline
     private static func restart() async throws
     {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
-        process.arguments = ["supervisorctl", "restart", "mottzi"]
+//        process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
+//        process.arguments = ["supervisorctl", "restart", "mottzi"]
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["bash", "-c", "supervisorctl restart mottzi"]
+        process.currentDirectoryURL = URL(fileURLWithPath: "/var/www/mottzi")
         
         try process.run()
         process.waitUntilExit()
