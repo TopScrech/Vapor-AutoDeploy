@@ -82,7 +82,7 @@ extension Deployment
 {
     enum CodingKeys: String, CodingKey
     {
-        case id, status, message, startedAt, finishedAt
+        case id, status, message, isCurrent, startedAt, finishedAt
         case durationString, startedAtTimestamp
     }
     
@@ -93,6 +93,7 @@ extension Deployment
         try container.encode(id, forKey: .id)
         try container.encode(status, forKey: .status)
         try container.encode(message, forKey: .message)
+        try container.encode(isCurrent, forKey: .isCurrent)
         try container.encode(startedAt, forKey: .startedAt)
         try container.encode(finishedAt, forKey: .finishedAt)
         
