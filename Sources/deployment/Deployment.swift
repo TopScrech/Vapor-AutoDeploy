@@ -1,7 +1,6 @@
 import Vapor
 import Fluent
 
-// model
 final class Deployment: Model, Content, @unchecked Sendable
 {
     static let schema = "deployments"
@@ -45,7 +44,7 @@ extension Deployment
     }
 }
 
-// encoding (cumputated properties)
+// encoding
 extension Deployment
 {
     enum CodingKeys: String, CodingKey

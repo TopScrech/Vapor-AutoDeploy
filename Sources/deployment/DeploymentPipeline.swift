@@ -26,11 +26,11 @@ extension Deployment
             await internalDeployment(existingDeployment: deployment, message: nil, on: database)
         }
         
-        /// Internal recursive deployment pipeline. It can re-process exisiting deployments or create and process new deployments..
+        /// Internal recursive deployment pipeline. It can re-process exisiting deployments or create and process new deployments.
         ///
         /// - Parameters:
-        ///   - existingDeployment: Pass a Deployment to re-run it.
-        ///   - message: Pass a commit message for newly created Deployments.
+        ///   - existingDeployment: Pass a deployment to re-run it.
+        ///   - message: Pass a commit message for newly created deployments.
         private static func internalDeployment(existingDeployment: Deployment?, message: String?, on database: Database) async
         {
             // make sure deployment pipeline is not already busy
@@ -58,8 +58,7 @@ extension Deployment
                 deployment = Deployment(status: canDeploy ? "running" : "canceled", message: message ?? "")
             }
             
-            // save newly created deployment
-            // or update re-running deployment
+            // save newly created deployment or update re-running deployment
             try? await deployment.save(on: database)
             
             // abort deployment if pipeline is busy
@@ -123,17 +122,17 @@ extension Deployment.Pipeline
         // singleton instance for deployment coordination
         static let shared = Manager()
         
-        // deployment state, synchronized via actor
+        // deployment status
         private(set) var isDeploying: Bool = false
         
-        // attempts to acquire deployment lock
+        // attempt to acquire deployment lock
         func requestDeployment() async -> Bool
         {
             if isDeploying { return false }
             else { isDeploying = true; return true}
         }
         
-        // releases deployment lock for new operations
+        // release deployment lock for new operations
         func endDeployment() async { isDeploying = false }
     }
 }
