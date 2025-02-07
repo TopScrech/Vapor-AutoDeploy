@@ -139,6 +139,8 @@ class DeploymentManager
     {
         this.activeTimers = new Map();
         this.startExistingTimers();
+        
+        
     }
 
     // handle incoming messages
@@ -246,6 +248,7 @@ class DeploymentManager
 
     updateHeader(current) 
     {
+        if (!current.isCurrent) return
         const headerElement = document.querySelector('.current-text');
         const container = headerElement.parentElement;
 
