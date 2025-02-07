@@ -62,6 +62,7 @@ extension Deployment
             try? await deployment.save(on: database)
             
             // abort deployment if pipeline is busy
+            // pipeline will eventually re-run latest canceled deployment
             guard canDeploy else { return }
             
             //  pipeline:
