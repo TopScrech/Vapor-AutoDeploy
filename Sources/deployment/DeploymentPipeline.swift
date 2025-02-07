@@ -68,13 +68,13 @@ extension Deployment
             do
             {
                 // 1: git pull
-                try await execute("git pull", step: 1)
+                try await pull()
                 
                 // 2: swift build
-                try await execute("swift build -c debug", step: 2)
+                try await build()
                 
                 // 3: move executable
-                try await moveExecutable()
+                try await move()
                 
                 // success: update deployment entry
                 deployment.status = "success"
@@ -169,38 +169,22 @@ extension Deployment.Pipeline
         }
     }
     
+    private static func pull() async throws
+    {
+        try await execute("git pull", step: 1)
+    }
+    
+    private static func build() async throws
+    {
+        try await execute("swift build -c debug", step: 2)
+    }
+    
     private static func restart() async throws
     {
-        let process = Process()
-//        process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
-//        process.arguments = ["supervisorctl", "restart", "mottzi"]
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.arguments = ["bash", "-c", "supervisorctl restart mottzi"]
-        process.currentDirectoryURL = URL(fileURLWithPath: "/var/www/mottzi")
-        
-        try process.run()
-        process.waitUntilExit()
-        
-        if process.terminationStatus != 0
-        {
-            throw Abort(.internalServerError, reason: "Failed to restart service")
-        }
+        try await execute("supervisorctl restart mottzi", step: 4)
     }
     
-    public static func getCommitMessage(inside request: Request) -> String?
-    {
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        
-        guard let bodyString = request.body.string,
-              let jsonData = bodyString.data(using: .utf8),
-              let payload = try? decoder.decode(DeploymentWebhook.Payload.self, from: jsonData)
-        else { return nil }
-        
-        return payload.headCommit.message
-    }
-    
-    private static func moveExecutable() async throws
+    private static func move() async throws
     {
         let fileManager = FileManager.default
         let buildPath = "/var/www/mottzi/.build/debug/App"
@@ -221,5 +205,18 @@ extension Deployment.Pipeline
         {
             throw error
         }
+    }
+    
+    public static func getCommitMessage(inside request: Request) -> String?
+    {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        
+        guard let bodyString = request.body.string,
+              let jsonData = bodyString.data(using: .utf8),
+              let payload = try? decoder.decode(DeploymentWebhook.Payload.self, from: jsonData)
+        else { return nil }
+        
+        return payload.headCommit.message
     }
 }
