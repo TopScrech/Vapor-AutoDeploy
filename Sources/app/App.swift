@@ -4,7 +4,7 @@ import FluentSQLiteDriver
 import Leaf
 
 @main
-struct mottzi
+struct App
 {
     static func main() async throws
     {
