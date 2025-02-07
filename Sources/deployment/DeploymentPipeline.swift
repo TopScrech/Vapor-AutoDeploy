@@ -71,7 +71,7 @@ extension Deployment
                 try await execute("git pull", step: 1)
                 
                 // 2: swift build
-                try await execute("swift build -c debug", step: 2)
+                try await execute("/root/.local/bin/swift build -c debug", step: 2)
                 
                 // 3: move executable
                 try await moveExecutable()
