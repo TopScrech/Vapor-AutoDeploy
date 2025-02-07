@@ -196,12 +196,12 @@ class DeploymentManager
             this.updateHeader(deployment);
 
             // find any existing deployed status and degrade it to success
-            const allStatusBadges = document.querySelectorAll('.status-badge');
-            allStatusBadges.forEach(badge =>
-                                    {
-                if (badge.textContent.trim() === 'Deployed')
+            const allStatusCells = document.querySelectorAll('td:nth-child(3)');
+            allStatusCells.forEach(cell =>
+            {
+                if (cell.querySelector('.status-badge')?.textContent.trim() === 'Deployed')
                 {
-                    badge.innerHTML = this.statusHTML('success');
+                    cell.innerHTML = this.statusHTML('success');
                 }
             });
             
