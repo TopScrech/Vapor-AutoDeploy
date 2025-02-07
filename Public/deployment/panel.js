@@ -193,6 +193,7 @@ class DeploymentManager
         // update header if deployment is current production deployment
         if (deployment.isCurrent) 
         {
+            // show header element with current deployment
             this.updateHeader(deployment);
 
             // find any existing deployed status and degrade it to success
@@ -246,8 +247,12 @@ class DeploymentManager
     updateHeader(current) 
     {
         const headerElement = document.querySelector('.current-text');
-        if (!headerElement) return;
+        const container = headerElement.parentElement;
+
+        if (!headerElement || !container) return;
         
+        // show the container when we have a current deployment
+        container.classList.remove('hidden');
         headerElement.textContent = `Deployed: ${current.message}`;
     }
 
