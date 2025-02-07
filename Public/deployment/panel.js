@@ -191,7 +191,12 @@ class DeploymentManager
     handleUpdate(deployment)
     {
         // update header if deployment is current production deployment
-        if (deployment.isCurrent) this.updateHeader(deployment);
+        if (deployment.isCurrent) 
+        {
+            this.updateHeader(deployment);
+
+            // change the status text to "Deployed"
+        }
 
         // abort if row does not exist
         const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
