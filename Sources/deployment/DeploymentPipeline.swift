@@ -96,7 +96,10 @@ extension Deployment
                 }
                 else
                 {
-                    // restart if current deployment is up to date
+                    // set this deployment as current
+                    try await deployment.setCurrent(on: database)
+                    
+                    // restart app with this deployment
                     try await restart()
                 }
             }

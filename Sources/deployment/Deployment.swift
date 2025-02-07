@@ -8,6 +8,7 @@ final class Deployment: Model, Content, @unchecked Sendable
     @ID(key: .id) var id: UUID?
     @Field(key: "status") var status: String
     @Field(key: "message") var message: String
+    @Field(key: "is_current") var isCurrent: Bool
     @Timestamp(key: "started_at", on: .create) var startedAt: Date?
     @Timestamp(key: "finished_at", on: .none) var finishedAt: Date?
     
@@ -17,11 +18,43 @@ final class Deployment: Model, Content, @unchecked Sendable
     {
         self.status = status
         self.message = message
+        self.isCurrent = false
+    }
+}
+
+extension Deployment
+{
+    // set this deployment as current
+    func setCurrent(on database: Database) async throws
+    {
+        // clear any existing current deployments
+        try await Deployment.clearCurrent(on: database)
+        
+        // set this one as current
+        self.isCurrent = true
+        try await self.save(on: database)
     }
     
+    // returns the current Deployment
+    static func current(on database: Database) async throws -> Deployment?
+    {
+        try await Deployment.query(on: database)
+            .filter(\.$isCurrent, .equal, true)
+            .first()
+    }
+    
+    static func clearCurrent(on database: Database) async throws
+    {
+        try await Deployment.query(on: database)
+            .set(\.$isCurrent, to: false)
+            .filter(\.$isCurrent, .equal, true)
+            .update()
+    }
+    
+    // returns array of all Deployments
     static func all(on database: Database) async throws -> [Deployment]
     {
-        try await self.query(on: database)
+        try await Deployment.query(on: database)
             .sort(\.$startedAt, .descending)
             .all()
             .stale()
@@ -79,6 +112,7 @@ extension Deployment
                 .id()
                 .field("status", .string, .required)
                 .field("message", .string, .required)
+                .field("is_current", .bool, .required, .sql(.default(false)))
                 .field("started_at", .datetime)
                 .field("finished_at", .datetime)
                 .create()

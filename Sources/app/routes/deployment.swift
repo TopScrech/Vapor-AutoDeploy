@@ -28,8 +28,17 @@ extension Application
         self.get("deployment")
         { request async throws -> View in
             let deployments = try await Deployment.all(on: request.db)
+            let current = try await Deployment.current(on: request.db)
             
-            return try await request.view.render("deployment/panel", ["tasks": deployments])
+            struct Context: Encodable
+            {
+                let tasks: [Deployment]
+                let current: Deployment?
+            }
+            
+            let context = Context(tasks: deployments, current: current)
+            
+            return try await request.view.render("deployment/panel", context)
         }
     }
 }
