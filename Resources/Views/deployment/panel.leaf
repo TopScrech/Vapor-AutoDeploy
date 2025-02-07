@@ -29,15 +29,16 @@
                 <!-- Spacer equivalent using flex justify-between above -->
                 
                 <!-- Current Deployment Info -->
-                #if(current):
+               
                 <div class="flex items-center">
                     <div class="px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-800/30 flex items-center space-x-2">
                         <span class="current-text text-sm text-blue-800 dark:text-indigo-200">
-                            Deployed: #(current.message)
+                            #if(current):
+                                Deployed: #(current.message)
+                            #endif
                         </span>
                     </div>
                 </div>
-                #endif
             </div>
         </header>
         
