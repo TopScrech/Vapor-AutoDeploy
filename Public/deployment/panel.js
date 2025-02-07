@@ -190,6 +190,9 @@ class DeploymentManager
     
     handleUpdate(deployment)
     {
+        // update header if deployment is current production deployment
+        if (deployment.isCurrent) this.updateHeader(deployment);
+
         // abort if row does not exist
         const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
         if (!row) return;
@@ -222,6 +225,21 @@ class DeploymentManager
             const durationCell = row.querySelector('td:nth-child(5)');
             if (durationCell) { durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`; }
         }
+    }
+
+    updateHeader(current) 
+    {
+        const headerElement = document.querySelector('header .flex.items-center.space-x-4');
+        if (!headerElement) return;
+        
+        headerElement.innerHTML = `
+            <div class="flex items-center">
+                <div class="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-800/30 flex items-center space-x-2">
+                    <span class="text-sm text-blue-800 dark:text-blue-200">
+                        Server running: ${current.message}
+                    </span>
+                </div>
+            </div>`;
     }
 
     // timer management
