@@ -229,17 +229,10 @@ class DeploymentManager
 
     updateHeader(current) 
     {
-        const headerElement = document.querySelector('header .flex.items-center.space-x-4');
+        const headerElement = document.querySelector('.current-text');
         if (!headerElement) return;
         
-        headerElement.innerHTML = `
-            <div class="flex items-center">
-                <div class="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-800/30 flex items-center space-x-2">
-                    <span class="text-sm text-blue-800 dark:text-blue-200">
-                        Deployed: ${current.message}
-                    </span>
-                </div>
-            </div>`;
+        headerElement.textContent = `Deployed: ${current.message}`;
     }
 
     // timer management
