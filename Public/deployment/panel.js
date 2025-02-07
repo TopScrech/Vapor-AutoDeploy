@@ -195,7 +195,8 @@ class DeploymentManager
         {
             this.updateHeader(deployment);
 
-            // change the status text to "Deployed"
+            // Override status for current deployment
+            deployment.status = 'deployed';
         }
 
         // abort if row does not exist
@@ -331,40 +332,45 @@ class DeploymentManager
             <span class="block text-gray-400 dark:text-gray-500 text-xs">${this.formatTime(deployment.startedAtTimestamp * 1000)}</span>`;
     }
 
-    statusHTML(status) 
+    statusHTML(status)
     {
         let className, label;
         
-        switch(status) 
+        switch(status)
         {
             case 'success':
-                className = 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-200';
+                className = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-800/30 dark:text-emerald-200';
                 label = 'Success';
                 break;
-
+                
+            case 'deployed':
+                className = 'bg-indigo-100 text-indigo-800 dark:bg-indigo-800/30 dark:text-indigo-200';
+                label = 'Deployed';
+                break;
+                
             case 'failed':
-                className = 'bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-200';
+                className = 'bg-rose-100 text-rose-800 dark:bg-rose-800/30 dark:text-rose-200';
                 label = 'Failed';
                 break;
-
+                
             case 'running':
-                className = 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200';
+                className = 'bg-sky-100 text-sky-800 dark:bg-sky-800/30 dark:text-sky-200';
                 label = 'Running';
                 break;
-
+                
             case 'stale':
-                className = 'bg-orange-100 text-orange-800 dark:bg-orange-800/30 dark:text-orange-200';
+                className = 'bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-200';
                 label = 'Stale';
                 break;
                 
             case 'canceled':
-                className = 'bg-orange-100 text-orange-800 dark:bg-orange-800/30 dark:text-orange-200';
+                className = 'bg-slate-100 text-slate-800 dark:bg-slate-800/30 dark:text-slate-200';
                 label = 'Canceled';
                 break;
-
+                
             default:
-                className = 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-200';
-                label = status;
+                className = 'bg-sky-100 text-sky-800 dark:bg-sky-800/30 dark:text-sky-200';
+                label = status[0].toUpperCase() + status.substring(1);
         }
         
         return `<span class="status-badge px-2 py-1 sm:px-3 rounded-full ${className} text-sm">${label}</span>`;
