@@ -353,9 +353,20 @@ class DeploymentManager
     
     startedHTML(deployment)
     {
+        const date = new Date(deployment.startedAtTimestamp * 1000);
         return `
-            <span class="block text-sm font-medium text-gray-700 dark:text-neutral-300">${this.formatDate(deployment.startedAtTimestamp * 1000)}</span>
-            <span class="block text-xs text-gray-500 dark:text-neutral-400 mt-0.5">${this.formatTime(deployment.startedAtTimestamp * 1000)}</span>`;
+            <span class="text-sm text-gray-700 dark:text-neutral-300">
+                <span class="font-mono">${date.toLocaleTimeString('en-US', { 
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                })}</span>
+                <span class="text-gray-500 dark:text-neutral-400">(${date.toLocaleDateString('de-DE', {
+                    day: '2-digit',
+                    month: '2-digit'
+                })})</span>
+            </span>`;
     }
     
     statusHTML(status)

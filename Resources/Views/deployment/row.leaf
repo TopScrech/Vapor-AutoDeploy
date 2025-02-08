@@ -7,7 +7,7 @@
     </td>
     
     <td class="hidden sm:table-cell px-6 py-4">
-        <a href="/admin/deployments/#(task.id)" class="font-mono text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm hover:underline" title="#(task.id)" data-full-id="#(task.id)"></a>
+        <a href="/admin/deployments/#(task.id)" class="font-mono text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm hover:underline" title="#(task.id)">#(task.id)</a>
     </td>
     
     <td class="px-6 py-4">
@@ -50,8 +50,10 @@
     </td>
     
     <td class="hidden sm:table-cell px-6 py-4">
-        <span class="block text-sm font-medium text-gray-700 dark:text-neutral-300">#date(task.startedAt, "MMM d, yyyy")</span>
-        <span class="block text-xs text-gray-500 dark:text-neutral-400 mt-0.5">#date(task.startedAt, "HH:mm:ss")</span>
+        <span class="text-sm text-gray-700 dark:text-neutral-300">
+            <span class="font-mono">#date(task.startedAt, "HH:mm:ss")</span>
+            <span class="text-gray-500 dark:text-neutral-400">(#date(task.startedAt, "dd.MM."))</span>
+        </span>
     </td>
     
     <td class="px-6 py-4">
