@@ -63,7 +63,10 @@ extension WebSocket
                 guard (try? await deployment.delete(on: request.db)) != nil else { return }
                 
                 // echo back the same message
-                try? await ws.send(text)
+                //try? await ws.send(text)
+                
+                // broadcast deletion to all connected clients
+                await DeploymentClients.shared.broadcast(message)
             }
                 
             default: return
