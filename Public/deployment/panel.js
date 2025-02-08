@@ -308,19 +308,19 @@ class DeploymentManager
 
     // DOM manipulation
 
-    rowHTML(deployment) 
+    rowHTML(deployment)
     {
         return `
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" 
+            <tr class="hover:bg-gray-50 dark:hover:bg-neutral-750 transition-colors duration-150" 
                 data-deployment-id="${deployment.id}" 
                 data-started-at="${deployment.startedAtTimestamp}"
             >
                 <td class="px-6 py-4 max-w-[160px]">
-                    <span class="block text-sm text-gray-600 dark:text-gray-300 truncate">${deployment.message}</span>
+                    <span class="block text-sm text-gray-700 dark:text-neutral-300 truncate font-medium">${deployment.message}</span>
                 </td>
                 
                 <td class="hidden sm:table-cell px-6 py-4">
-                    <a href="/admin/deployments/${deployment.id}" class="font-mono text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm">${deployment.id}</a>
+                    <a href="/admin/deployments/${deployment.id}" class="font-mono text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm hover:underline">${deployment.id}</a>
                 </td>
                 
                 <td class="px-6 py-4">
@@ -329,14 +329,14 @@ class DeploymentManager
                 
                 <td class="hidden sm:table-cell px-6 py-4">
                     ${this.startedHTML(deployment)}
-                 </td>
-            
-                <td class="px-6 py-4">
-                    ${deployment.durationString ? this.durationHTML(deployment.durationString) : deployment.status == "stale" || deployment.status == "canceled" ? this.durationHTML("NaN") : this.spinnerHTML()}
                 </td>
             
                 <td class="px-6 py-4">
-                    <button class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 font-medium text-sm delete-button">
+                    ${deployment.durationString ? this.durationHTML(deployment.durationString) : deployment.status == "stale" || deployment.status == "canceled" ? this.durationHTML("—") : this.spinnerHTML()}
+                </td>
+            
+                <td class="px-6 py-4">
+                    <button class="inline-flex items-center text-sm font-medium text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 delete-button hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 dark:focus:ring-offset-neutral-800">
                         Delete
                     </button>
                 </td>
@@ -346,63 +346,74 @@ class DeploymentManager
     startedHTML(deployment)
     {
         return `
-            <span class="block text-sm text-gray-600 dark:text-gray-300">${this.formatDate(deployment.startedAtTimestamp * 1000)}</span>
-            <span class="block text-gray-400 dark:text-gray-500 text-xs">${this.formatTime(deployment.startedAtTimestamp * 1000)}</span>`;
+            <span class="block text-sm font-medium text-gray-700 dark:text-neutral-300">${this.formatDate(deployment.startedAtTimestamp * 1000)}</span>
+            <span class="block text-xs text-gray-500 dark:text-neutral-400 mt-0.5">${this.formatTime(deployment.startedAtTimestamp * 1000)}</span>`;
     }
-
+    
     statusHTML(status)
     {
-        let className, label;
+        let className, label, dotColor;
         
         switch(status)
         {
             case 'success':
-                className = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-800/30 dark:text-emerald-200';
+                className = 'bg-emerald-50 text-emerald-700 dark:bg-neutral-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-600/20 dark:ring-emerald-500/30';
+                dotColor = 'bg-emerald-500 dark:bg-emerald-400';
                 label = 'Success';
                 break;
                 
             case 'deployed':
-                className = 'bg-indigo-100 text-indigo-800 dark:bg-indigo-800/30 dark:text-indigo-200';
+                className = 'bg-indigo-50 text-indigo-700 dark:bg-neutral-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-600/20 dark:ring-indigo-500/30';
+                dotColor = 'bg-indigo-500 dark:bg-indigo-400';
                 label = 'Deployed';
                 break;
                 
             case 'failed':
-                className = 'bg-rose-100 text-rose-800 dark:bg-rose-800/30 dark:text-rose-200';
+                className = 'bg-rose-50 text-rose-700 dark:bg-neutral-700 dark:text-rose-300 ring-1 ring-inset ring-rose-600/20 dark:ring-rose-500/30';
+                dotColor = 'bg-rose-500 dark:bg-rose-400';
                 label = 'Failed';
                 break;
                 
             case 'running':
-                className = 'bg-sky-100 text-sky-800 dark:bg-sky-800/30 dark:text-sky-200';
+                className = 'bg-sky-50 text-sky-700 dark:bg-neutral-700 dark:text-sky-300 ring-1 ring-inset ring-sky-600/20 dark:ring-sky-500/30';
+                dotColor = 'bg-sky-500 dark:bg-sky-400 animate-pulse';
                 label = 'Running';
                 break;
                 
             case 'stale':
-                className = 'bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-200';
+                className = 'bg-amber-50 text-amber-700 dark:bg-neutral-700 dark:text-amber-300 ring-1 ring-inset ring-amber-600/20 dark:ring-amber-500/30';
+                dotColor = 'bg-amber-500 dark:bg-amber-400';
                 label = 'Stale';
                 break;
                 
             case 'canceled':
-                className = 'bg-slate-100 text-slate-800 dark:bg-slate-800/30 dark:text-slate-200';
+                className = 'bg-gray-50 text-gray-700 dark:bg-neutral-700 dark:text-neutral-300 ring-1 ring-inset ring-gray-600/20 dark:ring-neutral-500/30';
+                dotColor = 'bg-gray-500 dark:bg-neutral-400';
                 label = 'Canceled';
                 break;
                 
             default:
-                className = 'bg-sky-100 text-sky-800 dark:bg-sky-800/30 dark:text-sky-200';
+                className = 'bg-sky-50 text-sky-700 dark:bg-neutral-700 dark:text-sky-300 ring-1 ring-inset ring-sky-600/20 dark:ring-sky-500/30';
+                dotColor = 'bg-sky-500 dark:bg-sky-400';
                 label = status[0].toUpperCase() + status.substring(1);
         }
         
-        return `<span class="status-badge px-2 py-1 sm:px-3 rounded-full ${className} text-sm">${label}</span>`;
+        return `
+            <span class="status-badge inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${className}">
+                <span class="w-1.5 h-1.5 rounded-full ${dotColor} mr-2"></span>
+                ${label}
+            </span>`;
     }
-
-    durationHTML(durationString) 
+    
+    durationHTML(durationString)
     {
-        return `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${durationString}</span>`;
+        return `<span class="font-mono text-sm text-gray-700 dark:text-neutral-300">${durationString}</span>`;
     }
-
-    spinnerHTML() 
+    
+    spinnerHTML()
     {
         return `
-            <div class="flex items-center text-gray-600 dark:text-gray-300">
+            <div class="flex items-center text-gray-700 dark:text-neutral-300">
                 <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
