@@ -139,8 +139,16 @@ class DeploymentManager
     {
         this.activeTimers = new Map();
         this.startExistingTimers();
-        
-        
+        this.initializeIdTruncation();
+    }
+    
+    initializeIdTruncation()
+    {
+        document.querySelectorAll('[data-full-id]').forEach(element =>
+        {
+            const fullId = element.dataset.fullId;
+            element.textContent = fullId.substring(0, 8);
+        });
     }
 
     // handle incoming messages
@@ -320,7 +328,7 @@ class DeploymentManager
                 </td>
                 
                 <td class="hidden sm:table-cell px-6 py-4">
-                    <a href="/admin/deployments/${deployment.id}" class="font-mono text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm hover:underline">${deployment.id}</a>
+                    <a href="/admin/deployments/${deployment.id}" class="font-mono text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm hover:underline" title="${deployment.id}">${deployment.id.substring(0, 8)}</a>
                 </td>
                 
                 <td class="px-6 py-4">
