@@ -12,7 +12,7 @@ extension Application
         
         self.get("test")
         { r async throws -> String in
-            var buffer = try await self.leaf.renderer.render(path: "test", context: [:]).get()
+            var buffer = try await self.leaf.renderer.render(path: "template", context: [:]).get()
             if let string = buffer.readString(length: buffer.readableBytes)
             {
                 return string
