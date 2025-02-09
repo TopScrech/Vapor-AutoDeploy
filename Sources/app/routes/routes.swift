@@ -10,16 +10,6 @@ extension Application
         // mottzi.de/route
         self.get("route") { _ in "1" }
         
-        self.get("test")
-        { r async throws -> String in
-            var buffer = try await self.leaf.renderer.render(path: "template", context: [:]).get()
-            if let string = buffer.readString(length: buffer.readableBytes)
-            {
-                return string
-            }
-            return "no"
-        }
-        
         // mottzi.de/template
         self.get("template")
         { request async throws in
