@@ -11,9 +11,13 @@ extension Application
         self.get("route") { _ in "1" }
         
         self.get("test")
-        { r async throws in
-            let render = try await self.leaf.renderer.render("template")
-            return render
+        { r async throws -> String in
+            var buffer = try await self.leaf.renderer.render(path: "test", context: [:]).get()
+            if let string = buffer.readString(length: buffer.readableBytes)
+            {
+                return string
+            }
+            return "no"
         }
         
         // mottzi.de/template
