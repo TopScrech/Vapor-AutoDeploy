@@ -1,4 +1,6 @@
 import Vapor
+import Leaf
+import LeafKit
 
 extension Application
 {
@@ -7,6 +9,12 @@ extension Application
     {
         // mottzi.de/route
         self.get("route") { _ in "1" }
+        
+        self.get("test")
+        { r async throws in
+            let render = try await self.leaf.renderer.render("template")
+            return render
+        }
         
         // mottzi.de/template
         self.get("template")
