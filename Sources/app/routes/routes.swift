@@ -15,7 +15,7 @@ extension Application
         { request async throws in
             let comp = Mist.Component<Deployment>(name: "TestComponent", template: "TestComponent", environments: "TestEnvironment")
             
-            return await comp.render(request: request) ?? "what?"
+            return await comp.render(request: request) ?? "what.?"
         }
         
         // mottzi.de/hello/world -> 'Hello, world!'
