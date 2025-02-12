@@ -22,6 +22,8 @@ struct App
             
             return ConsoleFragmentLogger(fragment: format, label: $0, console: Terminal(), level: .info)
         }
+        
+        await Mist.Clients.shared.registerEnvironment(Mist.Environment(name: "TestEnvironment", modelTypes: [Deployment.self]))
                 
         app.environment.useVariables()
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)

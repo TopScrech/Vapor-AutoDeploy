@@ -11,9 +11,11 @@ extension Application
         self.get("route") { _ in "1" }
         
         // mottzi.de/template
-        self.get("template")
+        self.get("test")
         { request async throws in
-            try await request.view.render("template")
+            let comp = Mist.Component<Deployment>(name: "TestComponent", template: "TestComponent", environments: "TestEnvironment")
+            
+            return await comp.render(request: request) ?? "what?"
         }
         
         // mottzi.de/hello/world -> 'Hello, world!'
