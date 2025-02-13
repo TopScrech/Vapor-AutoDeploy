@@ -13,7 +13,7 @@ extension Application
         // mottzi.de/template
         self.get("test")
         { request async throws in
-            let comp = Mist.Component<Deployment>(name: "TestComponent", template: "TestComponent", environments: "TestEnvironment")
+            let comp = Mist.DummyComponent(environments: "TestEnvironment")
             
             return await comp.render(request: request) ?? "what.?"
         }

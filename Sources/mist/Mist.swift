@@ -10,46 +10,18 @@ struct Mist
     {
         // unique identifier
         let name: String
+        
         // array of models this env broadcasts
         let modelTypes: [any Model.Type]
-    }
-
-    struct Component<Model: Fluent.Model>
-    {
-        // unique identifier
-        let name: String
-        // leaf template
-        let template: String
-        // environment this component belongs to
-        let environments: String
-        
-        func render(request: Request) async -> String?
-        {
-            var view: View
-            var body: String?
-            
-            do
-            {
-                view = try await request.view.render(self.template, ["hi":"hi"])
-                body = try await view.encodeResponse(status: .accepted, for: request).body.string
-            }
-            catch
-            {
-                return nil
-            }
-            
-            return body
-        }
     }
     
     actor Clients
     {
         static let shared = Mist.Clients()
         
-        // MARK: - Properties
-        
         // array of tuples
         internal var connections: [(id: UUID, socket: WebSocket, subscriptions: Set<String>, request: Request)] = []
+        
         // dictionary of envs
         internal var environments: [String: Mist.Environment] = [:]
     }

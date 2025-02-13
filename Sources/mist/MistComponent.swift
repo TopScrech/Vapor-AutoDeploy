@@ -1,19 +1,13 @@
-//
-//  Component.swift
-//  mottzi
-//
-//  Created by Berken Sayilir on 12.02.2025.
-//
-
-
 import Vapor
 import Fluent
 import Leaf
 import LeafKit
 
-extension Mist {
+extension Mist
+{
     // Component Protocol Definition
-    protocol Component {
+    protocol Component
+    {
         // unique identifier
         var name: String { get }
         // leaf template
@@ -25,41 +19,34 @@ extension Mist {
         func render(request: Request) async -> String?
     }
     
-    // Default implementation for common render functionality
-    extension Component {
-        func render(request: Request) async -> String? {
-            var view: View
-            var body: String?
-            
-            do {
-                view = try await request.view.render(self.template, ["hi":"hi"])
-                body = try await view.encodeResponse(status: .accepted, for: request).body.string
-            } catch {
-                return nil
-            }
-            
-            return body
-        }
-    }
-    
     // Example DummyComponent Implementation
-    struct DummyComponent: Component {
-        let name: String
-        let template: String
+    struct DummyComponent: Component
+    {
         let environments: String
+    }
+}
+
+// Default implementation for common render functionality
+extension Mist.Component
+{
+    var name: String { String(describing: Self.self) }
+    var template: String { String(describing: Self.self) }
+    
+    func render(request: Request) async -> String?
+    {
+        var view: View
+        var body: String?
         
-        // Custom initializer
-        init(name: String, environments: String) {
-            self.name = name
-            self.template = "dummy"  // Points to a dummy.leaf template
-            self.environments = environments
+        do
+        {
+            view = try await request.view.render(self.template, ["hi":"hi"])
+            body = try await view.encodeResponse(status: .accepted, for: request).body.string
+        }
+        catch
+        {
+            return nil
         }
         
-        // Optional: Override render method if needed
-        func render(request: Request) async -> String? {
-            // Custom rendering logic could go here
-            // For now, we'll use the default implementation
-            return await super.render(request: request)
-        }
+        return body
     }
 }
