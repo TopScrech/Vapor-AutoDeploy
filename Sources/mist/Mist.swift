@@ -35,9 +35,7 @@ extension Application
         // mottzi.de/template
         self.get("test")
         { request async throws in
-            let comp = Mist.DummyComponent(environments: "TestEnvironment")
-            
-            return await comp.render(request: request) ?? "what.?"
+            await Mist.DummyComponent().render(request: request) ?? "error: component render returned nil"
         }
         
         self.webSocket("mist", "ws")

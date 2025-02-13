@@ -4,7 +4,7 @@ extension Mist
 {
     struct DummyComponent: Component
     {
-        let environments: String
+        let environments = "TestEnvironment"
         
         // Define the Context type for this component
         struct Context: Encodable
