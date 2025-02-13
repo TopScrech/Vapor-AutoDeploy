@@ -32,6 +32,14 @@ extension Application
 {
     func useMist()
     {
+        // mottzi.de/template
+        self.get("test")
+        { request async throws in
+            let comp = Mist.DummyComponent(environments: "TestEnvironment")
+            
+            return await comp.render(request: request) ?? "what.?"
+        }
+        
         self.webSocket("mist", "ws")
         { request, ws async in
             

@@ -6,6 +6,9 @@
         <title>Deployment Dashboard</title>
     </head>
     <body>
-        TestComponent.leaf
+        DummyComponent.leaf (own context):
+        property1: #(property1)
+        property2: #(property2)
+        property3: #(property3)
     <body>
 </html>

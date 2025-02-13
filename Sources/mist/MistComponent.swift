@@ -8,6 +8,9 @@ extension Mist
     // Component Protocol Definition
     protocol Component
     {
+        // Type representing the context data structure
+        associatedtype Context: Encodable
+        
         // unique identifier
         var name: String { get }
         // leaf template
@@ -15,14 +18,11 @@ extension Mist
         // environment this component belongs to
         var environments: String { get }
         
+        // Method to generate context for the template
+        func context(request: Request) async throws -> Context
+        
         // render method that returns the component's HTML
         func render(request: Request) async -> String?
-    }
-    
-    // Example DummyComponent Implementation
-    struct DummyComponent: Component
-    {
-        let environments: String
     }
 }
 
@@ -39,7 +39,10 @@ extension Mist.Component
         
         do
         {
-            view = try await request.view.render(self.template, ["hi":"hi"])
+            // Generate the context using the component's implementation
+            let context = try await context(request: request)
+            
+            view = try await request.view.render(self.template, context)
             body = try await view.encodeResponse(status: .accepted, for: request).body.string
         }
         catch
