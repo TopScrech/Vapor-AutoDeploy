@@ -35,7 +35,8 @@ extension Application
         // mottzi.de/template
         self.get("test")
         { request async throws in
-            await Mist.DummyComponent().render(request: request) ?? "error: component render returned nil"
+            let context = Mist.DummyComponent.Context(property1: "lol", property2: 123, property3: .now)
+            return await Mist.DummyComponent().render(request: request, context: context) ?? "error: component render returned nil"
         }
         
         self.webSocket("mist", "ws")

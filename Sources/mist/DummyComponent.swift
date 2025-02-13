@@ -12,14 +12,12 @@ extension Mist
             let property1: String
             let property2: Int
             let property3: Date
-            let child1: String
-            let child2: Int
         }
         
         // Implementation of context generation
         func context() -> Context
         {
-            return Context(property1: "hello", property2: 1337, property3: .now, child1: "c1", child2: 2)
+            return Context(property1: "hello", property2: 1337, property3: .now)
         }
     }
     
