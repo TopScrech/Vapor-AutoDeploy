@@ -35,6 +35,7 @@ extension Application
         // mottzi.de/template
         self.get("test")
         { request async throws in
+            
             let context = Mist.DummyComponent.Context(
                 property1: "lol",
                 property2: 123,
