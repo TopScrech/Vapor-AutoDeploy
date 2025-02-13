@@ -3,9 +3,7 @@ import Vapor
 extension Mist
 {
     struct DummyComponent: Component
-    {
-        var children = [ChildComponent()]
-        
+    {        
         let environments = "TestEnvironment"
         
         // Define the Context type for this component
@@ -17,7 +15,7 @@ extension Mist
         }
         
         // Implementation of context generation
-        func context(request: Request) async throws -> Context
+        func context() -> Context
         {
             return Context(property1: "hello", property2: 1337, property3: .now)
         }
@@ -35,7 +33,7 @@ extension Mist
         }
         
         // Implementation of context generation
-        func context(request: Request) async throws -> Context
+        func context() -> Context
         {
             return Context(child1: "world", child2: 4133)
         }

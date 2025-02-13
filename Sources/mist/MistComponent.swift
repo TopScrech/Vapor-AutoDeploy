@@ -19,12 +19,9 @@ extension Mist
         
         // environment this component belongs to
         var environments: String { get }
-        
-        // child components
-        var children: [any Mist.Component] { get }
-        
+                
         // Method to generate context for the template
-        func context(request: Request) async throws -> Context
+        func context() -> Context
         
         // render method that returns the component's HTML
         func render(request: Request) async -> String?
@@ -36,26 +33,19 @@ extension Mist.Component
 {
     var name: String { String(describing: Self.self) }
     var template: String { String(describing: Self.self) }
-    var children: [any Mist.Component] { [] }
     
     func render(request: Request) async -> String?
     {
-        var view: View
-        var body: String?
-        
         do
         {
-            // Generate the context using the component's implementation
-            let context = try await context(request: request)
+            let view: View = try await request.view.render(self.template, context())
+            let body: String? = try await view.encodeResponse(status: .accepted, for: request).body.string
             
-            view = try await request.view.render(self.template, context)
-            body = try await view.encodeResponse(status: .accepted, for: request).body.string
+            return body
         }
         catch
         {
             return nil
         }
-        
-        return body
     }
 }
