@@ -19,7 +19,7 @@ extension Mist
         var environments: String { get }
         
         // Method to generate context for the template
-        //func context(request: Request) async throws -> Context
+        func context(request: Request) async throws -> Context
         
         // render method that returns the component's HTML
         func render(request: Request) async -> String?
@@ -37,16 +37,10 @@ extension Mist.Component
         var view: View
         var body: String?
         
-        guard let context = self as? Context else
-        {
-            request.logger.error("Failed to cast component to Context type")
-            return nil
-        }
-        
         do
         {
             // Generate the context using the component's implementation
-//            let context = try await context(request: request)
+            let context = try await context(request: request)
             
             view = try await request.view.render(self.template, context)
             body = try await view.encodeResponse(status: .accepted, for: request).body.string
