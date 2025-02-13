@@ -8,9 +8,6 @@ extension Mist
     // Component Protocol Definition
     protocol Component
     {
-        // Type representing the context data structure
-        associatedtype Context: Encodable
-        
         // unique identifier
         var name: String { get }
         
@@ -19,9 +16,6 @@ extension Mist
         
         // environment this component belongs to
         var environments: String { get }
-                
-        // Method to generate context for the template
-        func context() -> Context
         
         // render method that returns the component's HTML
         func render(request: Request, context: Encodable) async -> String?

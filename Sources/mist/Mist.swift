@@ -35,7 +35,16 @@ extension Application
         // mottzi.de/template
         self.get("test")
         { request async throws in
-            let context = Mist.DummyComponent.Context(property1: "lol", property2: 123, property3: .now)
+            let context = Mist.DummyComponent.Context(
+                property1: "lol",
+                property2: 123,
+                property3: .now,
+                child: Mist.DummyComponent.Context.ChildContext(
+                    child1: "rofl",
+                    child2: 456
+                )
+            )
+            
             return await Mist.DummyComponent().render(request: request, context: context) ?? "error: component render returned nil"
         }
         

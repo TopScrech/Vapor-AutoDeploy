@@ -12,12 +12,13 @@ extension Mist
             let property1: String
             let property2: Int
             let property3: Date
-        }
-        
-        // Implementation of context generation
-        func context() -> Context
-        {
-            return Context(property1: "hello", property2: 1337, property3: .now)
+            let child: ChildContext
+            
+            struct ChildContext: Encodable
+            {
+                let child1: String
+                let child2: Int
+            }
         }
     }
     
@@ -30,12 +31,6 @@ extension Mist
         {
             let child1: String
             let child2: Int
-        }
-        
-        // Implementation of context generation
-        func context() -> Context
-        {
-            return Context(child1: "world", child2: 4133)
         }
     }
 }
