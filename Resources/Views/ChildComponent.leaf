@@ -1,0 +1,5 @@
+<div>
+    ChildComponent.leaf (own context):
+    child1: #(child1)
+    child2: #(child2)
+</div>

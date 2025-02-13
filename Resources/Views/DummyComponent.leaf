@@ -6,9 +6,13 @@
         <title>Deployment Dashboard</title>
     </head>
     <body>
+        #dumpContext
+        
         DummyComponent.leaf (own context):
         property1: #(property1)
         property2: #(property2)
         property3: #(property3)
-    <body>
+        
+        #extend("ChildComponent")
+    </body>
 </html>

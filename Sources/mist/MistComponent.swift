@@ -13,10 +13,15 @@ extension Mist
         
         // unique identifier
         var name: String { get }
+        
         // leaf template
         var template: String { get }
+        
         // environment this component belongs to
         var environments: String { get }
+        
+        // child components
+        var children: [any Mist.Component] { get }
         
         // Method to generate context for the template
         func context(request: Request) async throws -> Context
@@ -31,6 +36,7 @@ extension Mist.Component
 {
     var name: String { String(describing: Self.self) }
     var template: String { String(describing: Self.self) }
+    var children: [any Mist.Component] { [] }
     
     func render(request: Request) async -> String?
     {
