@@ -19,15 +19,26 @@ class MistSocket
     
     subscribeToPageComponents()
     {
-        // find all elements with mist-component attribute
+        console.log("subscribing to server components...");
+        
+        // Collect unique component types using a Set
+        const uniqueComponents = new Set();
+        
+        // Find all elements with mist-component attribute
         document.querySelectorAll('[mist-component]').forEach(element =>
-        {
+                                                              {
             const component = element.getAttribute('mist-component');
             
             if (component)
             {
-                this.subscribe(component);
+                uniqueComponents.add(component);
             }
+        });
+        
+        // Subscribe to each unique component type exactly once
+        uniqueComponents.forEach(component =>
+        {
+            this.subscribe(component);
         });
     }
     
