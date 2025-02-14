@@ -24,6 +24,12 @@ extension Application
             return try await request.view.render("DummyState", Context(entries: entries))
         }
         
+        self.get("dummy", "deleteAll")
+        { req async throws -> HTTPStatus in
+            try await DummyModel.query(on: req.db).delete()
+            return .ok
+        }
+        
         self.get("dummy", "create")
         { req async throws -> DummyModel in
             
