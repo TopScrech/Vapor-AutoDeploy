@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
-    <head>
+<html lang="en" class="h-full bg-gray-50 dark:bg-neutral-800">
+    <head class="bg-gray-50 dark:bg-neutral-800">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="https://cdn.tailwindcss.com"></script>
         <title>abcdefg</title>
     </head>
-    <body>
-        <table class="w-full bg-gray-50 dark:bg-neutral-800">
+    <body class="bg-gray-50 dark:bg-neutral-800">
+        <table class="w-full">
             <thead>
                 <tr>
                     <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Text</th>
