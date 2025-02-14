@@ -88,11 +88,15 @@ extension Application
                     case .subscribe(let component): do
                     {
                         await Mist.Clients.shared.addSubscription(component, for: id)
+                        
+                        try? await ws.send("{ \"msg\": \"Subscribed to \(component)\" }")
                     }
                         
                     case .unsubscribe(let component): do
                     {
                         await Mist.Clients.shared.removeSubscription(component, for: id)
+                        
+                        try? await ws.send("{ \"msg\": \"Unsubscribed to \(component)\" }")
                     }
                         
                     // server does not handle other message types
