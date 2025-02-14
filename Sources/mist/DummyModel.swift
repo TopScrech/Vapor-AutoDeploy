@@ -57,7 +57,7 @@ extension DummyModel
         {
             try await next.update(model, on: db)
             
-            let logger = Logger(label: "DummyModelListener")
+            let logger = Logger(label: "DummyModel.Listener")
             logger.info("change detected on a DummyModel")
             
             // fetch components that are bound to DummyModel
@@ -68,6 +68,9 @@ extension DummyModel
                 // render html string of component using updated db entry as context
                 guard let renderer = await MistComponentRegistry.shared.renderer else { return }
                 guard let html = await component.html(renderer: renderer, model: model) else { return }
+                
+                let logger = Logger(label: "DummyModel.Listener")
+                logger.info("following html will be sent to subscribers: \(html)")
                 
                 // construct message
                 let message = Mist.Message.componentUpdate(
