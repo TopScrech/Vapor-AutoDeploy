@@ -17,6 +17,16 @@ final class DummyModel: Model, Content, @unchecked Sendable
     }
 }
 
+extension DummyModel
+{
+    static func all(on database: Database) async throws -> [DummyModel]
+    {
+        try await DummyModel.query(on: database)
+            .sort(\.$created, .descending)
+            .all()
+    }
+}
+
 // database table
 extension DummyModel
 {
@@ -34,6 +44,25 @@ extension DummyModel
         func revert(on database: Database) async throws
         {
             try await database.schema(DummyModel.schema).delete()
+        }
+    }
+}
+
+// table listener
+extension DummyModel
+{
+    struct Listener: AsyncModelMiddleware
+    {
+        // react to DummyModel entry updates
+        func update(model: DummyModel, on db: Database, next: AnyAsyncModelResponder) async throws
+        {
+            try await next.update(model, on: db)
+            
+            // construct update message
+            let message = Mist.Message.modelUpdate(model: "DummyModel", action: "update", id: model.id, payload: model)
+            
+            // send update message to all DummyModel subscribers
+            await Mist.Clients.shared.broadcast(message)
         }
     }
 }

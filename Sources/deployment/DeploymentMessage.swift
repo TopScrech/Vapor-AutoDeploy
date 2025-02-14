@@ -16,9 +16,9 @@ extension Deployment
 // send message
 extension Deployment.Message
 {
-    func send(on: WebSocket) async
+    func send(on ws: WebSocket) async
     {
-        if let jsonString { try? await on.send(jsonString) }
+        if let jsonString { try? await ws.send(jsonString) }
     }
     
     var jsonString: String?

@@ -1,19 +1,21 @@
+import Vapor
+
 // Message types for WebSocket communication
 extension Mist
 {
     enum Message: Codable
     {
-        case subscribe(environment: String)
-        case unsubscribe(environment: String)
-        case modelUpdate(environment: String, modelName: String, action: String, id: String?)
+        case subscribe(model: String)
+        case unsubscribe(model: String)
+        case modelUpdate(model: String, action: String, id: UUID?, payload: Codable)
         
         private enum CodingKeys: String, CodingKey
         {
             case type
-            case environment
-            case modelName
+            case model
             case action
             case id
+            case payload
         }
         
         // Custom encoding to properly format the message
@@ -23,20 +25,20 @@ extension Mist
             
             switch self
             {
-                case .subscribe(let environment):
+                case .subscribe(let model):
                     try container.encode("subscribe", forKey: .type)
-                    try container.encode(environment, forKey: .environment)
-                    
-                case .unsubscribe(let environment):
+                    try container.encode(model, forKey: .model)
+
+                case .unsubscribe(let model):
                     try container.encode("unsubscribe", forKey: .type)
-                    try container.encode(environment, forKey: .environment)
-                    
-                case .modelUpdate(let environment, let modelName, let action, let id):
+                    try container.encode(model, forKey: .model)
+
+                case .modelUpdate(let model, let action, let id, let payload):
                     try container.encode("modelUpdate", forKey: .type)
-                    try container.encode(environment, forKey: .environment)
-                    try container.encode(modelName, forKey: .modelName)
+                    try container.encode(model, forKey: .model)
                     try container.encode(action, forKey: .action)
                     try container.encode(id, forKey: .id)
+                    try container.encode(payload, forKey: .payload)
             }
         }
         
@@ -49,19 +51,19 @@ extension Mist
             switch type
             {
                 case "subscribe":
-                    let environment = try container.decode(String.self, forKey: .environment)
-                    self = .subscribe(environment: environment)
+                    let model = try container.decode(String.self, forKey: .model)
+                    self = .subscribe(model: model)
                     
                 case "unsubscribe":
-                    let environment = try container.decode(String.self, forKey: .environment)
-                    self = .unsubscribe(environment: environment)
+                    let model = try container.decode(String.self, forKey: .model)
+                    self = .unsubscribe(model: model)
                     
                 case "modelUpdate":
-                    let environment = try container.decode(String.self, forKey: .environment)
-                    let modelName = try container.decode(String.self, forKey: .modelName)
+                    let model = try container.decode(String.self, forKey: .model)
                     let action = try container.decode(String.self, forKey: .action)
-                    let id = try container.decodeIfPresent(String.self, forKey: .id)
-                    self = .modelUpdate(environment: environment, modelName: modelName, action: action, id: id)
+                    let id = try container.decodeIfPresent(UUID.self, forKey: .id)
+                    let payload = try container.decode(String.self, forKey: .payload)
+                    self = .modelUpdate(model: model, action: action, id: id, payload: payload)
                     
                 default:
                     throw DecodingError.dataCorrupted(

@@ -1,33 +1,25 @@
 import Vapor
 import Fluent
-
-extension Mist.Clients
+    
+struct Mist
 {
-    // MARK: - Environment Management
-    
-    // add env to actor dictionary
-    func registerEnvironment(_ environment: Mist.Environment)
+    actor Clients
     {
-        environments[environment.name] = environment
-    }
-    
-    // remove env from actor dictionary
-    func unregisterEnvironment(name: String)
-    {
-        environments.removeValue(forKey: name)
-    }
-    
-    // get env from name
-    func getEnvironment(name: String) -> Mist.Environment?
-    {
-        return environments[name]
+        static let shared = Mist.Clients()
+        
+        internal var connections:
+        [(
+            id: UUID,
+            socket: WebSocket,
+            subscriptions: Set<String>,
+            request: Request
+        )] = []
     }
 }
-    
+
+// connections
 extension Mist.Clients
 {
-    // MARK: - Connection Management
-    
     // add connection to actor
     func add(connection id: UUID, socket: WebSocket, subscriptions: Set<String> = [], request: Request)
     {
@@ -41,36 +33,34 @@ extension Mist.Clients
     }
 }
     
+// subscriptions
 extension Mist.Clients
 {
-    // MARK: - Subscription Management
-    
     // add subscription to connection
-    func addSubscription(_ environment: String, for id: UUID)
+    func addSubscription(_ model: String, for id: UUID)
     {
-        // find connection by id
+        // abort if client is not found
         guard let index = connections.firstIndex(where: { $0.id == id }) else { return }
-        // abort if env is not registered
-        guard environments[environment] != nil else { return } 
-        // add env to connection's subscriptions
-        connections[index].subscriptions.insert(environment)
+
+        // add model to client's subscriptions
+        connections[index].subscriptions.insert(model)
     }
     
     // remove subscription from connection
     func removeSubscription(_ environment: String, for id: UUID)
     {
-        // find connection by id
+        // abort if client is not found
         guard let index = connections.firstIndex(where: { $0.id == id }) else { return }
-        // remove env from connection's subscriptions
+        
+        // remove model from client's subscriptions
         connections[index].subscriptions.remove(environment)
     }
 }
-    
+
+// broadcasting
 extension Mist.Clients
 {
-    // MARK: - Messaging
-    
-    // server send message to all subscribed clients
+    // send model update message to all subscribed clients
     func broadcast(_ message: Mist.Message) async
     {
         guard let jsonData = try? JSONEncoder().encode(message) else { return }
@@ -79,16 +69,17 @@ extension Mist.Clients
         switch message
         {
             // update messages go to subscribers
-            case .modelUpdate(let environment, _, _, _): do
+            case .modelUpdate(let model, _, _, _): do
             {
                 // get clients that are subscribed to env
-                let subscribers = connections.filter { $0.subscriptions.contains(environment) }
+                let subscribers = connections.filter { $0.subscriptions.contains(model) }
+                
                 // send them the update message
                 for subscriber in subscribers { Task { try? await subscriber.socket.send(jsonString) } }
             }
         
             // server cant send other mist messages
-            default: break
+            default: return
         }
     }
 }

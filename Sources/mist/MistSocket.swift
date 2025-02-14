@@ -10,8 +10,15 @@ extension Application
     {
         // mottzi.de/template
         self.get("test")
-        { request async throws in
-            "test"
+        { request async throws -> View in
+            let entries = try await DummyModel.all(on: request.db)
+            
+            struct Context: Encodable
+            {
+                let entries: [DummyModel]
+            }
+                        
+            return try await request.view.render("test", Context(entries: entries))
         }
         
         self.webSocket("mist", "ws")
@@ -19,10 +26,11 @@ extension Application
             
             // create new connection on upgrade
             let id = UUID()
+            
             // add new connection to actor
             await Mist.Clients.shared.add(connection: id, socket: ws, request: request)
             
-            // respond to client message
+            // receive client message
             ws.onText()
             { ws, text async in
                 // abort if message is not of type Mist.Message
@@ -35,7 +43,7 @@ extension Application
                     case .unsubscribe(let model): await Mist.Clients.shared.removeSubscription(model, for: id)
                         
                     // server does not handle other message types
-                    default: break
+                    default: return
                 }
             }
             
