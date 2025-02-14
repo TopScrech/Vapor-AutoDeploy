@@ -3,7 +3,7 @@ import Fluent
 
 final class DummyModel: Model, Content, @unchecked Sendable
 {
-    static let schema = "dummymodels"
+    static let schema = "dummymodels2"
     
     @ID(key: .id) var id: UUID?
     @Field(key: "text") var text: String
@@ -30,7 +30,7 @@ extension DummyModel
 // database table
 extension DummyModel
 {
-    struct Table2: AsyncMigration
+    struct Table3: AsyncMigration
     {
         func prepare(on database: Database) async throws
         {
