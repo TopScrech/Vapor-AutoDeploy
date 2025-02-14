@@ -11,12 +11,17 @@ extension Application
         Mist.configureComponents(self)
         
         // mottzi.de/dummy
-        self.get("dummies")
+        self.get("dummy")
         { request async throws -> View in
             
             let entries = try await DummyModel.all(on: request.db)
+            
+            struct Context: Encodable
+            {
+                let entries: [DummyModel]
+            }
                         
-            return try await request.view.render("DummyState", entries)
+            return try await request.view.render("DummyState", Context(entries: entries))
         }
         
         self.get("dummy", "create")
