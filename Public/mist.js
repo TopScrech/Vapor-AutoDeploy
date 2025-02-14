@@ -12,9 +12,6 @@ class MistSocket
         
         document.addEventListener('visibilitychange', () => this.visibilityChange());
         window.addEventListener('online', () => this.connect());
-        
-        // subscribe to all components on page load
-        // this.subscribeToPageComponents();
     }
     
     subscribeToPageComponents()

@@ -57,6 +57,9 @@ extension DummyModel
         {
             try await next.update(model, on: db)
             
+            let logger = Logger(label: "DummyModelListener")
+            logger.info("change detected on a DummyModel")
+            
             // fetch components that are bound to DummyModel
             let components = await MistComponentRegistry.shared.getComponents(forModel: "DummyModel")
             
