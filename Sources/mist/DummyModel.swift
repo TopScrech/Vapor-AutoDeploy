@@ -30,7 +30,7 @@ extension DummyModel
 // database table
 extension DummyModel
 {
-    struct Table: AsyncMigration
+    struct Table2: AsyncMigration
     {
         func prepare(on database: Database) async throws
         {
