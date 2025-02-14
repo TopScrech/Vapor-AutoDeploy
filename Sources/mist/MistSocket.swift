@@ -11,7 +11,7 @@ extension Application
         Mist.configureComponents(self)
         
         // mottzi.de/dummy
-        self.get("dummy")
+        self.get("dummies")
         { request async throws -> View in
             
             let entries = try await DummyModel.all(on: request.db)
