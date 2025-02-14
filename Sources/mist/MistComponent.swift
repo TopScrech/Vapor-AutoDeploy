@@ -55,7 +55,7 @@ struct DummyTableRowComponent: MistComponent
 {
     static let name = "DummyRow"
     static let model = "DummyModel"
-    static let template = "DummyRowHTML"
+    static let template = "DummyRow"
 }
 
 extension Mist

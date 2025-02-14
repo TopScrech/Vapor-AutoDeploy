@@ -14,14 +14,9 @@
                     <th class="hidden sm:table-cell px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">ID</th>
                 </tr>
             </thead>
-
-            <!-- Parent subscribes to DB model DummyModel (Fluent) -->
-            <!-- that means that the client side server message handler will keep state of each row in sync by js -->
-            <!-- Source of truth is the server db (Fluent) -->
-
             <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
                 #for(entry in entries):
-                    #extend("DummyRowHTML")
+                    #extend("DummyRow")
                 #endfor
             </tbody>
         </table>
