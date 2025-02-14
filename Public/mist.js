@@ -1,4 +1,4 @@
-class DeploymentSocket
+class Mist
 {
     constructor()
     {
@@ -84,3 +84,5 @@ class DeploymentSocket
         }
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => ws = new Mist().connect());
