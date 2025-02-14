@@ -20,5 +20,6 @@
                 #endfor
             </tbody>
         </table>
+        <script src="/mist.js"></script>
     </body>
 </html>

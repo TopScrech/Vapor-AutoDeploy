@@ -17,8 +17,8 @@ extension MistComponent
     {
         do
         {
-            let view: View = try await renderer.render(self.template, model)
-            return String(buffer: view.data)
+            let buffer = try await renderer.render(self.template, model).data
+            return String(buffer: buffer)
         }
         catch
         {
