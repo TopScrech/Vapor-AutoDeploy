@@ -23,6 +23,37 @@ extension Application
             return try await request.view.render("test", Context(entries: entries))
         }
         
+        self.post("dummy", "create")
+        { req async throws -> DummyModel in
+            
+            let words = [
+                "swift", "vapor", "fluent", "leaf", "websocket", "async",
+                "database", "server", "client", "model", "view", "controller",
+                "route", "middleware", "protocol", "actor", "request", "response"
+            ]
+            
+            let randomWords = (0..<8).map() { _ in words.randomElement() ?? "default" }
+            let randomText = randomWords.joined(separator: " ")
+            
+            // Create and save new dummy model
+            let dummy = DummyModel(text: randomText)
+            try await dummy.save(on: req.db)
+            return dummy
+        }
+        
+        // Dynamic route to create dummy entry with specific text
+        self.get("dummy", "create", ":text")
+        { req async throws -> DummyModel in
+            guard let text = req.parameters.get("text")
+            else { throw Abort(.badRequest, reason: "Text parameter is required") }
+            
+            // Create and save new dummy model with provided text
+            let dummy = DummyModel(text: text)
+            try await dummy.save(on: req.db)
+            
+            return dummy
+        }
+        
         self.webSocket("mist", "ws")
         { request, ws async in
             
