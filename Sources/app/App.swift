@@ -29,7 +29,7 @@ struct App
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
         app.databases.middleware.use(Deployment.Listener(), on: .sqlite)
 //        app.migrations.add(Deployment.Table())
-//        app.migrations.add(DummyModel.Table2())
+        app.migrations.add(DummyModel.Table2())
         try await app.autoMigrate()
         
         app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
