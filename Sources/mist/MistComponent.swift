@@ -53,9 +53,9 @@ actor MistComponentRegistry
 
 struct DummyTableRowComponent: MistComponent
 {
-    static let name = "TableRow"
+    static let name = "DummyRow"
     static let model = "DummyModel"
-    static let template = "testrow"
+    static let template = "DummyRowHTML"
 }
 
 extension Mist

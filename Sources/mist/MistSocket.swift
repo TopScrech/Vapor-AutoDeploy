@@ -10,34 +10,28 @@ extension Application
     {
         Mist.configureComponents(self)
         
-        // mottzi.de/test
-        self.get("test")
+        // mottzi.de/dummy
+        self.get("dummies")
         { request async throws -> View in
             
             let entries = try await DummyModel.all(on: request.db)
-            
-            struct Context: Encodable
-            {
-                let entries: [DummyModel]
-            }
                         
-            return try await request.view.render("test", Context(entries: entries))
+            return try await request.view.render("DummyState", entries)
         }
         
         self.get("dummy", "create")
         { req async throws -> DummyModel in
             
-            let words = [
+            let randomWord =
+            [
                 "swift", "vapor", "fluent", "leaf", "websocket", "async",
                 "database", "server", "client", "model", "view", "controller",
                 "route", "middleware", "protocol", "actor", "request", "response"
             ]
-            
-            let randomWords = (0..<8).map() { _ in words.randomElement() ?? "default" }
-            let randomText = randomWords.joined(separator: " ")
+            .randomElement() ?? "error"
             
             // create and save new dummy db entry with provided text
-            let dummy = DummyModel(text: randomText)
+            let dummy = DummyModel(text: randomWord)
             try await dummy.save(on: req.db)
             
             // retrun json encoded http response of created db entry
