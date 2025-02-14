@@ -39,11 +39,11 @@ class MistSocket
         {
             try
             {
+                // log raw message string
                 console.log(`RAW: ${event.data}`)
-                
+
+                // parse server message to json
                 const data = JSON.parse(event.data);
-                
-                console.log(`JSON: ${data}`)
 
                 // respond to server message here
                 // ...
