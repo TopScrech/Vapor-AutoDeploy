@@ -28,6 +28,7 @@ struct App
         app.environment.useVariables()
         
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
+        app.databases.middleware.use(DummyModel.Listener(), on: .sqlite)
         app.databases.middleware.use(Deployment.Listener(), on: .sqlite)
         
         app.migrations.add(Deployment.Table())
