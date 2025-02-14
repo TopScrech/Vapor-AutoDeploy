@@ -14,7 +14,7 @@ class MistSocket
         window.addEventListener('online', () => this.connect());
         
         // subscribe to all components on page load
-        this.subscribeToPageComponents();
+        // this.subscribeToPageComponents();
     }
     
     subscribeToPageComponents()
@@ -89,7 +89,7 @@ class MistSocket
         {
             if (this.timer) { clearInterval(this.timer); this.timer = null; }
             
-            // Resubscribe to components after reconnection ???
+            // subscribe to components after ws connection is established
             this.subscribeToPageComponents();
         };
         
