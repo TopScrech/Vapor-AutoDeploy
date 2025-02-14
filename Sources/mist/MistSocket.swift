@@ -24,6 +24,26 @@ extension Application
             return try await request.view.render("DummyState", Context(entries: entries))
         }
         
+        self.get("dummy", "delete", ":id")
+        { req async throws -> HTTPStatus in
+            
+            guard let idString = req.parameters.get("id"),
+                  let id = UUID(uuidString: idString)
+            else
+            {
+                throw Abort(.badRequest, reason: "Valid UUID parameter is required")
+            }
+            
+            guard let dummy = try await DummyModel.find(id, on: req.db)
+            else
+            {
+                throw Abort(.notFound, reason: "DummyModel with specified ID not found")
+            }
+            
+            try await dummy.delete(on: req.db)
+            return .ok
+        }
+        
         self.get("dummy", "deleteAll")
         { req async throws -> HTTPStatus in
             try await DummyModel.query(on: req.db).delete()
