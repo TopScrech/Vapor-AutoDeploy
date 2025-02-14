@@ -13,6 +13,7 @@ extension Application
         // mottzi.de/test
         self.get("test")
         { request async throws -> View in
+            
             let entries = try await DummyModel.all(on: request.db)
             
             struct Context: Encodable
@@ -23,7 +24,7 @@ extension Application
             return try await request.view.render("test", Context(entries: entries))
         }
         
-        self.post("dummy", "create")
+        self.get("dummy", "create")
         { req async throws -> DummyModel in
             
             let words = [
@@ -35,22 +36,26 @@ extension Application
             let randomWords = (0..<8).map() { _ in words.randomElement() ?? "default" }
             let randomText = randomWords.joined(separator: " ")
             
-            // Create and save new dummy model
+            // create and save new dummy db entry with provided text
             let dummy = DummyModel(text: randomText)
             try await dummy.save(on: req.db)
+            
+            // retrun json encoded http response of created db entry
             return dummy
         }
         
         // Dynamic route to create dummy entry with specific text
         self.get("dummy", "create", ":text")
         { req async throws -> DummyModel in
-            guard let text = req.parameters.get("text")
-            else { throw Abort(.badRequest, reason: "Text parameter is required") }
             
-            // Create and save new dummy model with provided text
+            // validate input parameter
+            guard let text = req.parameters.get("text") else { throw Abort(.badRequest, reason: "Text parameter is required") }
+            
+            // create and save new dummy db entry with provided text
             let dummy = DummyModel(text: text)
             try await dummy.save(on: req.db)
             
+            // retrun json encoded http response of created db entry
             return dummy
         }
         
@@ -66,6 +71,7 @@ extension Application
             // receive client message
             ws.onText()
             { ws, text async in
+                
                 // abort if message is not of type Mist.Message
                 guard let data = text.data(using: .utf8) else { return }
                 guard let message = try? JSONDecoder().decode(Mist.Message.self, from: data) else { return }
