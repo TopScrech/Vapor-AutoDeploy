@@ -74,7 +74,7 @@ extension Application
             await Mist.Clients.shared.add(connection: id, socket: ws, request: request)
             
             try? await ws.send("Server Welcome Message 1")
-            try? await ws.send("{ 'msg': 'Server Welcome Message 2' }")
+            try? await ws.send("{ \"msg\": \"Server Welcome Message 2\" }")
             
             // receive client message
             ws.onText()
