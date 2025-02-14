@@ -8,7 +8,7 @@ extension Application
 {
     func useMist()
     {
-        // mottzi.de/template
+        // mottzi.de/test
         self.get("test")
         { request async throws -> View in
             let entries = try await DummyModel.all(on: request.db)
