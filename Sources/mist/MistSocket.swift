@@ -24,7 +24,7 @@ extension Application
             return try await request.view.render("DummyState", Context(entries: entries))
         }
         
-        self.get("dummy", "delete", ":id")
+        self.get("dummies", "delete", ":id")
         { req async throws -> HTTPStatus in
             
             guard let idString = req.parameters.get("id"),
@@ -44,13 +44,13 @@ extension Application
             return .ok
         }
         
-        self.get("dummy", "deleteAll")
+        self.get("dummies", "deleteAll")
         { req async throws -> HTTPStatus in
             try await DummyModel.query(on: req.db).delete()
             return .ok
         }
         
-        self.get("dummy", "create")
+        self.get("dummies", "create")
         { req async throws -> DummyModel in
             
             let randomWord =
@@ -70,7 +70,7 @@ extension Application
         }
         
         // Dynamic route to create dummy entry with specific text
-        self.get("dummy", "create", ":text")
+        self.get("dummies", "create", ":text")
         { req async throws -> DummyModel in
             
             // validate input parameter
