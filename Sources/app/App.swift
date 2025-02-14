@@ -28,9 +28,9 @@ struct App
         app.environment.useVariables()
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
         app.databases.middleware.use(Deployment.Listener(), on: .sqlite)
-//        app.migrations.add(Deployment.Table())
-//        app.migrations.add(DummyModel.Table())
-//        try await app.autoMigrate()
+        app.migrations.add(Deployment.Table())
+        app.migrations.add(DummyModel.Table())
+        try await app.autoMigrate()
         
         app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
         app.views.use(.leaf)
