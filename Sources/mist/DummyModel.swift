@@ -3,7 +3,7 @@ import Fluent
 
 final class DummyModel: Model, Content, @unchecked Sendable
 {
-    static let schema = "dummymodels2"
+    static let schema = "dummymodels"
     
     @ID(key: .id) var id: UUID?
     @Field(key: "text") var text: String
@@ -34,7 +34,7 @@ extension DummyModel
     {
         func prepare(on database: Database) async throws
         {
-            try await database.schema(Deployment.schema)
+            try await database.schema(DummyModel.schema)
                 .id()
                 .field("text", .string, .required)
                 .field("created", .datetime)
