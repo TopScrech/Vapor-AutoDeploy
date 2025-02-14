@@ -1,4 +1,4 @@
-class Mist
+class MistSocket
 {
     constructor()
     {
@@ -88,6 +88,6 @@ class Mist
 // Wait for the DOM to be fully loaded before executing the code
 document.addEventListener('DOMContentLoaded', function ()
 {
-    window.ws = new Mist();
+    window.ws = new MistSocket();
     window.ws.connect()
 });
