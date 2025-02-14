@@ -1,4 +1,4 @@
-<tr mist-model="DummyModel" mist-id="#(entry.id)" class="hover:bg-gray-50 dark:hover:bg-neutral-750 transition-colors duration-150">
+<tr mist-component="DummyRow" mist-id="#(entry.id)" class="hover:bg-gray-50 dark:hover:bg-neutral-750 transition-colors duration-150">
     <td class="px-6 py-4 max-w-[160px]">
         <span class="block text-sm text-gray-700 dark:text-neutral-300 truncate font-medium">#(entry.text)</span>
     </td>

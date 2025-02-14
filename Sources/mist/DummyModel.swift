@@ -57,24 +57,24 @@ extension DummyModel
         {
             try await next.update(model, on: db)
             
-            // Get registered components for this model
+            // fetch components that are bound to DummyModel
             let components = await MistComponentRegistry.shared.getComponents(forModel: "DummyModel")
             
-            // Broadcast update to each component type
             for component in components
             {
-                // get the html string of component using model as context
+                // render html string of component using updated db entry as context
                 guard let renderer = await MistComponentRegistry.shared.renderer else { return }
                 guard let html = await component.html(renderer: renderer, model: model) else { return }
                 
-                let message = Mist.Message.modelUpdate(
-                    model: "DummyModel",
+                // construct message
+                let message = Mist.Message.componentUpdate(
                     component: component.name,
                     action: "update",
                     id: model.id,
                     html: html
                 )
                 
+                // send component update message to all subscribers of db model
                 await Mist.Clients.shared.broadcast(message)
             }
         }

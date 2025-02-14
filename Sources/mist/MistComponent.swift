@@ -37,7 +37,8 @@ actor MistComponentRegistry
     
     private init() { }
     
-    func configure(renderer: ViewRenderer) {
+    func configure(renderer: ViewRenderer)
+    {
         self.renderer = renderer
     }
     
@@ -46,12 +47,13 @@ actor MistComponentRegistry
         modelComponents[component.model, default: []].append(component)
     }
     
-    func getComponents(forModel model: String) -> [any MistComponent.Type] {
+    func getComponents(forModel model: String) -> [any MistComponent.Type]
+    {
         return modelComponents[model] ?? []
     }
 }
 
-struct DummyTableRowComponent: MistComponent
+struct DummyRowComponent: MistComponent
 {
     static let name = "DummyRow"
     static let model = "DummyModel"
@@ -65,7 +67,8 @@ extension Mist
         Task
         {
             await MistComponentRegistry.shared.configure(renderer: app.leaf.renderer)
-            await MistComponentRegistry.shared.register(DummyTableRowComponent.self)
+            
+            await MistComponentRegistry.shared.register(DummyRowComponent.self)
         }
     }
 }

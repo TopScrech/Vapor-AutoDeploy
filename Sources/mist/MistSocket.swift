@@ -85,8 +85,15 @@ extension Application
                 
                 switch message
                 {
-                    case .subscribe(let model): await Mist.Clients.shared.addSubscription(model, for: id)
-                    case .unsubscribe(let model): await Mist.Clients.shared.removeSubscription(model, for: id)
+                    case .subscribe(let component): do
+                    {
+                        await Mist.Clients.shared.addSubscription(component, for: id)
+                    }
+                        
+                    case .unsubscribe(let component): do
+                    {
+                        await Mist.Clients.shared.removeSubscription(component, for: id)
+                    }
                         
                     // server does not handle other message types
                     default: return

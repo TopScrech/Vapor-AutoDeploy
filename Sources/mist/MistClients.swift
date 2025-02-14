@@ -37,23 +37,23 @@ extension Mist.Clients
 extension Mist.Clients
 {
     // add subscription to connection
-    func addSubscription(_ model: String, for id: UUID)
+    func addSubscription(_ component: String, for id: UUID)
     {
         // abort if client is not found
         guard let index = connections.firstIndex(where: { $0.id == id }) else { return }
 
-        // add model to client's subscriptions
-        connections[index].subscriptions.insert(model)
+        // add component to client's subscriptions
+        connections[index].subscriptions.insert(component)
     }
     
     // remove subscription from connection
-    func removeSubscription(_ environment: String, for id: UUID)
+    func removeSubscription(_ component: String, for id: UUID)
     {
         // abort if client is not found
         guard let index = connections.firstIndex(where: { $0.id == id }) else { return }
         
-        // remove model from client's subscriptions
-        connections[index].subscriptions.remove(environment)
+        // remove component from client's subscriptions
+        connections[index].subscriptions.remove(component)
     }
 }
 
@@ -69,10 +69,10 @@ extension Mist.Clients
         switch message
         {
             // update messages go to subscribers
-            case .modelUpdate(let model, _, _, _, _): do
+            case .componentUpdate(let component, _, _, _): do
             {
                 // get clients that are subscribed to env
-                let subscribers = connections.filter { $0.subscriptions.contains(model) }
+                let subscribers = connections.filter { $0.subscriptions.contains(component) }
                 
                 // send them the update message
                 for subscriber in subscribers { Task { try? await subscriber.socket.send(jsonString) } }

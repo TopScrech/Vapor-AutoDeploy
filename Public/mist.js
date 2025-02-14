@@ -12,6 +12,51 @@ class MistSocket
         
         document.addEventListener('visibilitychange', () => this.visibilityChange());
         window.addEventListener('online', () => this.connect());
+        
+        // subscribe to all components on page load
+        this.subscribeToPageComponents();
+    }
+    
+    subscribeToPageComponents()
+    {
+        // find all elements with mist-component attribute
+        document.querySelectorAll('[mist-component]').forEach(element =>
+        {
+            const component = element.getAttribute('mist-component');
+            
+            if (component)
+            {
+                this.subscribe(component);
+            }
+        });
+    }
+    
+    subscribe(component)
+    {
+        if (this.isConnected())
+        {
+            const message =
+            {
+                type: 'subscribe',
+                component: component
+            };
+            
+            this.socket.send(JSON.stringify(message));
+        }
+    }
+    
+    unsubscribe(component)
+    {
+        if (this.isConnected())
+        {
+            const message =
+            {
+                type: 'unsubscribe',
+                component: component
+            };
+            
+            this.socket.send(JSON.stringify(message));
+        }
     }
     
     isConnected() { return this.socket?.readyState === WebSocket.OPEN; }
@@ -32,6 +77,9 @@ class MistSocket
         this.socket.onopen = () =>
         {
             if (this.timer) { clearInterval(this.timer); this.timer = null; }
+            
+            // Resubscribe to components after reconnection ???
+            this.subscribeToPageComponents();
         };
         
         // parse incoming messages
@@ -39,14 +87,18 @@ class MistSocket
         {
             try
             {
-                // log raw message string
-                console.log(`RAW: ${event.data}`)
-
-                // parse server message to json
+                console.log(`RAW: ${event.data}`);
                 const data = JSON.parse(event.data);
-
-                // respond to server message here
-                // ...
+                
+                if (data.type === 'componentUpdate')
+                {
+                    const elements = document.querySelectorAll(`[mist-component="${data.component}"][mist-id="${data.id}"]`);
+                    
+                    elements.forEach(element =>
+                    {
+                        element.outerHTML = data.html;
+                    });
+                }
             }
             catch (error)
             {

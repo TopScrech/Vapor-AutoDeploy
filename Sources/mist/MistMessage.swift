@@ -5,14 +5,13 @@ extension Mist
 {
     enum Message: Codable
     {
-        case subscribe(model: String)
-        case unsubscribe(model: String)
-        case modelUpdate(model: String, component: String, action: String, id: UUID?, html: String)
+        case subscribe(component: String)
+        case unsubscribe(component: String)
+        case componentUpdate(component: String, action: String, id: UUID?, html: String)
 
         private enum CodingKeys: String, CodingKey
         {
             case type
-            case model
             case component
             case action
             case id
@@ -26,21 +25,20 @@ extension Mist
             
             switch self
             {
-                case .subscribe(let model):
+                case .subscribe(let component):
                     try container.encode("subscribe", forKey: .type)
-                    try container.encode(model, forKey: .model)
-
-                case .unsubscribe(let model):
+                    try container.encode(component, forKey: .component)
+                    
+                case .unsubscribe(let component):
                     try container.encode("unsubscribe", forKey: .type)
-                    try container.encode(model, forKey: .model)
-
-                case .modelUpdate(let model, let component, let action, let id, let payload):
-                    try container.encode("modelUpdate", forKey: .type)
-                    try container.encode(model, forKey: .model)
+                    try container.encode(component, forKey: .component)
+                    
+                case .componentUpdate(let component, let action, let id, let html):
+                    try container.encode("componentUpdate", forKey: .type)
                     try container.encode(component, forKey: .component)
                     try container.encode(action, forKey: .action)
                     try container.encode(id, forKey: .id)
-                    try container.encode(payload, forKey: .html)
+                    try container.encode(html, forKey: .html)
             }
         }
         
@@ -53,20 +51,19 @@ extension Mist
             switch type
             {
                 case "subscribe":
-                    let model = try container.decode(String.self, forKey: .model)
-                    self = .subscribe(model: model)
+                    let component = try container.decode(String.self, forKey: .component)
+                    self = .subscribe(component: component)
                     
                 case "unsubscribe":
-                    let model = try container.decode(String.self, forKey: .model)
-                    self = .unsubscribe(model: model)
-                    
-                case "modelUpdate":
-                    let model = try container.decode(String.self, forKey: .model)
-                    let action = try container.decode(String.self, forKey: .action)
                     let component = try container.decode(String.self, forKey: .component)
+                    self = .unsubscribe(component: component)
+                    
+                case "componentUpdate":
+                    let component = try container.decode(String.self, forKey: .component)
+                    let action = try container.decode(String.self, forKey: .action)
                     let id = try container.decodeIfPresent(UUID.self, forKey: .id)
                     let html = try container.decode(String.self, forKey: .html)
-                    self = .modelUpdate(model: model, component: component, action: action, id: id, html: html)
+                    self = .componentUpdate(component: component, action: action, id: id, html: html)
                     
                 default:
                     throw DecodingError.dataCorrupted(
