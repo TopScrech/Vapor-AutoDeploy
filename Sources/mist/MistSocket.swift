@@ -24,6 +24,34 @@ extension Application
             return try await request.view.render("DummyState", Context(entries: entries))
         }
         
+        self.get("dummies", "update", ":id", ":text")
+        { req async throws -> HTTPStatus in
+            
+            guard let idString = req.parameters.get("id"),
+                  let id = UUID(uuidString: idString)
+            else
+            {
+                throw Abort(.badRequest, reason: "Valid UUID parameter is required")
+            }
+            
+            guard let text = req.parameters.get("text")
+            else
+            {
+                throw Abort(.badRequest, reason: "Valid text parameter is required")
+            }
+            
+            guard let dummy = try await DummyModel.find(id, on: req.db)
+            else
+            {
+                throw Abort(.notFound, reason: "DummyModel with specified ID not found")
+            }
+            
+            dummy.text = text
+            try await dummy.save(on: req.db)
+            
+            return .ok
+        }
+        
         self.get("dummies", "delete", ":id")
         { req async throws -> HTTPStatus in
             
