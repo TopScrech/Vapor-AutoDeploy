@@ -4,20 +4,22 @@ import Fluent
 // Basic component protocol - just needs to know its model type
 protocol MistComponent
 {
+    associatedtype ModelType: Encodable
+    
     static var name: String { get }
     static var model: String { get }
     static var template: String { get }
     
-    static func html(renderer: ViewRenderer, model: any Model) async -> String?
+    static func html(renderer: ViewRenderer, model: ModelType) async -> String?
 }
 
 extension MistComponent
 {
-    static func html(renderer: ViewRenderer, model: any Model) async -> String?
+    static func html(renderer: ViewRenderer, model: ModelType) async -> String?
     {
         do
         {
-            let buffer = try await renderer.render(self.template, model).data
+            let buffer = try await renderer.render(self.template, ["entry": model]).data
             return String(buffer: buffer)
         }
         catch
@@ -55,6 +57,8 @@ actor MistComponentRegistry
 
 struct DummyRowComponent: MistComponent
 {
+    typealias ModelType = DummyModel
+    
     static let name = "DummyRow"
     static let model = "DummyModel"
     static let template = "DummyRow"
