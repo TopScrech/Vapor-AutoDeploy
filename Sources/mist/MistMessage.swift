@@ -7,15 +7,16 @@ extension Mist
     {
         case subscribe(model: String)
         case unsubscribe(model: String)
-        case modelUpdate(model: String, action: String, id: UUID?, payload: Codable)
-        
+        case modelUpdate(model: String, component: String, action: String, id: UUID?, html: String)
+
         private enum CodingKeys: String, CodingKey
         {
             case type
             case model
+            case component
             case action
             case id
-            case payload
+            case html
         }
         
         // Custom encoding to properly format the message
@@ -33,12 +34,13 @@ extension Mist
                     try container.encode("unsubscribe", forKey: .type)
                     try container.encode(model, forKey: .model)
 
-                case .modelUpdate(let model, let action, let id, let payload):
+                case .modelUpdate(let model, let component, let action, let id, let payload):
                     try container.encode("modelUpdate", forKey: .type)
                     try container.encode(model, forKey: .model)
+                    try container.encode(component, forKey: .component)
                     try container.encode(action, forKey: .action)
                     try container.encode(id, forKey: .id)
-                    try container.encode(payload, forKey: .payload)
+                    try container.encode(payload, forKey: .html)
             }
         }
         
@@ -61,9 +63,10 @@ extension Mist
                 case "modelUpdate":
                     let model = try container.decode(String.self, forKey: .model)
                     let action = try container.decode(String.self, forKey: .action)
+                    let component = try container.decode(String.self, forKey: .component)
                     let id = try container.decodeIfPresent(UUID.self, forKey: .id)
-                    let payload = try container.decode(String.self, forKey: .payload)
-                    self = .modelUpdate(model: model, action: action, id: id, payload: payload)
+                    let html = try container.decode(String.self, forKey: .html)
+                    self = .modelUpdate(model: model, component: component, action: action, id: id, html: html)
                     
                 default:
                     throw DecodingError.dataCorrupted(

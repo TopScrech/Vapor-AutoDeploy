@@ -8,6 +8,8 @@ extension Application
 {
     func useMist()
     {
+        Mist.configureComponents(self)
+        
         // mottzi.de/test
         self.get("test")
         { request async throws -> View in

@@ -69,7 +69,7 @@ extension Mist.Clients
         switch message
         {
             // update messages go to subscribers
-            case .modelUpdate(let model, _, _, _): do
+            case .modelUpdate(let model, _, _, _, _): do
             {
                 // get clients that are subscribed to env
                 let subscribers = connections.filter { $0.subscriptions.contains(model) }
