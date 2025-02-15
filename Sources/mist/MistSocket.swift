@@ -119,7 +119,7 @@ extension Application
             let id = UUID()
             
             // add new connection to actor
-            await Mist.Clients.shared.add(connection: id, socket: ws, request: request)
+            await Mist.Clients.shared.add(connection: id, socket: ws)
             
             try? await ws.send("{ \"msg\": \"Server Welcome Message\" }")
             

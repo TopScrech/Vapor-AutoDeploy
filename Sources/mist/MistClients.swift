@@ -11,8 +11,8 @@ struct Mist
         [(
             id: UUID,
             socket: WebSocket,
-            subscriptions: Set<String>,
-            request: Request
+            subscriptions: Set<String>
+            
         )] = []
     }
 }
@@ -21,9 +21,9 @@ struct Mist
 extension Mist.Clients
 {
     // add connection to actor
-    func add(connection id: UUID, socket: WebSocket, subscriptions: Set<String> = [], request: Request)
+    func add(connection id: UUID, socket: WebSocket, subscriptions: Set<String> = [])
     {
-        connections.append((id: id, socket: socket, subscriptions: subscriptions, request: request))
+        connections.append((id: id, socket: socket, subscriptions: subscriptions))
         
         let logger = Logger(label: "Mist.Clients.add")
         logger.info("new client added to server")
