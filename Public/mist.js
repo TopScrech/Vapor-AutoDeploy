@@ -23,7 +23,7 @@ class MistSocket
         
         // Find all elements with mist-component attribute
         document.querySelectorAll('[mist-component]').forEach(element =>
-                                                              {
+        {
             const component = element.getAttribute('mist-component');
             
             if (component)

@@ -61,12 +61,12 @@ extension DummyModel
             logger.info("change detected on a DummyModel")
             
             // fetch components that are bound to DummyModel
-            let components = await MistComponentRegistry.shared.getComponents(forModel: "DummyModel")
+            let components = await Mist.Components.shared.getComponents(forModel: "DummyModel")
             
             for component in components
             {
                 // render html string of component using updated db entry as context
-                guard let renderer = await MistComponentRegistry.shared.renderer else { return }
+                guard let renderer = await Mist.Components.shared.renderer else { return }
                 guard let html = await component.html(renderer: renderer, model: model) else { return }
                 
                 let logger = Logger(label: "DummyModel.Listener")

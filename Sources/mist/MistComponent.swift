@@ -2,7 +2,8 @@ import Vapor
 import Fluent
 
 // Type-erasing wrapper for Encodable values
-struct AnyEncodable: Encodable {
+struct AnyEncodable: Encodable
+{
     private let _encode: (Encoder) throws -> Void
     
     init(_ value: any Encodable) {
@@ -11,16 +12,19 @@ struct AnyEncodable: Encodable {
         }
     }
     
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: Encoder) throws
+    {
         try _encode(encoder)
     }
 }
 
 // Context structure that can handle type-erased Encodable values
-struct MistContext: Encodable {
+struct MistContext: Encodable
+{
     let entry: AnyEncodable
     
-    init(entry: any Encodable) {
+    init(entry: any Encodable)
+    {
         self.entry = AnyEncodable(entry)
     }
 }
@@ -53,28 +57,31 @@ extension MistComponent
 }
 
 // Registry to maintain component <-> model relationships
-actor MistComponentRegistry
+extension Mist
 {
-    static let shared = MistComponentRegistry()
-    public var renderer: ViewRenderer?
-    
-    private var modelComponents: [String: [any MistComponent.Type]] = [:]
-    
-    private init() { }
-    
-    func configure(renderer: ViewRenderer)
+    actor Components
     {
-        self.renderer = renderer
-    }
-    
-    func register(_ component: any MistComponent.Type)
-    {
-        modelComponents[component.model, default: []].append(component)
-    }
-    
-    func getComponents(forModel model: String) -> [any MistComponent.Type]
-    {
-        return modelComponents[model] ?? []
+        static let shared = Mist.Components()
+        public var renderer: ViewRenderer?
+        
+        private var modelComponents: [String: [any MistComponent.Type]] = [:]
+        
+        private init() { }
+        
+        func configure(renderer: ViewRenderer)
+        {
+            self.renderer = renderer
+        }
+        
+        func register(_ component: any MistComponent.Type)
+        {
+            modelComponents[component.model, default: []].append(component)
+        }
+        
+        func getComponents(forModel model: String) -> [any MistComponent.Type]
+        {
+            return modelComponents[model] ?? []
+        }
     }
 }
 
@@ -91,9 +98,9 @@ extension Mist
     {
         Task
         {
-            await MistComponentRegistry.shared.configure(renderer: app.leaf.renderer)
+            await Mist.Components.shared.configure(renderer: app.leaf.renderer)
             
-            await MistComponentRegistry.shared.register(DummyRowComponent.self)
+            await Mist.Components.shared.register(DummyRowComponent.self)
         }
     }
 }
