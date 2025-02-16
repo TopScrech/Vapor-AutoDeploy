@@ -157,15 +157,3 @@ extension Application
         }
     }
 }
-
-extension Mist
-{
-    static func configureComponents(_ app: Application)
-    {
-        Task
-        {
-            await Components.shared.configure(renderer: app.leaf.renderer)
-            await Components.shared.register(DummyRow.self)
-        }
-    }
-}

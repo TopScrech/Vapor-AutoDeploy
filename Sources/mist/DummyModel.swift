@@ -48,60 +48,40 @@ extension DummyModel
     }
 }
 
-// Updated listener with proper concurrency handling
+// table listener
 extension DummyModel
 {
     struct Listener: AsyncModelMiddleware
     {
-        private let logger = Logger(label: "DummyModel.Listener")
-        
         func update(model: DummyModel, on db: Database, next: AnyAsyncModelResponder) async throws
         {
             try await next.update(model, on: db)
             
-            let components = await Mist.Components.shared.getComponents(for: DummyModel.self)
+            let logger = Logger(label: "DummyModel.Listener")
+            logger.info("change detected on a DummyModel")
             
-            guard !components.isEmpty
-            else
-            {
-                logger.warning("No components registered for DummyModel")
-                return
-            }
+            // fetch components that are bound to DummyModel
+            let components = await Mist.Components.shared.getComponents(forModel: "DummyModel")
             
-            guard let renderer = await Mist.Components.shared.getRenderer()
-            else
+            for component in components
             {
-                logger.error("Renderer not configured")
-                return
-            }
-            
-            for componentType in components
-            {
-                do
-                {
-                    guard let concreteComponent = componentType as? any MistComponent<DummyModel>.Type
-                    else
-                    {
-                        logger.error("Component type mismatch")
-                        continue
-                    }
-                    
-                    let html = try await concreteComponent.render(model: model, using: renderer)
-                    
-                    let message = Mist.Message.componentUpdate(
-                        component: concreteComponent.componentName.rawValue,
-                        action: "update",
-                        id: model.id,
-                        html: html
-                    )
-                    
-                    await Mist.Clients.shared.broadcast(message)
-                }
-                catch
-                {
-                    logger.error("Failed to process component: \(error.localizedDescription)")
-                    continue
-                }
+                // render html string of component using updated db entry as context
+                guard let renderer = await Mist.Components.shared.renderer else { return }
+                guard let html = await component.html(renderer: renderer, model: model) else { return }
+                
+                let logger = Logger(label: "DummyModel.Listener")
+                logger.info("following html will be sent to subscribers: \(html)")
+                
+                // construct message
+                let message = Mist.Message.componentUpdate(
+                    component: component.name,
+                    action: "update",
+                    id: model.id,
+                    html: html
+                )
+                
+                // send component update message to all subscribers of db model
+                await Mist.Clients.shared.broadcast(message)
             }
         }
     }

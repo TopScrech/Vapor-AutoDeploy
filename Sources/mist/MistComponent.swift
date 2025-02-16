@@ -1,146 +1,132 @@
 import Vapor
 import Fluent
-import Leaf
-import LeafKit
 
-// MARK: - Type-Safe Wrappers
-struct ComponentName: RawRepresentable, Hashable, Sendable
+// Type-erasing wrapper for Encodable...
+// what an abomination, mot modern at all.
+struct AnyEncodable: Encodable
 {
-    let rawValue: String
+    private let _encode: (Encoder) throws -> Void
     
-    init(rawValue: String)
-    {
-        self.rawValue = rawValue
-    }
-}
-
-struct TemplatePath: RawRepresentable, Hashable, Sendable
-{
-    let rawValue: String
-    
-    init(rawValue: String)
-    {
-        self.rawValue = rawValue
-    }
-}
-
-// MARK: - Type-Safe Context
-struct ComponentContext<T: Encodable & Sendable>: Encodable, Sendable
-{
-    private enum CodingKeys: String, CodingKey
-    {
-        case model = "entry"
-    }
-    
-    let model: T
-    
-    init(model: T)
-    {
-        self.model = model
+    init(_ value: any Encodable) {
+        self._encode = { encoder in
+            try value.encode(to: encoder)
+        }
     }
     
     func encode(to encoder: Encoder) throws
     {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(model, forKey: .model)
+        try _encode(encoder)
     }
 }
 
-// MARK: - Core Component Protocol
-protocol MistComponent<Model>: Sendable
+// using type erasure... I hate this so much.
+struct MistContext: Encodable
 {
-    associatedtype Model: Fluent.Model & Content
+    let entry: AnyEncodable
     
-    static var componentName: ComponentName { get }
-    static var templatePath: TemplatePath { get }
+    init(entry: any Encodable)
+    {
+        self.entry = AnyEncodable(entry)
+    }
 }
 
-// MARK: - Default Implementation
+protocol MistComponent
+{
+    // should probably be intrinsicly bound to struct own name litral
+    // otherwise String seems legit here
+    static var name: String { get }
+    
+    // db model this component renders
+    // in the future, we would want to make it possible that one component can have multiple models...
+    // while the client uses String values, this should really be type safe ob swift backend.
+    // since the model is literally in all cases a Fluent Model (final class DummyModel: Model, Content)
+    // Content is Codable...
+    static var model: String { get }
+    
+    // is a string by design
+    static var template: String { get }
+    
+    // the html() function by default runs self.template trough leaf
+    // using the appropriate context (which is of course dependant on the data model etc...)
+    // and returns the String or nil
+    static func html(renderer: ViewRenderer, model: any Encodable) async -> String?
+}
+
 extension MistComponent
 {
-    static func render(model: Model, using renderer: any ViewRenderer) async throws -> String
+    // default implementation
+    static func html(renderer: ViewRenderer, model: any Encodable) async -> String?
     {
-        let context = ComponentContext(model: model)
-        let buffer = try await renderer.render(templatePath.rawValue, context).data
-        return String(buffer: buffer)
+        do
+        {
+            // this context is highly model specific
+            // each component should have its own intrinsic context definition
+            let context = MistContext(entry: model)
+            
+            // render template with context
+            let buffer = try await renderer.render(self.template, context).data
+            return String(buffer: buffer)
+        }
+        catch
+        {
+            return nil
+        }
     }
 }
 
-// MARK: - Type-Safe Registry
+// Registry
 extension Mist
 {
+    // thread safety
     actor Components
     {
-        static let shared = Components()
+        // singleton
+        static let shared = Mist.Components()
         
-        private var renderer: (any ViewRenderer & Sendable)?
-        private var components: [String: [any ComponentRenderer]] = [:]
+        // provided through self.configure()
+        public var renderer: ViewRenderer?
+        func configure(renderer: ViewRenderer) { self.renderer = renderer }
+
+        // stored registry data, using dictionaries
+        // review if usage of 'any MistComponent.Type ' is correct
+        private var modelComponents: [String: [any MistComponent.Type]] = [:]
         
         private init() { }
         
-        private protocol ComponentRenderer: Sendable
+        // review if usage is correct
+        func register(_ component: any MistComponent.Type)
         {
-            static func render(model: Any, using renderer: any ViewRenderer & Sendable) async throws -> String
-            var componentType: any (MistComponent & Sendable).Type { get }
+            modelComponents[component.model, default: []].append(component)
         }
         
-        private struct AnyComponent<T: MistComponent>: ComponentRenderer
+        // review if usage is correct
+        func getComponents(forModel model: String) -> [any MistComponent.Type]
         {
-            let componentType: any (MistComponent & Sendable).Type
-            
-            init(_ type: T.Type)
-            {
-                self.componentType = type
-            }
-            
-            static func render(model: Any, using renderer: any ViewRenderer & Sendable) async throws -> String
-            {
-                guard let typedModel = model as? T.Model
-                else
-                {
-                    throw Abort(.internalServerError, reason: "Model type mismatch")
-                }
-                
-                return try await T.render(model: typedModel, using: renderer)
-            }
-        }
-        
-        func configure(renderer: any ViewRenderer & Sendable)
-        {
-            self.renderer = renderer
-        }
-        
-        func register<T: MistComponent>(_ component: T.Type)
-        {
-            let modelName = String(describing: T.Model.self)
-            components[modelName, default: []].append(AnyComponent(component))
-        }
-        
-        func getComponents<M: Fluent.Model & Content>(for modelType: M.Type) -> [any (MistComponent & Sendable).Type]
-        {
-            let modelName = String(describing: M.self)
-            return components[modelName]?.map(\.componentType) ?? []
-        }
-        
-        func getRenderer() -> (any ViewRenderer & Sendable)?
-        {
-            return renderer
+            return modelComponents[model] ?? []
         }
     }
 }
 
-// MARK: - Example Component
+// example component
 struct DummyRow: MistComponent
 {
-    typealias Model = DummyModel
-    
-    static var componentName: ComponentName
+    // uhhhh look at all the type unsafety
+    // more instrucions look at protocol MistComponent definition comments
+    static let name = "DummyRow"
+    static let model = "DummyModel"
+    static let template = "DummyRow"
+}
+
+extension Mist
+{
+    // run when server app initializes
+    static func configureComponents(_ app: Application)
     {
-        return .init(rawValue: "DummyRow")
-    }
-    
-    static var templatePath: TemplatePath
-    {
-        return .init(rawValue: "DummyRow")
+        Task
+        {
+            await Mist.Components.shared.configure(renderer: app.leaf.renderer)
+            
+            await Mist.Components.shared.register(DummyRow.self)
+        }
     }
 }
