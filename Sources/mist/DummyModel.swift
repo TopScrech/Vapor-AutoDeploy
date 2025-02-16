@@ -48,6 +48,7 @@ extension DummyModel
     }
 }
 
+// Updated listener with proper concurrency handling
 extension DummyModel
 {
     struct Listener: AsyncModelMiddleware
@@ -58,8 +59,6 @@ extension DummyModel
         {
             try await next.update(model, on: db)
             
-            logger.info("Model update detected: \(model.id?.uuidString ?? "unknown")")
-            
             let components = await Mist.Components.shared.getComponents(for: DummyModel.self)
             
             guard !components.isEmpty
@@ -69,7 +68,7 @@ extension DummyModel
                 return
             }
             
-            guard let renderer = await Mist.Components.shared.renderer
+            guard let renderer = await Mist.Components.shared.getRenderer()
             else
             {
                 logger.error("Renderer not configured")
@@ -80,7 +79,6 @@ extension DummyModel
             {
                 do
                 {
-                    // We can now safely cast to the concrete component type
                     guard let concreteComponent = componentType as? any MistComponent<DummyModel>.Type
                     else
                     {
@@ -90,10 +88,8 @@ extension DummyModel
                     
                     let html = try await concreteComponent.render(model: model, using: renderer)
                     
-                    logger.debug("Generated HTML for component: \(concreteComponent.name.rawValue)")
-                    
                     let message = Mist.Message.componentUpdate(
-                        component: concreteComponent.name.rawValue,
+                        component: concreteComponent.componentName.rawValue,
                         action: "update",
                         id: model.id,
                         html: html

@@ -1,52 +1,32 @@
 import Vapor
 import Fluent
-
-// MARK: - Core Component Protocol
-protocol MistComponent<Model>
-{
-    associatedtype Model: Fluent.Model & Content
-    
-    static var name: ComponentName { get }
-    static var template: TemplatePath { get }
-    
-    static func render(model: Model, using renderer: ViewRenderer) async throws -> String
-}
+import Leaf
+import LeafKit
 
 // MARK: - Type-Safe Wrappers
-struct ComponentName: RawRepresentable, Hashable
+struct ComponentName: RawRepresentable, Hashable, Sendable
 {
     let rawValue: String
     
     init(rawValue: String)
     {
         self.rawValue = rawValue
-    }
-    
-    static func named(_ name: String) -> ComponentName
-    {
-        return ComponentName(rawValue: name)
     }
 }
 
-struct TemplatePath: RawRepresentable
+struct TemplatePath: RawRepresentable, Hashable, Sendable
 {
     let rawValue: String
     
     init(rawValue: String)
     {
         self.rawValue = rawValue
-    }
-    
-    static func path(_ path: String) -> TemplatePath
-    {
-        return TemplatePath(rawValue: path)
     }
 }
 
 // MARK: - Type-Safe Context
-struct ComponentContext<T: Encodable>: Encodable
+struct ComponentContext<T: Encodable & Sendable>: Encodable, Sendable
 {
-    // We need a coding key to match the original implementation's 'entry' key
     private enum CodingKeys: String, CodingKey
     {
         case model = "entry"
@@ -59,20 +39,29 @@ struct ComponentContext<T: Encodable>: Encodable
         self.model = model
     }
     
-    // Implement custom encoding to match the original MistContext structure
     func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(model, forKey: .model)
     }
 }
+
+// MARK: - Core Component Protocol
+protocol MistComponent<Model>: Sendable
+{
+    associatedtype Model: Fluent.Model & Content
+    
+    static var componentName: ComponentName { get }
+    static var templatePath: TemplatePath { get }
+}
+
 // MARK: - Default Implementation
 extension MistComponent
 {
-    static func render(model: Model, using renderer: ViewRenderer) async throws -> String
+    static func render(model: Model, using renderer: any ViewRenderer) async throws -> String
     {
         let context = ComponentContext(model: model)
-        let buffer = try await renderer.render(template.rawValue, context).data
+        let buffer = try await renderer.render(templatePath.rawValue, context).data
         return String(buffer: buffer)
     }
 }
@@ -82,31 +71,29 @@ extension Mist
 {
     actor Components
     {
-        // Singleton instance
         static let shared = Components()
+        
+        private var renderer: (any ViewRenderer & Sendable)?
+        private var components: [String: [any ComponentRenderer]] = [:]
         
         private init() { }
         
-        // Type-safe storage using type erasure only at the storage level
-        private var components: [String: [any ComponentRenderer]] = [:]
-        
-        private protocol ComponentRenderer
+        private protocol ComponentRenderer: Sendable
         {
-            static func render(model: Any, using renderer: ViewRenderer) async throws -> String
-            var componentType: any MistComponent.Type { get }
+            static func render(model: Any, using renderer: any ViewRenderer & Sendable) async throws -> String
+            var componentType: any (MistComponent & Sendable).Type { get }
         }
         
-        // Updated wrapper to hold static reference
         private struct AnyComponent<T: MistComponent>: ComponentRenderer
         {
-            let componentType: any MistComponent.Type
+            let componentType: any (MistComponent & Sendable).Type
             
             init(_ type: T.Type)
             {
                 self.componentType = type
             }
             
-            static func render(model: Any, using renderer: ViewRenderer) async throws -> String
+            static func render(model: Any, using renderer: any ViewRenderer & Sendable) async throws -> String
             {
                 guard let typedModel = model as? T.Model
                 else
@@ -118,48 +105,42 @@ extension Mist
             }
         }
         
-        // Updated registration to store component type
+        func configure(renderer: any ViewRenderer & Sendable)
+        {
+            self.renderer = renderer
+        }
+        
         func register<T: MistComponent>(_ component: T.Type)
         {
             let modelName = String(describing: T.Model.self)
             components[modelName, default: []].append(AnyComponent(component))
         }
         
-        // Updated retrieval to return component types
-        func getComponents<M: Fluent.Model & Content>(for modelType: M.Type) -> [any MistComponent.Type]
+        func getComponents<M: Fluent.Model & Content>(for modelType: M.Type) -> [any (MistComponent & Sendable).Type]
         {
             let modelName = String(describing: M.self)
             return components[modelName]?.map(\.componentType) ?? []
         }
         
-        // Configured renderer
-        public var renderer: ViewRenderer?
-        
-        func configure(renderer: ViewRenderer)
+        func getRenderer() -> (any ViewRenderer & Sendable)?
         {
-            self.renderer = renderer
+            return renderer
         }
     }
 }
 
+// MARK: - Example Component
 struct DummyRow: MistComponent
 {
     typealias Model = DummyModel
     
-    static var name: ComponentName = .named("DummyRow")
-    static var template: TemplatePath = .path("DummyRow")
-}
-
-// MARK: - Configuration Extension
-extension Mist
-{
-    static func configureComponents(_ app: Application)
+    static var componentName: ComponentName
     {
-        // Run on app startup
-        Task
-        {
-            await Mist.Components.shared.configure(renderer: app.leaf.renderer)
-            await Mist.Components.shared.register(DummyRow.self)
-        }
+        return .init(rawValue: "DummyRow")
+    }
+    
+    static var templatePath: TemplatePath
+    {
+        return .init(rawValue: "DummyRow")
     }
 }
