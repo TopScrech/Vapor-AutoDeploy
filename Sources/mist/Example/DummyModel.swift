@@ -60,32 +60,17 @@ extension DummyModel
             // perform database update first, propagate any errors
             try await next.update(model, on: db)
             
-            // initialize logger for debugging
-            let logger = Logger(label: "DummyModel.Listener")
-            logger.info("change detected on a DummyModel")
-            
             // get type-safe components registered for this model type
             let components = await Mist.Components.shared.getComponents(for: DummyModel.self)
             
             // safely unwrap renderer, exit if not configured
-            guard let renderer = await Mist.Components.shared.getRenderer() else
-            {
-                logger.error("no renderer configured")
-                return
-            }
+            guard let renderer = await Mist.Components.shared.getRenderer() else { return }
             
             // process each component
             for component in components
             {
                 // type-safe render with error handling
-                guard let html = await component.render(model: model, using: renderer) else
-                {
-                    logger.error("failed to render component: \(component.name)")
-                    continue
-                }
-                
-                // log rendered output for debugging
-                logger.info("rendered HTML for component \(component.name): \(html)")
+                guard let html = await component.render(model: model, using: renderer) else { continue }
                 
                 // create update message with component info
                 let message = Mist.Message.componentUpdate(
