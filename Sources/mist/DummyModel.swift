@@ -51,38 +51,43 @@ extension DummyModel
 // table listener
 extension DummyModel
 {
+    // middleware that handles model updates and triggers UI refreshes
     struct Listener: AsyncModelMiddleware
     {
+        // called when model is updated in database
         func update(model: DummyModel, on db: Database, next: AnyAsyncModelResponder) async throws
         {
-            // First perform the database update
+            // perform database update first, propagate any errors
             try await next.update(model, on: db)
             
+            // initialize logger for debugging
             let logger = Logger(label: "DummyModel.Listener")
             logger.info("change detected on a DummyModel")
             
-            // Fetch components that are registered for DummyModel type
+            // get type-safe components registered for this model type
             let components = await Mist.Components.shared.getComponents(for: DummyModel.self)
             
-            // Get the renderer from the components registry
+            // safely unwrap renderer, exit if not configured
             guard let renderer = await Mist.Components.shared.getRenderer() else
             {
                 logger.error("no renderer configured")
                 return
             }
             
+            // process each component
             for component in components
             {
-                // Render the component using the type-erased render method
+                // type-safe render with error handling
                 guard let html = await component.render(model: model, using: renderer) else
                 {
                     logger.error("failed to render component: \(component.name)")
                     continue
                 }
                 
+                // log rendered output for debugging
                 logger.info("rendered HTML for component \(component.name): \(html)")
                 
-                // Construct and broadcast the update message
+                // create update message with component info
                 let message = Mist.Message.componentUpdate(
                     component: component.name,
                     action: "update",
@@ -90,6 +95,7 @@ extension DummyModel
                     html: html
                 )
                 
+                // broadcast to all connected clients
                 await Mist.Clients.shared.broadcast(message)
             }
         }
