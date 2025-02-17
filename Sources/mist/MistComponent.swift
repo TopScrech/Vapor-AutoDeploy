@@ -1,120 +1,108 @@
 import Vapor
 import Fluent
 
-// Type-erasing wrapper for Encodable...
-// what an abomination, mot modern at all.
-struct AnyEncodable: Encodable
-{
-    private let _encode: (Encoder) throws -> Void
-    
-    init(_ value: any Encodable) {
-        self._encode = { encoder in
-            try value.encode(to: encoder)
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws
-    {
-        try _encode(encoder)
-    }
-}
-
-// using type erasure... I hate this so much.
-struct MistContext: Encodable
-{
-    let entry: AnyEncodable
-    
-    init(entry: any Encodable)
-    {
-        self.entry = AnyEncodable(entry)
-    }
-}
-
+// MARK: - Core Protocol
 protocol MistComponent
 {
-    // should probably be intrinsicly bound to struct own name litral
-    // otherwise String seems legit here
+    associatedtype Model: Fluent.Model & Content
+    associatedtype Context: Encodable
+    
     static var name: String { get }
-    
-    // db model this component renders
-    // in the future, we would want to make it possible that one component can have multiple models...
-    // while the client uses String values, this should really be type safe ob swift backend.
-    // since the model is literally in all cases a Fluent Model (final class DummyModel: Model, Content)
-    // Content is Codable...
-    static var model: String { get }
-    
-    // is a string by design
     static var template: String { get }
     
-    // the html() function by default runs self.template trough leaf
-    // using the appropriate context (which is of course dependant on the data model etc...)
-    // and returns the String or nil
-    static func html(renderer: ViewRenderer, model: any Encodable) async -> String?
+    static func makeContext(from model: Model) -> Context
 }
 
 extension MistComponent
 {
-    // default implementation
-    static func html(renderer: ViewRenderer, model: any Encodable) async -> String?
+    static var name: String { String(describing: self) }
+    static var template: String { String(describing: self) }
+    
+    static func render(model: Model, using renderer: ViewRenderer) async -> String?
     {
-        do
-        {
-            // this context is highly model specific
-            // each component should have its own intrinsic context definition
-            let context = MistContext(entry: model)
-            
-            // render template with context
-            let buffer = try await renderer.render(self.template, context).data
-            return String(buffer: buffer)
-        }
-        catch
-        {
-            return nil
-        }
+        let context = makeContext(from: model)
+        guard let buffer = try? await renderer.render(template, context).data else { return nil }
+        return String(buffer: buffer)
     }
 }
 
-// Registry
+// MARK: - Type Erased Component
+struct AnyComponent
+{
+    let name: String
+    let template: String
+    
+    private let _render: (Any, ViewRenderer) async -> String?
+    
+    init<C: MistComponent>(_ component: C.Type)
+    {
+        self.name = C.name
+        self.template = C.template
+        
+        self._render =
+        { model, renderer in
+            guard let typedModel = model as? C.Model else { return nil }
+            return await C.render(model: typedModel, using: renderer)
+        }
+    }
+    
+    func render(model: Any, using renderer: ViewRenderer) async -> String?
+    {
+        await _render(model, renderer)
+    }
+}
+
+// MARK: - Registry
 extension Mist
 {
-    // thread safety
     actor Components
     {
-        // singleton
-        static let shared = Mist.Components()
-        
-        // provided through self.configure()
-        public var renderer: ViewRenderer?
-        func configure(renderer: ViewRenderer) { self.renderer = renderer }
-
-        // stored registry data, using dictionaries
-        // review if usage of 'any MistComponent.Type ' is correct
-        private var modelComponents: [String: [any MistComponent.Type]] = [:]
-        
+        static let shared = Components()
         private init() { }
         
-        // review if usage is correct
-        func register(_ component: any MistComponent.Type)
+        private var components: [String: [AnyComponent]] = [:]
+        private var renderer: ViewRenderer?
+        
+        func configure(renderer: ViewRenderer)
         {
-            modelComponents[component.model, default: []].append(component)
+            self.renderer = renderer
         }
         
-        // review if usage is correct
-        func getComponents(forModel model: String) -> [any MistComponent.Type]
+        func register<C: MistComponent>(_ component: C.Type)
         {
-            return modelComponents[model] ?? []
+            let modelName = String(describing: C.Model.self)
+            components[modelName, default: []].append(AnyComponent(component))
+        }
+        
+        func getComponents<M: Model & Content>(for type: M.Type) -> [AnyComponent]
+        {
+            let modelName = String(describing: M.self)
+            return components[modelName] ?? []
+        }
+        
+        func getRenderer() -> ViewRenderer?
+        {
+            renderer
         }
     }
 }
 
-// example component
+// MARK: - Example Implementation
 struct DummyRow: MistComponent
 {
-    // uhhhh look at all the type unsafety
-    // more instrucions look at protocol MistComponent definition comments
-    static let name = "DummyRow"
-    static let model = "DummyModel"
-    static let template = "DummyRow"
+    // The model this component renders
+    typealias Model = DummyModel
+    
+    // Component's specific context
+    struct Context: Encodable
+    {
+        let entry: DummyModel
+    }
+    
+    static func makeContext(from model: Model) -> Context
+    {
+        Context(entry: model)
+    }
 }
 
 extension Mist
