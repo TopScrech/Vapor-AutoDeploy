@@ -45,7 +45,7 @@ extension Mist
 extension Mist
 {
     // initialize component system
-    static func configureComponents(_ app: Application)
+    static func registerComponents(on app: Application)
     {
         Task
         {
