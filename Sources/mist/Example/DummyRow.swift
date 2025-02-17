@@ -1,5 +1,8 @@
+import Vapor
+import Fluent
+
 // example component implementation
-struct DummyRow: MistComponent
+struct DummyRow: Mist.Component
 {
     // specify model type this component renders
     typealias Model = DummyModel

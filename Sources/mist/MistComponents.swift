@@ -1,10 +1,5 @@
-//
-//  Components.swift
-//  mottzi
-//
-//  Created by Berken Sayilir on 17.02.2025.
-//
-
+import Vapor
+import Fluent
 
 // thread-safe component registry
 extension Mist
@@ -16,7 +11,7 @@ extension Mist
         private init() { }
         
         // store components by model type name
-        private var components: [String: [AnyComponent]] = [:]
+        private var components: [String: [Mist.AnyComponent]] = [:]
         private var renderer: ViewRenderer?
         
         // set template renderer
@@ -26,14 +21,14 @@ extension Mist
         }
         
         // register new component type
-        func register<C: MistComponent>(_ component: C.Type)
+        func register<C: Mist.Component>(_ component: C.Type)
         {
             let modelName = String(describing: C.Model.self)
-            components[modelName, default: []].append(AnyComponent(component))
+            components[modelName, default: []].append(Mist.AnyComponent(component))
         }
         
         // get components that can render given model type
-        func getComponents<M: Model & Content>(for type: M.Type) -> [AnyComponent]
+        func getComponents<M: Model & Content>(for type: M.Type) -> [Mist.AnyComponent]
         {
             let modelName = String(describing: M.self)
             return components[modelName] ?? []
@@ -43,6 +38,22 @@ extension Mist
         func getRenderer() -> ViewRenderer?
         {
             renderer
+        }
+    }
+}
+
+extension Mist
+{
+    // initialize component system
+    static func configureComponents(_ app: Application)
+    {
+        Task
+        {
+            // configure template renderer
+            await Mist.Components.shared.configure(renderer: app.leaf.renderer)
+            
+            // register example component
+            await Mist.Components.shared.register(DummyRow.self)
         }
     }
 }
