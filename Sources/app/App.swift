@@ -24,6 +24,7 @@ struct App
         }
         
         app.useMist()
+        app.useDummy()
                 
         app.environment.useVariables()
         
