@@ -1,4 +1,4 @@
-import Vapor
+@preconcurrency import Vapor
 import Fluent
 
 final class DummyModel: Model, Content, @unchecked Sendable
@@ -86,3 +86,4 @@ extension DummyModel
         }
     }
 }
+

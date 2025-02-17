@@ -35,9 +35,9 @@ extension Mist
         }
         
         // get configured renderer
-        func getRenderer() -> ViewRenderer?
+        func getRenderer() async -> ViewRenderer?
         {
-            renderer
+            return renderer
         }
     }
 }

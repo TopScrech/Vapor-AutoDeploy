@@ -41,13 +41,13 @@ extension Mist.Component
 // type erasure wrapper to store different component types together
 extension Mist
 {
-    struct AnyComponent
+    struct AnyComponent: Sendable
     {
         let name: String
         let template: String
         
         // type-erased render function that handles any model type
-        private let _render: (Any, ViewRenderer) async -> String?
+        private let _render: @Sendable (Any, ViewRenderer) async -> String?
         
         // wrap concrete component type into type-erased container
         init<C: Mist.Component>(_ component: C.Type)
