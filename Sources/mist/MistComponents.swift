@@ -28,7 +28,7 @@ extension Mist
         }
         
         // get components that can render given model type
-        func getComponents<M: Model & Content>(for type: M.Type) -> [Mist.AnyComponent]
+        func getComponents<M: Model>(for type: M.Type) -> [Mist.AnyComponent]
         {
             let modelName = String(describing: M.self)
             return components[modelName] ?? []
