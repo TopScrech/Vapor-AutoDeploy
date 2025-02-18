@@ -50,7 +50,7 @@ extension Mist
         private let _render: @Sendable (Any, ViewRenderer) async -> String?
         
         // wrap concrete component type into type-erased container
-        init<C: Mist.Component>(_ component: C.Type)
+        init<C: Component>(_ component: C.Type)
         {
             self.name = C.name
             self.template = C.template

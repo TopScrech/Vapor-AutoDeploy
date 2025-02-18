@@ -22,14 +22,10 @@ struct App
             
             return ConsoleFragmentLogger(fragment: format, label: $0, console: Terminal(), level: .info)
         }
-        
-        app.useMist()
-        app.useDummy()
                 
         app.environment.useVariables()
         
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
-        app.databases.middleware.use(DummyModel.Listener(), on: .sqlite)
         app.databases.middleware.use(Deployment.Listener(), on: .sqlite)
         
         app.migrations.add(Deployment.Table())
@@ -41,6 +37,9 @@ struct App
         app.useRoutes()
         app.usePushDeploy()
         app.useDeployPanel()
+        
+        app.useMist()
+        app.useDummy()
         
         try await app.execute()
         try await app.asyncShutdown()

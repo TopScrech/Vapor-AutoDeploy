@@ -11,7 +11,7 @@ extension Mist
         private init() { }
         
         // store components by model type name
-        private var components: [String: [Mist.AnyComponent]] = [:]
+        private var components: [String: [AnyComponent]] = [:]
         private var renderer: ViewRenderer?
         
         // set template renderer
@@ -21,14 +21,26 @@ extension Mist
         }
         
         // register new component type
-        func register<C: Mist.Component>(_ component: C.Type)
+        func register<C: Component>(component: C.Type, on app: Application) where C.Model.IDValue == UUID
         {
             let modelName = String(describing: C.Model.self)
-            components[modelName, default: []].append(Mist.AnyComponent(component))
+            
+            // If this is the first component for this model type,
+            // we need to register the listener
+            let isFirstComponentForModel = components[modelName] == nil
+            
+            // Add the component
+            components[modelName, default: []].append(AnyComponent(component))
+            
+            // Register listener only on first component for this model
+            if isFirstComponentForModel
+            {
+                app.databases.middleware.use(Listener<C.Model>(), on: .sqlite)
+            }
         }
         
         // get components that can render given model type
-        func getComponents<M: Model>(for type: M.Type) -> [Mist.AnyComponent]
+        func getComponents<M: Model>(for type: M.Type) -> [AnyComponent]
         {
             let modelName = String(describing: M.self)
             return components[modelName] ?? []
@@ -50,10 +62,10 @@ extension Mist
         Task
         {
             // configure template renderer
-            await Mist.Components.shared.configure(renderer: app.leaf.renderer)
+            await Components.shared.configure(renderer: app.leaf.renderer)
             
             // register example component
-            await Mist.Components.shared.register(DummyRow.self)
+            await Components.shared.register(component: DummyRow.self, on: app)
         }
     }
 }

@@ -1,0 +1,40 @@
+@preconcurrency import Vapor
+import Fluent
+
+extension Mist
+{
+    // middleware that handles model updates and triggers UI refreshes
+    struct Listener<M: Model>: AsyncModelMiddleware where M.IDValue == UUID
+    {
+        // called when model is updated in database
+        func update(model: M, on db: Database, next: AnyAsyncModelResponder) async throws
+        {
+            // perform database update first, propagate any errors
+            try await next.update(model, on: db)
+            
+            // get type-safe components registered for this model type
+            let components = await Components.shared.getComponents(for: M.self)
+            
+            // safely unwrap renderer, exit if not configured
+            guard let renderer = await Components.shared.getRenderer() else { return }
+            
+            // process each component
+            for component in components
+            {
+                // type-safe render with error handling
+                guard let html = await component.render(model: model, using: renderer) else { continue }
+                
+                // create update message with component info
+                let message = Message.componentUpdate(
+                    component: component.name,
+                    action: "update",
+                    id: model.id,
+                    html: html
+                )
+                
+                // broadcast to all connected clients
+                await Clients.shared.broadcast(message)
+            }
+        }
+    }
+}

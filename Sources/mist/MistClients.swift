@@ -5,7 +5,7 @@ struct Mist
 {
     actor Clients
     {
-        static let shared = Mist.Clients()
+        static let shared = Clients()
         
         internal var connections:
         [(
@@ -24,18 +24,12 @@ extension Mist.Clients
     func add(connection id: UUID, socket: WebSocket, subscriptions: Set<String> = [])
     {
         connections.append((id: id, socket: socket, subscriptions: subscriptions))
-        
-        let logger = Logger(label: "Mist.Clients.add")
-        logger.info("new client added to server")
     }
     
     // remove connection from actor
     func remove(connection id: UUID)
     {
         connections.removeAll { $0.id == id }
-        
-        let logger = Logger(label: "Mist.Clients.remove")
-        logger.info("client removed from server")
     }
 }
     
@@ -50,9 +44,6 @@ extension Mist.Clients
 
         // add component to client's subscriptions
         connections[index].subscriptions.insert(component)
-        
-        let logger = Logger(label: "Mist.Clients.addSubscription")
-        logger.info("client subscribed to \(component)")
     }
     
     // remove subscription from connection
@@ -63,9 +54,6 @@ extension Mist.Clients
         
         // remove component from client's subscriptions
         connections[index].subscriptions.remove(component)
-        
-        let logger = Logger(label: "Mist.Clients.addSubscription")
-        logger.info("client unsubscribed from \(component)")
     }
 }
 

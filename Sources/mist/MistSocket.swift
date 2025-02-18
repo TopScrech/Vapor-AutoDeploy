@@ -14,7 +14,7 @@ extension Mist
             let id = UUID()
             
             // add new connection to actor
-            await Mist.Clients.shared.add(connection: id, socket: ws)
+            await Clients.shared.add(connection: id, socket: ws)
             
             try? await ws.send("{ \"msg\": \"Server Welcome Message\" }")
             
@@ -24,20 +24,20 @@ extension Mist
                 
                 // abort if message is not of type Mist.Message
                 guard let data = text.data(using: .utf8) else { return }
-                guard let message = try? JSONDecoder().decode(Mist.Message.self, from: data) else { return }
+                guard let message = try? JSONDecoder().decode(Message.self, from: data) else { return }
                 
                 switch message
                 {
                     case .subscribe(let component): do
                         {
-                            await Mist.Clients.shared.addSubscription(component, for: id)
+                            await Clients.shared.addSubscription(component, for: id)
                             
                             try? await ws.send("{ \"msg\": \"Subscribed to \(component)\" }")
                         }
                         
                     case .unsubscribe(let component): do
                         {
-                            await Mist.Clients.shared.removeSubscription(component, for: id)
+                            await Clients.shared.removeSubscription(component, for: id)
                             
                             try? await ws.send("{ \"msg\": \"Unsubscribed to \(component)\" }")
                         }
@@ -48,7 +48,7 @@ extension Mist
             }
             
             // remove connection from actor on close
-            ws.onClose.whenComplete() { _ in Task { await Mist.Clients.shared.remove(connection: id) } }
+            ws.onClose.whenComplete() { _ in Task { await Clients.shared.remove(connection: id) } }
         }
     }
 }
