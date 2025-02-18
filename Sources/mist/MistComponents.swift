@@ -11,7 +11,10 @@ extension Mist
         private init() { }
         
         // store components by model type name
-        private var components: [String: [AnyComponent]] = [:]
+        // Bidirectional relationships
+        private var modelToComponents: [String: [AnyComponent]] = [:]
+        private var componentToModels: [String: [String]] = [:]
+        
         private var renderer: ViewRenderer?
         
         // set template renderer
@@ -20,17 +23,20 @@ extension Mist
             self.renderer = renderer
         }
         
-        // register new component type
+        // Register new component type with bidirectional relationships
         func register<C: Component>(component: C.Type, on app: Application) where C.Model.IDValue == UUID
         {
             let modelName = String(describing: C.Model.self)
+            let componentName = C.name
             
-            // If this is the first component for this model type,
-            // we need to register the listener
-            let isFirstComponentForModel = components[modelName] == nil
+            // Check if this is the first component for this model
+            let isFirstComponentForModel = modelToComponents[modelName] == nil
             
-            // Add the component
-            components[modelName, default: []].append(AnyComponent(component))
+            // Update model -> components mapping
+            modelToComponents[modelName, default: []].append(AnyComponent(component))
+            
+            // Update component -> models mapping
+            componentToModels[componentName, default: []].append(modelName)
             
             // Register listener only on first component for this model
             if isFirstComponentForModel
@@ -39,15 +45,35 @@ extension Mist
             }
         }
         
-        // get components that can render given model type
+        // Get components that can render a specific model type
         func getComponents<M: Model>(for type: M.Type) -> [AnyComponent]
         {
             let modelName = String(describing: M.self)
-            return components[modelName] ?? []
+            return modelToComponents[modelName] ?? []
         }
         
-        // get configured renderer
-        func getRenderer() async -> ViewRenderer?
+        // Get all models that a component can render
+        func getModels(for componentName: String) -> [String]
+        {
+            return componentToModels[componentName] ?? []
+        }
+        
+        // Check if a component exists for a model type
+        func hasComponents<M: Model>(for type: M.Type) -> Bool
+        {
+            let modelName = String(describing: M.self)
+            return modelToComponents[modelName]?.isEmpty == false
+        }
+        
+        // Check if a model type has a specific component
+        func hasComponent<M: Model>(named componentName: String, for type: M.Type) -> Bool
+        {
+            let modelName = String(describing: M.self)
+            return componentToModels[componentName]?.contains(modelName) == true
+        }
+        
+        // Get configured renderer
+        func getRenderer() -> ViewRenderer?
         {
             return renderer
         }
