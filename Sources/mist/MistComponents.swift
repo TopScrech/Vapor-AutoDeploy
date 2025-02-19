@@ -10,10 +10,11 @@ extension Mist
         static let shared = Components()
         private init() { }
         
-        // store components by model type name
-        // Bidirectional relationships
+        // Bidirectional relationship storage
+        typealias AnyModel = String
+        
+        private var componentToModels: [String: [AnyModel]] = [:]
         private var modelToComponents: [String: [AnyComponent]] = [:]
-        private var componentToModels: [String: [String]] = [:]
         
         private var renderer: ViewRenderer?
         
