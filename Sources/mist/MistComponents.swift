@@ -6,24 +6,22 @@ extension Mist
 {
     actor Components
     {
-        // singleton instance
         static let shared = Components()
         private init() { }
         
-        // Bidirectional relationship storage
         typealias AnyModel = String
-        
-        private var componentToModels: [String: [AnyModel]] = [:]
-        private var modelToComponents: [String: [AnyComponent]] = [:]
+        typealias ComponentName = String
+        typealias ModelName = String
+
+        // bidirectional relationship storage component to model = many to many
+        private var componentToModels: [ComponentName: [AnyModel]] = [:]
+        private var modelToComponents: [ModelName: [AnyComponent]] = [:]
         
         private var renderer: ViewRenderer?
         
         // set template renderer
-        func configure(renderer: ViewRenderer)
-        {
-            self.renderer = renderer
-        }
-        
+        func configure(renderer: ViewRenderer) { self.renderer = renderer }
+
         // Register new component type with bidirectional relationships
         func register<C: Component>(component: C.Type, on app: Application) where C.Model.IDValue == UUID
         {

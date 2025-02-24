@@ -12,7 +12,6 @@ struct Mist
             id: UUID,
             socket: WebSocket,
             subscriptions: Set<String>
-            
         )] = []
     }
 }
