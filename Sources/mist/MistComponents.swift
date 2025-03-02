@@ -21,6 +21,9 @@ extension Mist
         
         // set template renderer
         func configure(renderer: ViewRenderer) { self.renderer = renderer }
+        
+        // get configured renderer
+        func getRenderer() -> ViewRenderer? { return renderer }
 
         // Register new component type with bidirectional relationships
         func register<C: Component>(component: C.Type, on app: Application) where C.Model.IDValue == UUID
@@ -47,50 +50,30 @@ extension Mist
         // Get components that can render a specific model type
         func getComponents<M: Model>(for type: M.Type) -> [AnyComponent]
         {
-            let modelName = String(describing: M.self)
-            return modelToComponents[modelName] ?? []
-        }
-        
-        // Get all models that a component can render
-        func getModels(for componentName: String) -> [String]
-        {
-            return componentToModels[componentName] ?? []
-        }
-        
-        // Check if a component exists for a model type
-        func hasComponents<M: Model>(for type: M.Type) -> Bool
-        {
-            let modelName = String(describing: M.self)
-            return modelToComponents[modelName]?.isEmpty == false
-        }
-        
-        // Check if a model type has a specific component
-        func hasComponent<M: Model>(named componentName: String, for type: M.Type) -> Bool
-        {
-            let modelName = String(describing: M.self)
-            return componentToModels[componentName]?.contains(modelName) == true
-        }
-        
-        // Get configured renderer
-        func getRenderer() -> ViewRenderer?
-        {
-            return renderer
+            return modelToComponents[String(describing: M.self)] ?? []
         }
     }
 }
 
-extension Mist
-{
-    // initialize component system
-    static func registerComponents(on app: Application)
-    {
-        Task
-        {
-            // configure template renderer
-            await Components.shared.configure(renderer: app.leaf.renderer)
-            
-            // register example component
-            await Components.shared.register(component: DummyRow.self, on: app)
-        }
-    }
-}
+//extension Mist.Components
+//{
+//    // Get all models that a component can render
+//    func getModels(for componentName: String) -> [String]
+//    {
+//        return componentToModels[componentName] ?? []
+//    }
+//    
+//    // Check if a component exists for a model type
+//    func hasComponents<M: Model>(for type: M.Type) -> Bool
+//    {
+//        let modelName = String(describing: M.self)
+//        return modelToComponents[modelName]?.isEmpty == false
+//    }
+//    
+//    // Check if a model type has a specific component
+//    func hasComponent<M: Model>(named componentName: String, for type: M.Type) -> Bool
+//    {
+//        let modelName = String(describing: M.self)
+//        return componentToModels[componentName]?.contains(modelName) == true
+//    }
+//}
