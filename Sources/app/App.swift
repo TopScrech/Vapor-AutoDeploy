@@ -30,6 +30,7 @@ struct App
         
         app.migrations.add(Deployment.Table())
         app.migrations.add(DummyModel.Table3())
+        app.migrations.add(DummyModel2.Table())
         try await app.autoMigrate()
         
         app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
