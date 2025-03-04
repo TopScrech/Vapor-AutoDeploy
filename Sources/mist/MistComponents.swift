@@ -8,14 +8,8 @@ extension Mist
     {
         static let shared = Components()
         private init() { }
-        
-        typealias AnyModel = String
-        typealias ComponentName = String
-        typealias ModelName = String
 
-        // bidirectional relationship storage component to model = many to many
-        private var componentToModels: [ComponentName: [AnyModel]] = [:]
-        private var modelToComponents: [ModelName: [AnyComponent]] = [:]
+        private var modelToComponents: [ObjectIdentifier: [AnyComponent]] = [:]
         
         private var renderer: ViewRenderer?
         
@@ -28,17 +22,20 @@ extension Mist
         // Register new component type with bidirectional relationships
         func register<C: Component>(component: C.Type, on app: Application) where C.Model.IDValue == UUID
         {
-            let modelName = String(describing: C.Model.self)
-            let componentName = C.name
+            // get model ID
+            let modelId = ObjectIdentifier(C.Model.self)
+            
+            // Get existing components for this model (if any)
+            let existingComponents = modelToComponents[modelId, default: []]
+            
+            // Check if this component is already registered by name
+            if existingComponents.contains(where: { $0.name == C.name }) { return }
             
             // Check if this is the first component for this model
-            let isFirstComponentForModel = modelToComponents[modelName] == nil
+            let isFirstComponentForModel = existingComponents.isEmpty
             
-            // Update model -> components mapping
-            modelToComponents[modelName, default: []].append(AnyComponent(component))
-            
-            // Update component -> models mapping
-            componentToModels[componentName, default: []].append(modelName)
+            // Add the component to storage
+            modelToComponents[modelId, default: []].append(AnyComponent(component))
             
             // Register listener only on first component for this model
             if isFirstComponentForModel
@@ -50,30 +47,7 @@ extension Mist
         // Get components that can render a specific model type
         func getComponents<M: Model>(for type: M.Type) -> [AnyComponent]
         {
-            return modelToComponents[String(describing: M.self)] ?? []
+            return modelToComponents[ObjectIdentifier(M.self)] ?? []
         }
     }
 }
-
-//extension Mist.Components
-//{
-//    // Get all models that a component can render
-//    func getModels(for componentName: String) -> [String]
-//    {
-//        return componentToModels[componentName] ?? []
-//    }
-//    
-//    // Check if a component exists for a model type
-//    func hasComponents<M: Model>(for type: M.Type) -> Bool
-//    {
-//        let modelName = String(describing: M.self)
-//        return modelToComponents[modelName]?.isEmpty == false
-//    }
-//    
-//    // Check if a model type has a specific component
-//    func hasComponent<M: Model>(named componentName: String, for type: M.Type) -> Bool
-//    {
-//        let modelName = String(describing: M.self)
-//        return componentToModels[componentName]?.contains(modelName) == true
-//    }
-//}
