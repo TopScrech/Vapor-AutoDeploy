@@ -7,7 +7,7 @@ extension Mist
     protocol Component
     {
         // ensure model is a Fluent db model
-        associatedtype Model: Fluent.Model
+        associatedtype ModelX: Fluent.Model
         // ensure context can be encoded for template rendering
         associatedtype Context: Encodable
         
@@ -16,8 +16,10 @@ extension Mist
         // template name used for rendering
         static var template: String { get }
         
+        static var models: [any Model.Type] { get }
+        
         // convert model data into render context
-        static func makeContext(from model: Model) -> Context
+        static func makeContext(from model: ModelX) -> Context
     }
 }
 
@@ -29,7 +31,7 @@ extension Mist.Component
     static var template: String { String(describing: self) }
     
     // render component html using provided model and renderer
-    static func render(model: Model, using renderer: ViewRenderer) async -> String?
+    static func render(model: ModelX, using renderer: ViewRenderer) async -> String?
     {
         let context = makeContext(from: model)
         // safely try to render template with context
@@ -45,6 +47,7 @@ extension Mist
     {
         let name: String
         let template: String
+        let models: [any Model.Type]
         
         // type-erased render function that handles any model type
         private let _render: @Sendable (Any, ViewRenderer) async -> String?
@@ -54,12 +57,13 @@ extension Mist
         {
             self.name = C.name
             self.template = C.template
+            self.models = C.models
             
             // capture concrete type info in closure
             self._render =
             { model, renderer in
                 // safely cast Any back to concrete model type
-                guard let typedModel = model as? C.Model else { return nil }
+                guard let typedModel = model as? C.ModelX else { return nil }
                 return await C.render(model: typedModel, using: renderer)
             }
         }

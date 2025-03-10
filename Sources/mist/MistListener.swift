@@ -3,13 +3,13 @@ import Fluent
 
 extension Mist
 {
-    // middleware that handles model updates and triggers UI refreshes
-    struct Listener<M: Model>: AsyncModelMiddleware where M.IDValue == UUID
+    // generic database model update listener
+    struct Listener<M: Model>: AsyncModelMiddleware
     {
-        // called when model is updated in database
+        // update callback
         func update(model: M, on db: Database, next: AnyAsyncModelResponder) async throws
         {
-            // perform database update first, propagate any errors
+            // perform middleware chain
             try await next.update(model, on: db)
             
             // get type-safe components registered for this model type
@@ -28,7 +28,7 @@ extension Mist
                 let message = Message.componentUpdate(
                     component: component.name,
                     action: "update",
-                    id: model.id,
+                    id: model.id as? UUID,
                     html: html
                 )
                 

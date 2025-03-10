@@ -1,6 +1,14 @@
 import Vapor
 import Fluent
 
+extension Model
+{
+    static func createListener(on app: Application)
+    {
+        app.databases.middleware.use(Mist.Listener<Self>(), on: .sqlite)
+    }
+}
+
 // thread-safe component registry
 extension Mist
 {
@@ -9,7 +17,10 @@ extension Mist
         static let shared = Components()
         private init() { }
 
-        private var modelToComponents: [ObjectIdentifier: [AnyComponent]] = [:]
+        // old storage
+        // private var modelToComponents: [ObjectIdentifier: [AnyComponent]] = [:]
+        
+        private var components: [AnyComponent] = []
         
         private var renderer: ViewRenderer?
         
@@ -20,34 +31,57 @@ extension Mist
         func getRenderer() -> ViewRenderer? { return renderer }
 
         // Register new component type with bidirectional relationships
-        func register<C: Component>(component: C.Type, on app: Application) where C.Model.IDValue == UUID
+        func register<C: Component>(component: C.Type, on app: Application) where C.ModelX.IDValue == UUID
         {
-            // get model ID
-            let modelId = ObjectIdentifier(C.Model.self)
+            // abort if component name is already registered
+            if components.contains(where: { $0.name == C.name }) { return }
             
-            // Get existing components for this model (if any)
-            let existingComponents = modelToComponents[modelId, default: []]
-            
-            // Check if this component is already registered by name
-            if existingComponents.contains(where: { $0.name == C.name }) { return }
-            
-            // Check if this is the first component for this model
-            let isFirstComponentForModel = existingComponents.isEmpty
-            
-            // Add the component to storage
-            modelToComponents[modelId, default: []].append(AnyComponent(component))
-            
-            // Register listener only on first component for this model
-            if isFirstComponentForModel
+            // register database listeners for component models
+            for model in component.models
             {
-                app.databases.middleware.use(Listener<C.Model>(), on: .sqlite)
+                // check if any component is registered that also uses this model
+                let isModelAlreadyRegistered = components.contains()
+                {
+                    $0.models.contains { ObjectIdentifier($0) == ObjectIdentifier(model) }
+                }
+                
+                if isModelAlreadyRegistered == false
+                {
+                    model.createListener(on: app)
+                }
             }
+            
+            // add new type erased mist component to storage
+            components.append(AnyComponent(component))
+            
+            // old implementation for reference:
+            
+//            // get model ID
+//            let modelId = ObjectIdentifier(C.ModelX.self)
+//            
+//            // Get existing components for this model (if any)
+//            let existingComponents = modelToComponents[modelId, default: []]
+//            
+//            // Check if this component is already registered by name
+//            if existingComponents.contains(where: { $0.name == C.name }) { return }
+//            
+//            // Check if this is the first component for this model
+//            let isFirstComponentForModel = existingComponents.isEmpty
+//            
+//            // Add the component to storage
+//            modelToComponents[modelId, default: []].append(AnyComponent(component))
+//            
+//            // Register listener only on first component for this model
+//            if isFirstComponentForModel
+//            {
+//                app.databases.middleware.use(Listener<C.ModelX>(), on: .sqlite)
+//            }
         }
         
         // Get components that can render a specific model type
         func getComponents<M: Model>(for type: M.Type) -> [AnyComponent]
         {
-            return modelToComponents[ObjectIdentifier(M.self)] ?? []
+            return components.filter { $0.models.contains { ObjectIdentifier($0) == ObjectIdentifier(type) } }
         }
     }
 }
