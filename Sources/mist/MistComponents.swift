@@ -1,14 +1,6 @@
 import Vapor
 import Fluent
 
-extension Model
-{
-    static func createListener(on app: Application)
-    {
-        app.databases.middleware.use(Mist.Listener<Self>(), on: .sqlite)
-    }
-}
-
 // thread-safe component registry
 extension Mist
 {
@@ -31,7 +23,7 @@ extension Mist
         func getRenderer() -> ViewRenderer? { return renderer }
 
         // Register new component type with bidirectional relationships
-        func register<C: Component>(component: C.Type, on app: Application) where C.ModelX.IDValue == UUID
+        func register<C: Component>(component: C.Type, on app: Application)
         {
             // abort if component name is already registered
             if components.contains(where: { $0.name == C.name }) { return }
@@ -48,6 +40,9 @@ extension Mist
                 if isModelAlreadyRegistered == false
                 {
                     model.createListener(on: app)
+                    
+                    Logger(label: "[Mist]")
+                        .warning("Component '\(component.name)' created listener for model '\(String(describing: model))'")
                 }
             }
             

@@ -6,8 +6,6 @@ extension Mist
 {
     protocol Component
     {
-        // ensure model is a Fluent db model
-        associatedtype ModelX: Fluent.Model
         // ensure context can be encoded for template rendering
         associatedtype Context: Encodable
         
@@ -18,8 +16,11 @@ extension Mist
         
         static var models: [any Model.Type] { get }
         
-        // convert model data into render context
-        static func makeContext(from model: ModelX) -> Context
+        // Build context from ID instead of direct model
+        static func makeContext(id: UUID, on db: Database) async throws -> Context?
+
+        // Determine if this component should update for this model
+        static func shouldUpdate<M: Model>(for model: M) -> Bool
     }
 }
 
@@ -30,13 +31,21 @@ extension Mist.Component
     // default template name matches component name
     static var template: String { String(describing: self) }
     
-    // render component html using provided model and renderer
-    static func render(model: ModelX, using renderer: ViewRenderer) async -> String?
+    static func render(id: UUID, on db: Database, using renderer: ViewRenderer) async -> String?
     {
-        let context = makeContext(from: model)
-        // safely try to render template with context
-        guard let buffer = try? await renderer.render(template, context).data else { return nil }
-        return String(buffer: buffer)
+        do
+        {
+            guard let context = try await makeContext(id: id, on: db) else { return nil }
+            let buffer = try await renderer.render(template, context).data
+            return String(buffer: buffer)
+        }
+        catch { return nil }
+    }
+    
+    // Default implementation for shouldUpdate
+    static func shouldUpdate<M: Model>(for model: M) -> Bool
+    {
+        return models.contains { ObjectIdentifier($0) == ObjectIdentifier(M.self) }
     }
 }
 
@@ -49,8 +58,8 @@ extension Mist
         let template: String
         let models: [any Model.Type]
         
-        // type-erased render function that handles any model type
-        private let _render: @Sendable (Any, ViewRenderer) async -> String?
+        private let _shouldUpdate: @Sendable (Any) -> Bool
+        private let _render: @Sendable (UUID, Database, ViewRenderer) async -> String?
         
         // wrap concrete component type into type-erased container
         init<C: Component>(_ component: C.Type)
@@ -59,19 +68,27 @@ extension Mist
             self.template = C.template
             self.models = C.models
             
-            // capture concrete type info in closure
+            self._shouldUpdate =
+            { model in
+                guard let type = model as? any Model else { return false }
+                return C.shouldUpdate(for: type)
+            }
+            
             self._render =
-            { model, renderer in
-                // safely cast Any back to concrete model type
-                guard let typedModel = model as? C.ModelX else { return nil }
-                return await C.render(model: typedModel, using: renderer)
+            { id, db, renderer in
+                await C.render(id: id, on: db, using: renderer)
             }
         }
         
-        // type-safe render method exposed to clients
-        func render(model: Any, using renderer: ViewRenderer) async -> String?
+        // Exposed type-safe methods
+        func shouldUpdate(for model: Any) -> Bool
         {
-            await _render(model, renderer)
+            _shouldUpdate(model)
+        }
+        
+        func render(id: UUID, db: Database, using renderer: ViewRenderer) async -> String?
+        {
+            await _render(id, db, renderer)
         }
     }
 }
