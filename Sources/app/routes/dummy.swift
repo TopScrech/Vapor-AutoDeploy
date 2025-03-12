@@ -7,15 +7,39 @@ extension Application
         // mottzi.de/dummy
         self.get("dummies")
         { request async throws -> View in
+            // Fetch all DummyModel instances
+            let models1 = try await DummyModel.all(on: request.db)
             
-            let entries = try await DummyModel.all(on: request.db)
-            
-            struct Context: Encodable
+            // Container for combined data
+            struct RowData: Encodable
             {
-                let entries: [DummyModel]
+                let dummy1: DummyModel
+                let dummy2: DummyModel2
             }
             
-            return try await request.view.render("DummyState", Context(entries: entries))
+            // View context structure
+            struct Context: Encodable
+            {
+                let entries: [RowData]
+            }
+            
+            // Array to hold combined model data
+            var rowData: [RowData] = []
+            
+            // For each DummyModel, find the corresponding DummyModel2
+            for model1 in models1
+            {
+                guard let id = model1.id else { continue }
+                
+                // Find matching DummyModel2 with the same ID
+                guard let model2 = try await DummyModel2.find(id, on: request.db) else { continue }
+                
+                // Add combined data
+                rowData.append(RowData(dummy1: model1, dummy2: model2))
+            }
+            
+            // Render the view with the combined data
+            return try await request.view.render("DummyState", Context(entries: rowData))
         }
         
         self.get("dummies", "update", ":id", ":text")
