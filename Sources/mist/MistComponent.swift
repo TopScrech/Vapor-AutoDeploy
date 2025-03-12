@@ -1,26 +1,26 @@
 import Vapor
 import Fluent
 
-// core protocol defining requirements for UI components that render database models
 extension Mist
 {
+    // protocol to render db model(s) into html mist components
     protocol Component
     {
-        // ensure context can be encoded for template rendering
-        associatedtype Context: Encodable
-        
         // component name used for identification
         static var name: String { get }
+        
         // template name used for rendering
         static var template: String { get }
         
+        // array of model types this component reacts to
         static var models: [any Model.Type] { get }
         
-        // Build context from ID instead of direct model
-        static func makeContext(id: UUID, on db: Database) async throws -> Context?
-
-        // Determine if this component should update for this model
-        static func shouldUpdate<M: Model>(for model: M) -> Bool
+        
+        // encodable leaf template data context structure
+        associatedtype Context: Encodable
+        
+        // component for given model ID
+        static func makeContext(id: UUID, on db: Database) async -> Context?
     }
 }
 
@@ -28,30 +28,30 @@ extension Mist.Component
 {
     // default name implementation uses type name
     static var name: String { String(describing: self) }
+    
     // default template name matches component name
     static var template: String { String(describing: self) }
     
+    
+    // renders the components using model data in appropriate leaf context
     static func render(id: UUID, on db: Database, using renderer: ViewRenderer) async -> String?
     {
-        do
-        {
-            guard let context = try await makeContext(id: id, on: db) else { return nil }
-            let buffer = try await renderer.render(template, context).data
-            return String(buffer: buffer)
-        }
-        catch { return nil }
+        guard let context = await makeContext(id: id, on: db) else { return nil }
+        guard let buffer = try? await renderer.render(template, context).data else { return nil }
+        
+        return String(buffer: buffer)
     }
     
-    // Default implementation for shouldUpdate
+    // checks if component should update when this model changes
     static func shouldUpdate<M: Model>(for model: M) -> Bool
     {
         return models.contains { ObjectIdentifier($0) == ObjectIdentifier(M.self) }
     }
 }
 
-// type erasure wrapper to store different component types together
 extension Mist
 {
+    // type erasure wrapper to store different component types together
     struct AnyComponent: Sendable
     {
         let name: String
@@ -80,7 +80,6 @@ extension Mist
             }
         }
         
-        // Exposed type-safe methods
         func shouldUpdate(for model: Any) -> Bool
         {
             _shouldUpdate(model)
