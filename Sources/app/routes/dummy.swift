@@ -7,24 +7,24 @@ extension Application
         // mottzi.de/dummy
         self.get("dummies")
         { request async throws -> View in
+            
+            // template context structure
+            struct Context: Encodable
+            {
+                struct EntryData: Encodable
+                {
+                    let dummy1: DummyModel
+                    let dummy2: DummyModel2
+                }
+                
+                let entries: [EntryData]
+            }
+            
             // Fetch all DummyModel instances
             let models1 = try await DummyModel.all(on: request.db)
             
-            // Container for combined data
-            struct RowData: Encodable
-            {
-                let dummy1: DummyModel
-                let dummy2: DummyModel2
-            }
-            
-            // View context structure
-            struct Context: Encodable
-            {
-                let entries: [RowData]
-            }
-            
             // Array to hold combined model data
-            var rowData: [RowData] = []
+            var rowData: [Context.EntryData] = []
             
             // For each DummyModel, find the corresponding DummyModel2
             for model1 in models1
@@ -35,7 +35,7 @@ extension Application
                 guard let model2 = try await DummyModel2.find(id, on: request.db) else { continue }
                 
                 // Add combined data
-                rowData.append(RowData(dummy1: model1, dummy2: model2))
+                rowData.append(Context.EntryData(dummy1: model1, dummy2: model2))
             }
             
             // Render the view with the combined data
