@@ -15,12 +15,17 @@ extension Mist
         // array of model types this component reacts to
         static var models: [any Model.Type] { get }
         
+        // leaf template context data for single component
+        associatedtype SingleContext: Encodable
         
-        // encodable leaf template data context structure
-        associatedtype Context: Encodable
+        // leaf template context data for array of components
+        associatedtype MultipleContext: Encodable
         
         // component for given model ID
-        static func makeContext(id: UUID, on db: Database) async -> Context?
+        static func makeContext(id: UUID, on db: Database) async -> SingleContext?
+        
+        // all components
+        static func makeContext(on db: Database) async -> MultipleContext?
     }
 }
 

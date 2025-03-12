@@ -7,39 +7,11 @@ extension Application
         // mottzi.de/dummy
         self.get("dummies")
         { request async throws -> View in
-            
-            // template context structure
-            struct Context: Encodable
-            {
-                struct EntryData: Encodable
-                {
-                    let dummy1: DummyModel
-                    let dummy2: DummyModel2
-                }
-                
-                let entries: [EntryData]
-            }
-            
-            // Fetch all DummyModel instances
-            let models1 = try await DummyModel.all(on: request.db)
-            
-            // Array to hold combined model data
-            var rowData: [Context.EntryData] = []
-            
-            // For each DummyModel, find the corresponding DummyModel2
-            for model1 in models1
-            {
-                guard let id = model1.id else { continue }
-                
-                // Find matching DummyModel2 with the same ID
-                guard let model2 = try await DummyModel2.find(id, on: request.db) else { continue }
-                
-                // Add combined data
-                rowData.append(Context.EntryData(dummy1: model1, dummy2: model2))
-            }
-            
+            guard let context = await DummyRow.makeContext(on: request.db)
+            else { throw Abort(.internalServerError, reason: "Multiple Context creation failed.") }
+    
             // Render the view with the combined data
-            return try await request.view.render("DummyState", Context(entries: rowData))
+            return try await request.view.render("DummyState", context)
         }
         
         self.get("dummies", "update", ":id", ":text")
