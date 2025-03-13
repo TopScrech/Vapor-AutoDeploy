@@ -4,23 +4,31 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="https://cdn.tailwindcss.com"></script>
-        <title>abcdefg</title>
+        <title>Dummy Data</title>
     </head>
     <body class="bg-gray-50 dark:bg-neutral-800">
-        <table class="w-full">
-            <thead>
-                <tr>
-                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Text</th>
-                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">ID</th>
-                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Text2</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
-                #for(entry in entries):
-                    #extend("DummyRow")
-                #endfor
-            </tbody>
-        </table>
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <div class="bg-white dark:bg-neutral-700 rounded-lg shadow overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-neutral-600">
+                    <h1 class="text-lg font-medium text-gray-700 dark:text-neutral-300">Dummy Data</h1>
+                </div>
+                
+                <table class="w-full">
+                    <thead class="bg-gray-50 dark:bg-neutral-750">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Text</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Text2</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
+                        #for(entry in entries):
+                            #extend("DummyRow")
+                        #endfor
+                    </tbody>
+                </table>
+            </div>
+        </div>
         <script src="/mist.js"></script>
     </body>
 </html>

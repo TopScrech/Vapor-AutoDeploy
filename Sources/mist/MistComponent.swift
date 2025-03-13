@@ -15,17 +15,32 @@ extension Mist
         // array of model types this component reacts to
         static var models: [any Model.Type] { get }
         
-        // leaf template context data for single component
-        associatedtype SingleContext: Encodable
+        // encodable component model data
+        associatedtype ContextData: Encodable
         
-        // leaf template context data for array of components
-        associatedtype MultipleContext: Encodable
+        // context structure for single component
+        typealias SingleContext = SingleEntryContext<ContextData>
         
+        // context structure for multiple components
+        typealias MultipleContext = MultipleEntriesContext<ContextData>
+                
         // component for given model ID
         static func makeContext(id: UUID, on db: Database) async -> SingleContext?
         
         // all components
         static func makeContext(on db: Database) async -> MultipleContext?
+    }
+    
+    // generic single entry context
+    struct SingleEntryContext<T: Encodable>: Encodable
+    {
+        let entry: T
+    }
+    
+    // generic multiple entries context
+    struct MultipleEntriesContext<T: Encodable>: Encodable
+    {
+        let entries: [T]
     }
 }
 
@@ -36,7 +51,6 @@ extension Mist.Component
     
     // default template name matches component name
     static var template: String { String(describing: self) }
-    
     
     // renders the components using model data in appropriate leaf context
     static func render(id: UUID, on db: Database, using renderer: ViewRenderer) async -> String?

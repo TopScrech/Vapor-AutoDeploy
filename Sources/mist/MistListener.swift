@@ -19,7 +19,7 @@ extension Mist
         // update callback
         func update(model: M, on db: Database, next: AnyAsyncModelResponder) async throws
         {
-            logger.warning("Listener for model '\(String(describing: model))' was triggered.")
+            logger.warning("Listener for model '\(String(describing: model.self))' was triggered.")
 
             // perform middleware chain
             try await next.update(model, on: db)
