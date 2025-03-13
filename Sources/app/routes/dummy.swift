@@ -7,7 +7,7 @@ extension Application
         // mottzi.de/dummy
         self.get("dummies")
         { request async throws -> View in
-            guard let context = await DummyRow.makeContext(on: request.db)
+            guard let context = await DummyRow.makeMultipleComponentContext(on: request.db)
             else { throw Abort(.internalServerError, reason: "Multiple Context creation failed.") }
     
             // Render the view with the combined data

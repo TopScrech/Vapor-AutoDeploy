@@ -3,122 +3,100 @@ import Fluent
 
 extension Mist
 {
-    // Simplified component protocol - only requires models array
+    // mist component protocol
     protocol Component
     {
-        // Component name (defaulted via extension)
+        // component name
         static var name: String { get }
         
-        // Template name (defaulted via extension)
+        // component template
         static var template: String { get }
         
-        // THE ONLY REQUIRED PROPERTY: array of model types
+        // component models (joined by common id)
         static var models: [any MistModel.Type] { get }
     }
 }
 
-// Default implementations for all Component methods
+// default component implementation
 extension Mist.Component
 {
-    // Default component name matches the type name
+    // name matches component type name
     static var name: String { String(describing: self) }
     
-    // Default template name matches the component name
+    // template matches component type name
     static var template: String { String(describing: self) }
     
-    // Generate context for a single model instance
-    static func makeContext(id: UUID, on db: Database) async -> Mist.EntryContext?
+    // create single component context
+    static func makeSingleComponentContext(id: UUID, on db: Database) async -> Mist.SingleComponentContext?
     {
-        var container = Mist.ModelContainer()
-        var foundAny = false
+        // data container for dynamic multi model context creation
+        var componentData = Mist.ModelContainer()
         
-        // Loop through all model types and try to fetch instances
+        // fetch data of all component model types
         for modelType in models
         {
-            // Get model type name for template reference
-            let typeName = String(describing: modelType).lowercased()
+            // use model type name as template reference
+            let modelName = String(describing: modelType).lowercased()
             
-            do
-            {
-                // Get the type-erased finder function and call it
-                if let instance = try await modelType.typedFinder(id, db)
-                {
-                    container.add(instance, for: typeName)
-                    foundAny = true
-                }
-            }
-            catch
-            {
-                // Just continue if there's an error with one model
-                print("Error fetching model \(typeName): \(error)")
-                continue
-            }
+            // fetch model data by common component UUID using type erased model closure
+            guard let modelData = await modelType.modelByID(id, db) else { continue }
+            
+            // add model data to model container
+            componentData.add(modelData, for: modelName)
         }
         
-        // Only return context if at least one model was found
-        return foundAny ? Mist.EntryContext(entry: container) : nil
+        // abort if no model data was added to model container
+        guard componentData.isEmpty == false else { return nil }
+        
+        // return context with collected model data
+        return Mist.SingleComponentContext(component: componentData)
     }
     
-    // Generate context for multiple model instances
-    // Generate context for multiple model instances
-    static func makeContext(on db: Database) async -> Mist.EntriesContext?
+    // create collection context for multiple components
+    static func makeMultipleComponentContext(on db: Database) async -> Mist.MultipleComponentContext?
     {
-        // Make sure we have at least one model type
-        guard let primaryModel = models.first else
+        // array of data containes for dynamic multi model context creation
+        var componentDataCollection: [Mist.ModelContainer] = []
+
+        // abort if not one model type was provided
+        guard let primaryModelType = models.first else { return nil }
+        
+        // get data for all entries of the primary model
+        guard let primaryModelEntries = await primaryModelType.modelsAll(db) else { return nil }
+        
+        // fetch data of related secondary models
+        for primaryModelEntry in primaryModelEntries
         {
-            return nil
+            // validate model UUID
+            guard let componentID = primaryModelEntry.id else { continue }
+            
+            // fetch all related secondary model entries with matching id
+            guard let componentContext = await makeSingleComponentContext(id: componentID, on: db) else { continue }
+            
+            // data of all models of component to data collection
+            componentDataCollection.append(componentContext.component)
         }
         
-        do
-        {
-            // Get all instances of the primary model
-            let allPrimaryInstances = try await primaryModel.typedFindAll(db)
-            var entries: [Mist.ModelContainer] = []
-            
-            // For each primary instance, fetch related models
-            for instance in allPrimaryInstances
-            {
-                // Since we're working with UUIDIDModel, we know the ID is UUID
-                // We just need to safely unwrap it
-                if let model = instance as? any MistModel,
-                    let id = model.id
-                {
-                    // Reuse the single context maker
-                    if let singleContext = await makeContext(id: id, on: db)
-                    {
-                        entries.append(singleContext.entry)
-                    }
-                }
-            }
-            
-            guard !entries.isEmpty else
-            {
-                return nil
-            }
-            
-            return Mist.EntriesContext(entries: entries)
-        }
-        catch
-        {
-            print("Error fetching all instances: \(error)")
-        }
+        // abort if not one component loaded its model data in full
+        guard componentDataCollection.isEmpty == false else { return nil }
         
-        return nil
+        // return context of all components and their collected model data
+        return Mist.MultipleComponentContext(components: componentDataCollection)
     }
     
-    // Render the component using the automatically generated context
+    // render component using dynamically generated template context
     static func render(id: UUID, on db: Database, using renderer: ViewRenderer) async -> String?
     {
-        guard let context = await makeContext(id: id, on: db) else { return nil }
+        guard let context = await makeSingleComponentContext(id: id, on: db) else { return nil }
         guard let buffer = try? await renderer.render(template, context).data else { return nil }
 
         return String(buffer: buffer)
     }
     
-    // Check if component should update for a given model
+    // check if component should update when the provided model changes
     static func shouldUpdate<M: Model>(for model: M) -> Bool
     {
-        return models.contains
+        return models.contains()
         { modelType in
             ObjectIdentifier(modelType) == ObjectIdentifier(M.self)
         }
@@ -127,48 +105,47 @@ extension Mist.Component
 
 extension Mist
 {
-    // Type-erased component for storage in collections
+    // type-erased component for storage in collections
     struct AnyComponent: Sendable
     {
-        // Component metadata
+        // component metadata
         let name: String
         let template: String
         let models: [any Model.Type]
         
-        // Type-erased functions
+        // type-erased functions
         private let _shouldUpdate: @Sendable (Any) -> Bool
         private let _render: @Sendable (UUID, Database, ViewRenderer) async -> String?
         
-        // Create type-erased component from any concrete component type
+        // create type-erased component from any concrete component type
         init<C: Component>(_ component: C.Type)
         {
             self.name = C.name
             self.template = C.template
             self.models = C.models
             
-            // Capture the concrete type's methods
+            // capture concrete type function
             self._shouldUpdate =
             { model in
-                guard let model = model as? any Model else
-                {
-                    return false
-                }
+                guard let model = model as? any Model else { return false }
                 
                 return C.shouldUpdate(for: model)
             }
             
+            // capture concrete type function
             self._render =
             { id, db, renderer in
                 await C.render(id: id, on: db, using: renderer)
             }
         }
         
-        // Forward calls to the captured methods
+        // forward call to the captured function
         func shouldUpdate(for model: Any) -> Bool
         {
             _shouldUpdate(model)
         }
         
+        // forward call to the captured function
         func render(id: UUID, on db: Database, using renderer: ViewRenderer) async -> String?
         {
             await _render(id, db, renderer)

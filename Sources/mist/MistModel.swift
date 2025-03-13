@@ -1,29 +1,30 @@
 import Vapor
 import Fluent
 
+// mist uses Fluent models that use UUID as row identifier
 protocol MistModel: Model where IDValue == UUID {}
 
-// Extension to Model protocol to provide type-erased finder operations
-extension MistModel where IDValue == UUID
+// type-erased finder operations
+extension MistModel
 {
-    // Returns a closure that can find an instance of this model type by ID
+    // closure that can find an instance of this model type by ID
     // The type erasure happens by returning a closure that captures the concrete type
-    static var typedFinder: (UUID, Database) async throws -> (any Model)?
+    static var modelByID: (UUID, Database) async -> (any MistModel)?
     {
         return
             { id, db in
                 // Use Self to refer to the concrete model type
-                return try await Self.find(id, on: db)
+                return try? await Self.find(id, on: db)
             }
     }
     
     // Returns a closure that can fetch all instances of this model type
-    static var typedFindAll: (Database) async throws -> [any Model]
+    static var modelsAll: (Database) async -> [any MistModel]?
     {
         return
             { db in
                 // Use Self to refer to the concrete model type
-                return try await Self.query(on: db).all()
+                return try? await Self.query(on: db).all()
             }
     }
 }
@@ -37,12 +38,9 @@ extension Mist
         private var models: [String: Encodable] = [:]
         
         // Add a model instance to the container
-        mutating func add<M: Model>(_ model: M?, for key: String)
+        mutating func add<M: Model>(_ model: M, for key: String)
         {
-            if let model = model
-            {
-                models[key] = model
-            }
+            models[key] = model
         }
         
         // Special encoding implementation that flattens the models dictionary
@@ -56,6 +54,8 @@ extension Mist
                 try container.encode(value, forKey: StringCodingKey(key))
             }
         }
+        
+        var isEmpty: Bool { return models.isEmpty }
     }
     
     // Helper struct for string-based coding keys
@@ -84,14 +84,14 @@ extension Mist
     }
     
     // Wrapper to maintain compatibility with existing templates
-    struct EntryContext: Encodable
+    struct SingleComponentContext: Encodable
     {
-        let entry: ModelContainer
+        let component: ModelContainer
     }
     
     // Wrapper for multiple entries
-    struct EntriesContext: Encodable
+    struct MultipleComponentContext: Encodable
     {
-        let entries: [ModelContainer]
+        let components: [ModelContainer]
     }
 }
