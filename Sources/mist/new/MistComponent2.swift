@@ -53,14 +53,10 @@ extension Mist.Component
             do
             {
                 // Get the type-erased finder function and call it
-                if let finder = modelType.typedFinder
+                if let instance = try await modelType.typedFinder(id, db)
                 {
-                    if let instance = try await finder(id, db),
-                       let encodable = instance as? Encodable
-                    {
-                        container.add(instance as? (any Model & Encodable), for: typeName)
-                        foundAny = true
-                    }
+                    container.add(instance, for: typeName)
+                    foundAny = true
                 }
             }
             catch
@@ -76,6 +72,7 @@ extension Mist.Component
     }
     
     // Generate context for multiple model instances
+    // Generate context for multiple model instances
     static func makeContext(on db: Database) async -> Mist.EntriesContext?
     {
         // Make sure we have at least one model type
@@ -86,34 +83,32 @@ extension Mist.Component
         
         do
         {
-            // Use the first model type as the primary one for fetching all instances
-            if let findAll = primaryModel.typedFindAll
+            // Get all instances of the primary model
+            let allPrimaryInstances = try await primaryModel.typedFindAll(db)
+            var entries: [Mist.ModelContainer] = []
+            
+            // For each primary instance, fetch related models
+            for instance in allPrimaryInstances
             {
-                let allPrimaryInstances = try await findAll(db)
-                var entries: [Mist.ModelContainer] = []
-                
-                // For each primary instance, fetch related models
-                for instance in allPrimaryInstances
+                // Since we're working with UUIDIDModel, we know the ID is UUID
+                // We just need to safely unwrap it
+                if let model = instance as? any UUIDIDModel,
+                    let id = model.id
                 {
-                    guard let id = instance.id as? UUID else
-                    {
-                        continue
-                    }
-                    
                     // Reuse the single context maker
                     if let singleContext = await makeContext(id: id, on: db)
                     {
                         entries.append(singleContext.entry)
                     }
                 }
-                
-                guard !entries.isEmpty else
-                {
-                    return nil
-                }
-                
-                return Mist.EntriesContext(entries: entries)
             }
+            
+            guard !entries.isEmpty else
+            {
+                return nil
+            }
+            
+            return Mist.EntriesContext(entries: entries)
         }
         catch
         {
@@ -126,21 +121,10 @@ extension Mist.Component
     // Render the component using the automatically generated context
     static func render(id: UUID, on db: Database, using renderer: ViewRenderer) async -> String?
     {
-        guard let context = await makeContext(id: id, on: db) else
-        {
-            return nil
-        }
-        
-        do
-        {
-            let view = try await renderer.render(template, context)
-            return String(buffer: view.data)
-        }
-        catch
-        {
-            print("Error rendering template: \(error)")
-            return nil
-        }
+        guard let context = await makeContext(id: id, on: db) else { return nil }
+        guard let buffer = try? await renderer.render(template, context).data else { return nil }
+
+        return String(buffer: buffer)
     }
     
     // Check if component should update for a given model

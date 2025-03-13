@@ -1,11 +1,3 @@
-//
-//  ModelContainer.swift
-//  mottzi
-//
-//  Created by Berken Sayilir on 13.03.2025.
-//
-
-
 import Vapor
 import Fluent
 
@@ -18,7 +10,7 @@ extension Mist
         private var models: [String: Encodable] = [:]
         
         // Add a model instance to the container
-        mutating func add<M: Model & Encodable>(_ model: M?, for key: String)
+        mutating func add<M: Model>(_ model: M?, for key: String)
         {
             if let model = model
             {
@@ -34,10 +26,7 @@ extension Mist
             
             for (key, value) in models
             {
-                if let encodable = value as? Encodable
-                {
-                    try container.encode(encodable, forKey: StringCodingKey(key))
-                }
+                try container.encode(value, forKey: StringCodingKey(key))
             }
         }
     }

@@ -40,7 +40,7 @@ extension Mist
                 guard component.shouldUpdate(for: model) else { continue }
                 
                 // render using ID and database
-                guard let html = await component.render(id: modelID, db: db, using: renderer) else { continue }
+                guard let html = await component.render(id: modelID, on: db, using: renderer) else { continue }
                 
                 // create update message with component data
                 let message = Message.componentUpdate(

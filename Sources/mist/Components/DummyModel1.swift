@@ -1,7 +1,7 @@
 @preconcurrency import Vapor
 import Fluent
 
-final class DummyModel1: Model, Content, @unchecked Sendable
+final class DummyModel1: UUIDIDModel, Content, @unchecked Sendable
 {
     static let schema = "dummymodels"
     
