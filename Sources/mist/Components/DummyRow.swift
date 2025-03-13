@@ -4,18 +4,18 @@ import Fluent
 // mist component example
 struct DummyRow: Mist.Component
 {
-    static let models: [any Model.Type] = [DummyModel.self, DummyModel2.self]
+    static let models: [any Model.Type] = [DummyModel1.self, DummyModel2.self]
     
     struct ContextData: Encodable
     {
-        let dummy1: DummyModel
+        let dummy1: DummyModel1
         let dummy2: DummyModel2
     }
     
     static func makeContext(id: UUID, on db: Database) async -> SingleContext?
     {
         // get both model data
-        guard let dummy1 = try? await DummyModel.find(id, on: db) else { return nil }
+        guard let dummy1 = try? await DummyModel1.find(id, on: db) else { return nil }
         guard let dummy2 = try? await DummyModel2.find(id, on: db) else { return nil }
         
         // return joined context
@@ -25,7 +25,7 @@ struct DummyRow: Mist.Component
     static func makeContext(on db: any Database) async -> MultipleContext?
     {
         // Fetch all DummyModel instances
-        guard let primaryModels = try? await DummyModel.all(on: db) else { return nil }
+        guard let primaryModels = try? await DummyModel1.all(on: db) else { return nil }
         
         // Array to hold combined model data
         var joinedModels: [ContextData] = []
@@ -41,6 +41,8 @@ struct DummyRow: Mist.Component
             // Add combined data
             joinedModels.append(ContextData(dummy1: primaryModel, dummy2: secodaryModel))
         }
+        
+        guard joinedModels.isEmpty == false else { return nil }
         
         return MultipleContext(entries: joinedModels)
     }

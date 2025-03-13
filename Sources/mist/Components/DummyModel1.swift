@@ -1,7 +1,7 @@
 @preconcurrency import Vapor
 import Fluent
 
-final class DummyModel: Model, Content, @unchecked Sendable
+final class DummyModel1: Model, Content, @unchecked Sendable
 {
     static let schema = "dummymodels"
     
@@ -17,24 +17,24 @@ final class DummyModel: Model, Content, @unchecked Sendable
     }
 }
 
-extension DummyModel
+extension DummyModel1
 {
-    static func all(on database: Database) async throws -> [DummyModel]
+    static func all(on database: Database) async throws -> [DummyModel1]
     {
-        try await DummyModel.query(on: database)
+        try await DummyModel1.query(on: database)
             .sort(\.$created, .descending)
             .all()
     }
 }
 
 // database table
-extension DummyModel
+extension DummyModel1
 {
     struct Table3: AsyncMigration
     {
         func prepare(on database: Database) async throws
         {
-            try await database.schema(DummyModel.schema)
+            try await database.schema(DummyModel1.schema)
                 .id()
                 .field("text", .string, .required)
                 .field("created", .datetime)
@@ -43,7 +43,7 @@ extension DummyModel
         
         func revert(on database: Database) async throws
         {
-            try await database.schema(DummyModel.schema).delete()
+            try await database.schema(DummyModel1.schema).delete()
         }
     }
 }

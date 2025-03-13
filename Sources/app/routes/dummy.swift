@@ -30,7 +30,7 @@ extension Application
                 throw Abort(.badRequest, reason: "Valid text parameter is required")
             }
             
-            guard let dummy = try await DummyModel.find(id, on: req.db)
+            guard let dummy = try await DummyModel1.find(id, on: req.db)
             else
             {
                 throw Abort(.notFound, reason: "DummyModel with specified ID not found")
@@ -80,7 +80,7 @@ extension Application
                 throw Abort(.badRequest, reason: "Valid UUID parameter is required")
             }
             
-            guard let dummy = try await DummyModel.find(id, on: req.db)
+            guard let dummy = try await DummyModel1.find(id, on: req.db)
             else
             {
                 throw Abort(.notFound, reason: "DummyModel with specified ID not found")
@@ -100,13 +100,13 @@ extension Application
         
         self.get("dummies", "deleteAll")
         { req async throws -> HTTPStatus in
-            try await DummyModel.query(on: req.db).delete()
+            try await DummyModel1.query(on: req.db).delete()
             try await DummyModel2.query(on: req.db).delete()
             return .ok
         }
         
         self.get("dummies", "create")
-        { req async throws -> DummyModel in
+        { req async throws -> DummyModel1 in
             
             let words =
             [
@@ -116,7 +116,7 @@ extension Application
             ]
             
             // create and save new dummy db entry with provided text
-            let dummy = DummyModel(text: words.randomElement() ?? "error")
+            let dummy = DummyModel1(text: words.randomElement() ?? "error")
             try await dummy.save(on: req.db)
             
             let dummy2 = DummyModel2(text: words.randomElement() ?? "error")

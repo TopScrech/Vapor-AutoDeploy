@@ -29,7 +29,7 @@ struct App
         app.databases.middleware.use(Deployment.Listener(), on: .sqlite)
         
         app.migrations.add(Deployment.Table())
-        app.migrations.add(DummyModel.Table3())
+        app.migrations.add(DummyModel1.Table3())
         app.migrations.add(DummyModel2.Table())
         try await app.autoMigrate()
         
