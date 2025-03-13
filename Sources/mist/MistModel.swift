@@ -1,6 +1,8 @@
 import Vapor
 import Fluent
 
+protocol MistModel: Model where IDValue == UUID {}
+
 // Extension to Model protocol to provide type-erased finder operations
 extension MistModel where IDValue == UUID
 {
