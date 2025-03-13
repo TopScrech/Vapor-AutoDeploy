@@ -22,7 +22,7 @@ struct DummyRow: Mist.Component
         return SingleContext(entry: ContextData(dummy1: dummy1, dummy2: dummy2))
     }
     
-    static func makeContext(on db: any Database) async -> MultipleContext?
+    static func makeContext(on db: Database) async -> MultipleContext?
     {
         // Fetch all DummyModel instances
         guard let primaryModels = try? await DummyModel1.all(on: db) else { return nil }
