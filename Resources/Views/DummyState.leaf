@@ -22,7 +22,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
-                        #for(entry in entries):
+                        #for(component in components):
                             #extend("DummyRow")
                         #endfor
                     </tbody>
