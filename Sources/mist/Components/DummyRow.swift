@@ -4,7 +4,7 @@ import Fluent
 // mist component example
 struct DummyRow: Mist.Component
 {
-    static let models: [any UUIDIDModel.Type] = [DummyModel1.self, DummyModel2.self]
+    static let models: [any MistModel.Type] = [DummyModel1.self, DummyModel2.self]
     
 //    struct ContextData: Encodable
 //    {

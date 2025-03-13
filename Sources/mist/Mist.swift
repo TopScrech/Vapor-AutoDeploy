@@ -26,3 +26,4 @@ extension Mist
     }
 }
 
+protocol MistModel: Model where IDValue == UUID {}
