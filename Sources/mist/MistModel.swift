@@ -20,7 +20,7 @@ extension Mist.Model
             }
     }
     
-    // Returns a closure that can fetch all instances of this model type
+    // type-erased findAll() function as closure that captures concrete model type
     static var findAll: (Database) async -> [any Mist.Model]?
     {
         return
@@ -33,20 +33,19 @@ extension Mist.Model
 
 extension Mist
 {
-    // Simple container to hold model instances for rendering
+    // container to hold model instances for rendering
     struct ModelContainer: Encodable
     {
-        // Store models by their lowercase type name
+        // store encodable model data keyed by lowercase model type name
         private var models: [String: Encodable] = [:]
         
         // Add a model instance to the container
-        mutating func add<M: Model>(_ model: M, for key: String)
+        mutating func add<M: Mist.Model>(_ model: M, for key: String)
         {
             models[key] = model
         }
         
-        // Special encoding implementation that flattens the models dictionary
-        // This makes model properties directly accessible in Leaf templates
+        // flattens the models dictionary when encoding making properties directly accessible in template
         func encode(to encoder: Encoder) throws
         {
             var container = encoder.container(keyedBy: StringCodingKey.self)
@@ -60,7 +59,7 @@ extension Mist
         var isEmpty: Bool { return models.isEmpty }
     }
     
-    // Helper struct for string-based coding keys
+    // helper struct for string-based coding keys
     struct StringCodingKey: CodingKey
     {
         var stringValue: String
@@ -85,13 +84,13 @@ extension Mist
         }
     }
     
-    // Wrapper to maintain compatibility with existing templates
+    // single context
     struct SingleComponentContext: Encodable
     {
         let component: ModelContainer
     }
     
-    // Wrapper for multiple entries
+    // collection context
     struct MultipleComponentContext: Encodable
     {
         let components: [ModelContainer]

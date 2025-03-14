@@ -39,11 +39,11 @@ extension Mist.Component
         // fetch data of all component model types
         for modelType in models
         {
-            // use model type name as template reference
-            let modelName = String(describing: modelType).lowercased()
-            
             // fetch model data by common component UUID using type erased model closure
             guard let modelData = await modelType.find(id, db) else { continue }
+            
+            // use model type name as template reference
+            let modelName = String(describing: modelType).lowercased()
             
             // add model data to model container
             componentData.add(modelData, for: modelName)
