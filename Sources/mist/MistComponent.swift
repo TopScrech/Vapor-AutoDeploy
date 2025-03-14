@@ -31,7 +31,7 @@ extension Mist.Component
 extension Mist.Component
 {
     // create single component context
-    static func makeContext(ofSingleComponent id: UUID, in db: Database) async -> Mist.SingleComponentContext?
+    static func makeContext(of componentID: UUID, in db: Database) async -> Mist.SingleComponentContext?
     {
         // data container for dynamic multi model context creation
         var componentData = Mist.ModelContainer()
@@ -40,7 +40,7 @@ extension Mist.Component
         for modelType in models
         {
             // fetch model data by common component UUID using type erased model closure
-            guard let modelData = await modelType.find(id, db) else { continue }
+            guard let modelData = await modelType.find(componentID, db) else { continue }
             
             // use model type name as template reference
             let modelName = String(describing: modelType).lowercased()
@@ -57,7 +57,7 @@ extension Mist.Component
     }
     
     // create collection context for multiple components
-    static func makeContext(ofAllComponentsIn db: Database) async -> Mist.MultipleComponentContext?
+    static func makeContext(ofAll db: Database) async -> Mist.MultipleComponentContext?
     {
         // array of data containes for dynamic multi model context creation
         var componentDataCollection: [Mist.ModelContainer] = []
@@ -75,7 +75,7 @@ extension Mist.Component
             guard let componentID = primaryModelEntry.id else { continue }
             
             // fetch all related secondary model entries with matching id
-            guard let componentContext = await makeContext(ofSingleComponent: componentID, in: db) else { continue }
+            guard let componentContext = await makeContext(of: componentID, in: db) else { continue }
             
             // data of all models of component to data collection
             componentDataCollection.append(componentContext.component)
@@ -92,7 +92,7 @@ extension Mist.Component
     static func render(id: UUID, on db: Database, using renderer: ViewRenderer) async -> String?
     {
         // create dynamic template datan context
-        guard let context = await makeContext(ofSingleComponent: id, in: db) else { return nil }
+        guard let context = await makeContext(of: id, in: db) else { return nil }
         
         // render the template using the context
         guard let buffer = try? await renderer.render(template, context).data else { return nil }
