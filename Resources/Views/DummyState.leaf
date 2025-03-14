@@ -37,9 +37,9 @@
                             <table class="w-full">
                                 <thead class="bg-gray-50 dark:bg-neutral-800">
                                     <tr>
-                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Text</th>
                                         <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">ID</th>
-                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Text2</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">DummyModel1</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">DummyModel2</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
