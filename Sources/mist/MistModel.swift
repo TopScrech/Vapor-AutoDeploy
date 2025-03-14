@@ -1,15 +1,17 @@
 import Vapor
 import Fluent
 
-// mist uses Fluent models that use UUID as row identifier
-protocol MistModel: Model where IDValue == UUID {}
+extension Mist
+{
+    // mist models are fluent models that use UUID as id
+    protocol Model: Fluent.Model where IDValue == UUID {}
+}
 
 // type-erased finder operations
-extension MistModel
+extension Mist.Model
 {
-    // closure that can find an instance of this model type by ID
-    // The type erasure happens by returning a closure that captures the concrete type
-    static var modelByID: (UUID, Database) async -> (any MistModel)?
+    // type-erased find() function as closure that captures concrete model type
+    static var find: (UUID, Database) async -> (any Mist.Model)?
     {
         return
             { id, db in
@@ -19,7 +21,7 @@ extension MistModel
     }
     
     // Returns a closure that can fetch all instances of this model type
-    static var modelsAll: (Database) async -> [any MistModel]?
+    static var findAll: (Database) async -> [any Mist.Model]?
     {
         return
             { db in

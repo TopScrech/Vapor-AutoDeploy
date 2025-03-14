@@ -13,11 +13,11 @@ extension Mist
         static var template: String { get }
         
         // component models (joined by common id)
-        static var models: [any MistModel.Type] { get }
+        static var models: [any Mist.Model.Type] { get }
     }
 }
 
-// default component implementation
+// default naming
 extension Mist.Component
 {
     // name matches component type name
@@ -25,9 +25,13 @@ extension Mist.Component
     
     // template matches component type name
     static var template: String { String(describing: self) }
+}
     
+// default context
+extension Mist.Component
+{
     // create single component context
-    static func makeSingleComponentContext(id: UUID, on db: Database) async -> Mist.SingleComponentContext?
+    static func makeContext(ofSingleComponent id: UUID, in db: Database) async -> Mist.SingleComponentContext?
     {
         // data container for dynamic multi model context creation
         var componentData = Mist.ModelContainer()
@@ -39,7 +43,7 @@ extension Mist.Component
             let modelName = String(describing: modelType).lowercased()
             
             // fetch model data by common component UUID using type erased model closure
-            guard let modelData = await modelType.modelByID(id, db) else { continue }
+            guard let modelData = await modelType.find(id, db) else { continue }
             
             // add model data to model container
             componentData.add(modelData, for: modelName)
@@ -53,7 +57,7 @@ extension Mist.Component
     }
     
     // create collection context for multiple components
-    static func makeMultipleComponentContext(on db: Database) async -> Mist.MultipleComponentContext?
+    static func makeContext(ofAllComponentsIn db: Database) async -> Mist.MultipleComponentContext?
     {
         // array of data containes for dynamic multi model context creation
         var componentDataCollection: [Mist.ModelContainer] = []
@@ -62,7 +66,7 @@ extension Mist.Component
         guard let primaryModelType = models.first else { return nil }
         
         // get data for all entries of the primary model
-        guard let primaryModelEntries = await primaryModelType.modelsAll(db) else { return nil }
+        guard let primaryModelEntries = await primaryModelType.findAll(db) else { return nil }
         
         // fetch data of related secondary models
         for primaryModelEntry in primaryModelEntries
@@ -71,7 +75,7 @@ extension Mist.Component
             guard let componentID = primaryModelEntry.id else { continue }
             
             // fetch all related secondary model entries with matching id
-            guard let componentContext = await makeSingleComponentContext(id: componentID, on: db) else { continue }
+            guard let componentContext = await makeContext(ofSingleComponent: componentID, in: db) else { continue }
             
             // data of all models of component to data collection
             componentDataCollection.append(componentContext.component)
@@ -87,9 +91,13 @@ extension Mist.Component
     // render component using dynamically generated template context
     static func render(id: UUID, on db: Database, using renderer: ViewRenderer) async -> String?
     {
-        guard let context = await makeSingleComponentContext(id: id, on: db) else { return nil }
+        // create dynamic template datan context
+        guard let context = await makeContext(ofSingleComponent: id, in: db) else { return nil }
+        
+        // render the template using the context
         guard let buffer = try? await renderer.render(template, context).data else { return nil }
 
+        // return html string
         return String(buffer: buffer)
     }
     

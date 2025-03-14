@@ -3,6 +3,7 @@ import Fluent
 
 extension Application
 {
+    // allow app to initialize mist
     func useMist()
     {
         Mist.registerComponents(on: self)
@@ -20,8 +21,9 @@ extension Mist
             // configure template renderer
             await Components.shared.configure(renderer: app.leaf.renderer)
             
-            // register example component
+            // register example components
             await Components.shared.register(component: DummyRow.self, on: app)
+            await Components.shared.register(component: DummyRowCustom.self, on: app)
         }
     }
 }

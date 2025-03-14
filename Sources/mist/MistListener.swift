@@ -1,8 +1,9 @@
 @preconcurrency import Vapor
 import Fluent
 
-extension Model
+extension Mist.Model
 {
+    // registers db middleware listener on Fluent db changes
     static func createListener(on app: Application)
     {
         app.databases.middleware.use(Mist.Listener<Self>(), on: .sqlite)
@@ -12,7 +13,7 @@ extension Model
 extension Mist
 {
     // generic database model update listener
-    struct Listener<M: Model>: AsyncModelMiddleware
+    struct Listener<M: Mist.Model>: AsyncModelMiddleware
     {
         let logger = Logger(label: "[Mist]")
         
@@ -25,7 +26,7 @@ extension Mist
             try await next.update(model, on: db)
             
             // Ensure we have a UUID
-            guard let modelID = model.id as? UUID else { return }
+            guard let modelID = model.id else { return }
             
             // get type-safe components registered for this model type
             let components = await Components.shared.getComponents(for: M.self)
