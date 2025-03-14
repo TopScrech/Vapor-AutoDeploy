@@ -21,7 +21,7 @@
                 <div class="py-4 flex items-center justify-between">
                     <div class="flex items-center space-x-4">
                         <h1 class="text-xl font-semibold text-gray-900 dark:text-neutral-100">
-                            Mist Component Demo: DummyRow using DummyModel1 and DummyModel2
+                            DummyRow
                         </h1>
                     </div>
                 </div>
