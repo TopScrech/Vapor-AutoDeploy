@@ -1,29 +1,20 @@
 import Vapor
 import Fluent
 
-extension Application
-{
-    // allow app to initialize mist
-    func useMist()
-    {
-        Mist.registerComponents(on: self)
-        Mist.registerMistSocket(on: self)
-    }
-}
-
 extension Mist
 {
     // initialize component system
-    static func registerComponents(on app: Application)
+    static func registerComponents(using config: Configuration) throws
     {
+        // get app reference
         Task
         {
-            // configure template renderer
-            await Components.shared.configure(renderer: app.leaf.renderer)
+            // Configure components with the configuration
+//            await Components.shared.configure(with: configuration)
             
-            // register example components
-            await Components.shared.register(component: DummyRow.self, on: app)
-            await Components.shared.register(component: DummyRowCustom.self, on: app)
+            // Register example components
+            try await Components.shared.register(component: DummyRow.self, using: config)
+            try await Components.shared.register(component: DummyRowCustom.self, using: config)
         }
     }
 }

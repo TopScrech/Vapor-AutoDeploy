@@ -3,6 +3,17 @@ import Fluent
 
 extension Mist
 {
+    enum ConfigurationError: Error
+    {
+        case componentExists(name: String)
+        case applicationMissing
+        case databaseMissing
+        case noConfig
+    }
+}
+
+extension Mist
+{
     // thread-safe component registry
     actor Components
     {
@@ -12,14 +23,14 @@ extension Mist
         // type-erased mist component storage
         private var components: [AnyComponent] = []
 
-        // template renderer
-        private var renderer: ViewRenderer?
+        // config reference
+        // private var config: Mist.Configuration?
 
         // type-safe mist component registration
-        func register<C: Component>(component: C.Type, on app: Application)
+        func register<C: Component>(component: C.Type, using config: Mist.Configuration) throws
         {
             // abort if component name is already registered
-            if components.contains(where: { $0.name == C.name }) { return }
+            guard components.contains(where: { $0.name == C.name }) == false else { throw ConfigurationError.componentExists(name: C.name) }
             
             // register database listeners for component models
             for model in component.models
@@ -34,7 +45,7 @@ extension Mist
                 if isModelUsed == false
                 {
                     // register db model listener middleware
-                    model.createListener(on: app)
+                    try model.createListener(using: config)
                     
                     Logger(label: "[Mist]")
                         .warning("Component '\(component.name)' created listener for model '\(String(describing: model))'")
@@ -52,8 +63,12 @@ extension Mist
         }
 
         // set template renderer
-        func configure(renderer: ViewRenderer) { self.renderer = renderer }
-        // get template renderer
-        func getRenderer() -> ViewRenderer? { return renderer }
+//        func configure(with config: Mist.Configuration) { self.config = config }
+        
+        // Get database ID from configuration
+//        func getDatabaseID() -> DatabaseID? { return config?.databaseID }
+
+        // get templater enderer through configuration
+//        func getRenderer() -> ViewRenderer? { return config?.application?.leaf.renderer }
     }
 }

@@ -39,7 +39,7 @@ struct App
         app.usePushDeploy()
         app.useDeployPanel()
         
-        app.useMist()
+        try Mist.start(using: Mist.Configuration(on: app))
         app.useDummy()
         
         try await app.execute()

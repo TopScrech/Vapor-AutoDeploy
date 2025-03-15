@@ -4,9 +4,9 @@ import Fluent
 extension Mist.Model
 {
     // registers db middleware listener on Fluent db changes
-    static func createListener(on app: Application)
+    static func createListener(using config: Mist.Configuration) throws
     {
-        app.databases.middleware.use(Mist.Listener<Self>(), on: .sqlite)
+        config.app.databases.middleware.use(Mist.Listener<Self>(config: config), on: config.db)
     }
 }
 
@@ -15,6 +15,7 @@ extension Mist
     // generic database model update listener
     struct Listener<M: Mist.Model>: AsyncModelMiddleware
     {
+        let config: Mist.Configuration
         let logger = Logger(label: "[Mist]")
         
         // update callback
@@ -32,7 +33,7 @@ extension Mist
             let components = await Components.shared.getComponents(for: M.self)
             
             // safely unwrap renderer
-            guard let renderer = await Components.shared.getRenderer() else { return }
+            let renderer = config.app.leaf.renderer
             
             // process each component
             for component in components
