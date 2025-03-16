@@ -1,5 +1,6 @@
 import Vapor
 import Fluent
+import Mist
 
 // mist component example
 struct DummyRow: Mist.Component

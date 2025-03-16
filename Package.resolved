@@ -1,5 +1,5 @@
 {
-  "originHash" : "6c4b7b43913bea663b81bb51981aa46c37d142eaae5845c1c7ae24bb952d0319",
+  "originHash" : "344c0920dbd0468c103d745ec747d4d133466ee4c59c136ab1decaf5862512bb",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -71,6 +71,15 @@
       "state" : {
         "revision" : "902c51288a6a1c3f19d9e33d1aebee066364c0e6",
         "version" : "1.12.0"
+      }
+    },
+    {
+      "identity" : "mist",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mottzi/Mist",
+      "state" : {
+        "revision" : "d398c13cc73d795f7c1b2338f1a1d2c12f9abd5e",
+        "version" : "0.2.3"
       }
     },
     {

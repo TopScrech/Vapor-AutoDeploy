@@ -1,5 +1,6 @@
 import Vapor
 import Fluent
+import Mist
 
 struct DummyRowCustom: Mist.Component
 {

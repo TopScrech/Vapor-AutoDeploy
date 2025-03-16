@@ -1,5 +1,6 @@
 @preconcurrency import Vapor
 import Fluent
+import Mist
 
 final class DummyModel1: Mist.Model, Content, @unchecked Sendable
 {

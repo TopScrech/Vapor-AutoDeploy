@@ -2,6 +2,7 @@ import Vapor
 import Fluent
 import FluentSQLiteDriver
 import Leaf
+import Mist
 
 @main
 struct App
@@ -22,18 +23,21 @@ struct App
             
             return ConsoleFragmentLogger(fragment: format, label: $0, console: Terminal(), level: .info)
         }
-                
+        
+        app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+
         app.environment.useVariables()
         
         app.databases.use(.sqlite(.file("deploy/github/deployments.db")), as: .sqlite)
         app.databases.middleware.use(Deployment.Listener(), on: .sqlite)
+
+        app.migrations.add(
+            Deployment.Table(),
+            DummyModel1.Table3(),
+            DummyModel2.Table())
         
-        app.migrations.add(Deployment.Table())
-        app.migrations.add(DummyModel1.Table3())
-        app.migrations.add(DummyModel2.Table())
         try await app.autoMigrate()
-        
-        app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+                
         app.views.use(.leaf)
         app.useRoutes()
         app.usePushDeploy()
