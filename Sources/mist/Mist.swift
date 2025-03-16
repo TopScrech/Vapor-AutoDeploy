@@ -15,11 +15,13 @@ extension Mist
     // initialize component system
     static func registerComponents(using config: Configuration)
     {
-        // Register example components
+        // register configured components
         Task
         {
-            await Components.shared.register(component: DummyRow.self, using: config)
-            await Components.shared.register(component: DummyRowCustom.self, using: config)
+            for component in config.components
+            {
+                await Components.shared.register(component: component, using: config)
+            }
         }
     }
 }
