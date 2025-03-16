@@ -29,3 +29,8 @@ func log(_ filePath: String, _ content: String)
         logger.error("\(error.localizedDescription)")
     }
 }
+
+func log(_ text: String)
+{
+    Logger(label: "[Mist]").warning("\(text)")
+}

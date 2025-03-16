@@ -1,15 +1,5 @@
 import Vapor
 import Fluent
-    
-struct Mist
-{
-    static func start(using config: Mist.Configuration) throws
-    {
-        // Initialize Mist with this configuration
-        try Mist.registerComponents(using: config)
-        Mist.registerMistSocket(on: config.app)
-    }
-}
 
 extension Mist
 {

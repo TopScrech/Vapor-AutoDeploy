@@ -3,17 +3,6 @@ import Fluent
 
 extension Mist
 {
-    enum ConfigurationError: Error
-    {
-        case componentExists(name: String)
-        case applicationMissing
-        case databaseMissing
-        case noConfig
-    }
-}
-
-extension Mist
-{
     // thread-safe component registry
     actor Components
     {
@@ -23,14 +12,11 @@ extension Mist
         // type-erased mist component storage
         private var components: [AnyComponent] = []
 
-        // config reference
-        // private var config: Mist.Configuration?
-
         // type-safe mist component registration
-        func register<C: Component>(component: C.Type, using config: Mist.Configuration) throws
+        func register<C: Component>(component: C.Type, using config: Mist.Configuration)
         {
             // abort if component name is already registered
-            guard components.contains(where: { $0.name == C.name }) == false else { throw ConfigurationError.componentExists(name: C.name) }
+            guard components.contains(where: { $0.name == C.name }) == false else { return }
             
             // register database listeners for component models
             for model in component.models
@@ -45,10 +31,10 @@ extension Mist
                 if isModelUsed == false
                 {
                     // register db model listener middleware
-                    try model.createListener(using: config)
+                    model.createListener(using: config)
                     
-                    Logger(label: "[Mist]")
-                        .warning("Component '\(component.name)' created listener for model '\(String(describing: model))'")
+                    log("Component '\(component.name)' created listener for model '\(String(describing: model))'")
+                    //
                 }
             }
             
@@ -61,14 +47,5 @@ extension Mist
         {
             return components.filter { $0.models.contains { ObjectIdentifier($0) == ObjectIdentifier(type) } }
         }
-
-        // set template renderer
-//        func configure(with config: Mist.Configuration) { self.config = config }
-        
-        // Get database ID from configuration
-//        func getDatabaseID() -> DatabaseID? { return config?.databaseID }
-
-        // get templater enderer through configuration
-//        func getRenderer() -> ViewRenderer? { return config?.application?.leaf.renderer }
     }
 }
