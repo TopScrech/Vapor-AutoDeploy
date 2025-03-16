@@ -5,9 +5,9 @@ import LeafKit
 
 extension Mist
 {
-    static func registerMistSocket(on app: Application)
+    static func registerMistSocket(using config: Mist.Configuration)
     {
-        app.webSocket("mist", "ws")
+        config.app.webSocket("mist", "ws")
         { request, ws async in
             
             // create new connection on upgrade

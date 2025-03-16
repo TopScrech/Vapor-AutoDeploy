@@ -32,5 +32,5 @@ func log(_ filePath: String, _ content: String)
 
 func log(_ text: String)
 {
-    Logger(label: "[Mist]").warning("\(text)")
+    Logger(label: "[Mist]").info("\(text)")
 }

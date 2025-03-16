@@ -6,7 +6,7 @@ struct Mist
     static func configure(using config: Mist.Configuration)
     {
         Mist.registerComponents(using: config)
-        Mist.registerMistSocket(on: config.app)
+        Mist.registerMistSocket(using: config)
     }
 }
 
