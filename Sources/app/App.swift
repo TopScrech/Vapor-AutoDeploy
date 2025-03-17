@@ -45,7 +45,7 @@ struct App
         
         let components: [any Mist.Component.Type] = [DummyRow.self, DummyRowCustom.self]
         let config = Mist.Configuration(app: app, components: components)
-        Mist.configure(using: config)
+        await Mist.configure(using: config)
         app.useDummy()
         
         try await app.execute()
