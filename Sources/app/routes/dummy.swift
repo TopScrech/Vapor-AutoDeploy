@@ -6,9 +6,7 @@ extension Application
     {
         self.get("dummies")
         { request async throws -> View in
-            guard let context = await DummyRow.makeContext(ofAll: request.db) else { throw Abort(.internalServerError) }
-    
-            return try await request.view.render("DummyState", context)
+            return try await request.view.render("DummyState", await DummyRow.makeContext(ofAll: request.db))
         }
         
         self.get("dummies", "update", ":id", ":text")
