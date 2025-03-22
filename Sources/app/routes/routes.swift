@@ -8,7 +8,7 @@ extension Application
     public func useRoutes()
     {
         // mottzi.de/route
-        self.get("route") { _ in "2" }
+        self.get("route") { _ in "4133" }
         
         // mottzi.de/hello/world -> 'Hello, world!'
         self.get("hello", ":name")
