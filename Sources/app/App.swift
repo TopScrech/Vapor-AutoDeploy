@@ -42,10 +42,9 @@ struct App
         app.useRoutes()
         app.usePushDeploy()
         app.useDeployPanel()
+                
+        await Mist.configure(using: Mist.Configuration(for: app, using: [DummyRow.self, DummyRowCustom.self]))
         
-        let components: [any Mist.Component.Type] = [DummyRow.self, DummyRowCustom.self]
-        let config = Mist.Configuration(app: app, components: components)
-        await Mist.configure(using: config)
         app.useDummy()
         
         try await app.execute()
