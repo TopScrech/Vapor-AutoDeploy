@@ -11,21 +11,7 @@ final class DummyModel1: Mist.Model, Content, @unchecked Sendable
     @Timestamp(key: "created", on: .create) var created: Date?
     
     init() {}
-    
-    init(text: String)
-    {
-        self.text = text
-    }
-}
-
-extension DummyModel1
-{
-    static func all(on database: Database) async throws -> [DummyModel1]
-    {
-        try await DummyModel1.query(on: database)
-            .sort(\.$created, .descending)
-            .all()
-    }
+    init(text: String) { self.text = text }
 }
 
 // database table
@@ -46,5 +32,15 @@ extension DummyModel1
         {
             try await database.schema(DummyModel1.schema).delete()
         }
+    }
+}
+
+extension DummyModel1
+{
+    static func all(on db: Database) async throws -> [DummyModel1]
+    {
+        try await DummyModel1.query(on: db)
+            .sort(\.$created, .descending)
+            .all()
     }
 }

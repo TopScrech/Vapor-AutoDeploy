@@ -46,7 +46,7 @@ struct App
         await Mist.configure(using: Mist.Configuration(for: app, using: [DummyRow.self, DummyRowCustom.self]))
         
         app.useDummy()
-        
+                
         try await app.execute()
         try await app.asyncShutdown()
     }

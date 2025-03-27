@@ -1,0 +1,6 @@
+<tr mist-component="DummyComponent"
+    mist-id="#(component.dummymodel1.id)">
+    <td>#(component.dummymodel1.id)</td>
+    <td>#(component.dummymodel1.text)</td>
+    <td>#(component.dummymodel2.text)</td>
+</tr>

@@ -7,11 +7,11 @@ struct DummyRowCustom: Mist.Component
     static let models: [any Mist.Model.Type] = [DummyModel1.self, DummyModel2.self]
     
     // override the single component context creation
-    static func makeSingleComponentContext(id: UUID, on db: Database) async -> Mist.SingleComponentContext?
+    static func makeContext(of componentID: UUID, in db: Database) async -> Mist.SingleComponentContext?
     {
         // get both model data
-        guard let dummy1 = try? await DummyModel1.find(id, on: db) else { return nil }
-        guard let dummy2 = try? await DummyModel2.find(id, on: db) else { return nil }
+        guard let dummy1 = try? await DummyModel1.find(componentID, on: db) else { return nil }
+        guard let dummy2 = try? await DummyModel2.find(componentID, on: db) else { return nil }
         
         // create a model container and add models to it
         var container = Mist.ModelContainer()

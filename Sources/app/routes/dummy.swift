@@ -7,15 +7,9 @@ extension Application
     {
         self.get("dummies")
         { request async throws -> View in
-            
-            if let context = await DummyRow.makeContext(ofAll: request.db)
-            {
-                return try await request.view.render("DummyState", context)
-            }
-            else
-            {
-                return try await request.view.render("DummyState", Mist.MultipleComponentContext(components: []))
-            }
+            // render initial page template with full data set
+            let context = await DummyRow.makeContext(ofAll: request.db)
+            return try await request.view.render("DummyState", context)
         }
         
         self.get("dummies", "update", ":id", ":text")

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>DummyModel1</th>
+                <th>DummyModel2</th>
+            </tr>
+        </thead>
+        <tbody>
+        #for(component in components):
+            #extend("DummyComponent")
+        #endfor
+        </tbody>
+    </table>
+
+    <script src="/mist.js"></script>
+</body>
+</html>
