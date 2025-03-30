@@ -52,6 +52,13 @@ struct App
         
         await Mist.configure(using: config)
         
+        let dummyModel1 = DummyModel1(text: "Hello")
+        let dummyModel2 = DummyModel2(text: "World")
+        dummyModel2.id = dummyModel1.id
+        
+        try await dummyModel1.save(on: app.db)
+        try await dummyModel2.save(on: app.db)
+                
         app.useDummy()
                 
         try await app.execute()

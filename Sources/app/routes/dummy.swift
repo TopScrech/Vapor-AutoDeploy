@@ -115,10 +115,10 @@ extension Application
             ]
             
             // create and save new dummy db entry with provided text
-            let dummy = DummyModel1(text: words.randomElement() ?? "error")
+            let dummy = DummyModel1(text: words.randomElement()!)
             try await dummy.save(on: req.db)
             
-            let dummy2 = DummyModel2(text: words.randomElement() ?? "error")
+            let dummy2 = DummyModel2(text: words.randomElement()!)
             dummy2.id = dummy.id
             try await dummy2.save(on: req.db)
             
