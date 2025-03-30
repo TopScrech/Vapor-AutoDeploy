@@ -16,11 +16,7 @@
         </thead>
         <tbody>
         #for(component in components):
-            <tr mist-component="DummyComponent" mist-id="#(component.dummymodel1.id)">
-                <td>#(component.dummymodel1.id)</td>
-                <td>#(component.dummymodel1.text)</td>
-                <td>#(component.dummymodel2.text2)</td>
-            </tr>
+        #extend("DummyComponent")
         #endfor
         </tbody>
     </table>
