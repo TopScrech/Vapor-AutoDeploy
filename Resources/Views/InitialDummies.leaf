@@ -16,7 +16,7 @@
         </thead>
         <tbody>
         #for(component in components):
-            #include("DummyComponent")
+            #extend("DummyComponent")
         #endfor
         </tbody>
     </table>
