@@ -5,11 +5,12 @@ extension Application
 {
     func useDummy()
     {
-        self.get("dummies")
+        self.get("DummyComponents")
         { request async throws -> View in
+            // create template context with all available component data
+            let context = await DummyComponent.makeContext(ofAll: request.db)
             // render initial page template with full data set
-            let context = await DummyRow.makeContext(ofAll: request.db)
-            return try await request.view.render("DummyState", context)
+            return try await request.view.render("InitialDummies", context)
         }
         
         self.get("dummies", "update", ":id", ":text")
