@@ -13,58 +13,40 @@ extension Application
             return try await request.view.render("InitialDummies", context)
         }
         
-        self.get("dummies", "update", ":id", ":text")
+        self.get("DummyModel1", "update", ":id", ":text")
         { req async throws -> HTTPStatus in
             
             guard let idString = req.parameters.get("id"),
                   let id = UUID(uuidString: idString)
-            else
-            {
-                throw Abort(.badRequest, reason: "Valid UUID parameter is required")
-            }
+            else { throw Abort(.badRequest, reason: "Valid UUID required") }
             
             guard let text = req.parameters.get("text")
-            else
-            {
-                throw Abort(.badRequest, reason: "Valid text parameter is required")
-            }
+            else { throw Abort(.badRequest, reason: "Valid text required") }
             
-            guard let dummy = try await DummyModel1.find(id, on: req.db)
-            else
-            {
-                throw Abort(.notFound, reason: "DummyModel with specified ID not found")
-            }
+            guard let dummyModel1 = try await DummyModel1.find(id, on: req.db)
+            else { throw Abort(.notFound, reason: "DummyModel1 not found") }
             
-            dummy.text = text
-            try await dummy.save(on: req.db)
+            dummyModel1.text = text
+            try await dummyModel1.save(on: req.db)
             
             return .ok
         }
         
-        self.get("dummies2", "update", ":id", ":text")
+        self.get("DummyModel2", "update", ":id", ":text")
         { req async throws -> HTTPStatus in
             
             guard let idString = req.parameters.get("id"),
                   let id = UUID(uuidString: idString)
-            else
-            {
-                throw Abort(.badRequest, reason: "Valid UUID parameter is required")
-            }
+            else { throw Abort(.badRequest, reason: "Valid UUID required") }
             
             guard let text = req.parameters.get("text")
-            else
-            {
-                throw Abort(.badRequest, reason: "Valid text parameter is required")
-            }
+            else { throw Abort(.badRequest, reason: "Valid text required") }
             
-            guard let dummy2 = try await DummyModel2.find(id, on: req.db)
-            else
-            {
-                throw Abort(.notFound, reason: "DummyModel with specified ID not found")
-            }
+            guard let dummyModel2 = try await DummyModel2.find(id, on: req.db)
+            else { throw Abort(.notFound, reason: "DummyModel2 not found") }
             
-            dummy2.text2 = text
-            try await dummy2.save(on: req.db)
+            dummyModel2.text2 = text
+            try await dummyModel2.save(on: req.db)
             
             return .ok
         }
