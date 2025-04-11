@@ -1,15 +1,18 @@
-<tr class="hover:bg-gray-50 dark:hover:bg-neutral-750 transition-colors duration-150" 
-    data-deployment-id="#(task.id)" 
-    data-started-at="#(task.startedAtTimestamp)"
->
+<tr data-deployment-id="#(task.id)" 
+    data-started-at="#(task.startedAtTimestamp)" 
+    class="hover:bg-gray-50 dark:hover:bg-neutral-750 transition-colors duration-150">
+    
+    <!-- deployment commit message -->
     <td class="px-6 py-4 max-w-[160px]">
         <span class="block text-sm text-gray-700 dark:text-neutral-300 truncate font-medium">#(task.message)</span>
     </td>
     
+    <!-- deployment ID -->
     <td class="hidden sm:table-cell px-6 py-4">
         <a href="/admin/deployments/#(task.id)" class="font-mono text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm hover:underline" title="#(task.id)">#(task.id)</a>
     </td>
     
+    <!-- deployment status badge -->
     <td class="px-6 py-4">
         #if(task.status == "success"):
             <span class="status-badge inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-50 text-emerald-700 dark:bg-neutral-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-600/20 dark:ring-emerald-500/30">
@@ -49,6 +52,7 @@
         #endif
     </td>
     
+    <!-- deployment started at -->
     <td class="hidden sm:table-cell px-6 py-4">
         <span class="text-sm text-gray-700 dark:text-neutral-300">
             <span class="font-mono">#date(task.startedAt, "HH:mm:ss")</span>
@@ -56,6 +60,7 @@
         </span>
     </td>
     
+    <!-- deployment duration -->
     <td class="px-6 py-4">
         #if(task.durationString):
             <span class="font-mono text-sm text-gray-700 dark:text-neutral-300">#(task.durationString)</span>
@@ -74,10 +79,9 @@
         #endif
     </td>
     
+    <!-- deployment delete button -->
     <td class="px-6 py-4">
-        <button
-            class="inline-flex items-center text-sm font-medium text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 delete-button hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 dark:focus:ring-offset-neutral-800"
-        >
+        <button class="inline-flex items-center text-sm font-medium text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 delete-button hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 dark:focus:ring-offset-neutral-800">
             Delete
         </button>
     </td>

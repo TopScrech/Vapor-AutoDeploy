@@ -4,30 +4,36 @@ extension Application
 {
     func useDeployPanel()
     {
+        // establish websocket for clients to connect to
         self.webSocket("deployment", "ws")
         { request, ws async in
             // make client connection identifiable
             let id = UUID()
-            // register client for broadcasting
-            await DeploymentClients.shared.add(connection: id, socket: ws)
             
-            // server welcome message to client
+            // register client in broadcasting registry
+            await DeploymentClients.shared.add(client: id, socket: ws)
+            
+            // send server welcome message
             await Deployment.Message.message("Client connected to Server").send(on: ws)
             
-            // send full server state to client (try db fetch)
+            // send initial full server state to client upon connecting (this is so that re-connecting clients won't operate on stale state)
             if let deployments = try? await Deployment.all(on: request.db)
             { await Deployment.Message.state(deployments).send(on: ws) }
             
-            // Handle incoming messages
+            // handle incoming messages
             ws.onText() { ws, text async in await WebSocket.handleDeploymentMessage(ws, text, request) }
             
-            // remove client from broadcasting register
-            ws.onClose.whenComplete() { _ in Task { await DeploymentClients.shared.remove(connection: id) } }
+            // remove client from broadcasting registry when disconnecting
+            ws.onClose.whenComplete() { _ in Task { await DeploymentClients.shared.remove(client: id) } }
         }
         
+        // deployment panel route
         self.get("deployment")
         { request async throws -> View in
+            // get all deployments
             let deployments = try await Deployment.all(on: request.db)
+            
+            // find current deployment
             let current = try await Deployment.current(on: request.db)
             
             struct Context: Encodable
@@ -36,73 +42,11 @@ extension Application
                 let current: Deployment?
             }
             
+            // create encoded data context for templating
             let context = Context(tasks: deployments, current: current)
             
+            // render the panel template using data context
             return try await request.view.render("deployment/panel", context)
         }
     }
 }
-
-extension WebSocket
-{
-    // handles incoming deployment messages from client
-    static func handleDeploymentMessage(_ ws: WebSocket, _ text: String, _ request: Request) async
-    {
-        // decode client message
-        guard let data = text.data(using: .utf8),
-              let message = try? JSONDecoder().decode(Deployment.Message.self, from: data)
-        else { return }
-        
-        switch message
-        {
-            // handle client deletion request
-            case .delete(let id): do
-            {
-                // remove datbase entry
-                guard let deployment = try? await Deployment.find(id, on: request.db) else { return }
-                guard (try? await deployment.delete(on: request.db)) != nil else { return }
-                
-                // echo back the same message
-                //try? await ws.send(text)
-                
-                // broadcast deletion to all connected clients
-                await DeploymentClients.shared.broadcast(message)
-            }
-                
-            default: return
-        }
-    }
-}
-
-extension Array where Element == Deployment
-{
-    func adjustStale() -> [Deployment]
-    {
-        self.map()
-        {
-            // Early return if not running
-            guard $0.status == "running" else { return $0 }
-            // Early return if no start time
-            guard let startedAt = $0.startedAt else { return $0 }
-            // Early return if not stale
-            guard Date().timeIntervalSince(startedAt) > 1800 else { return $0 }
-            
-            $0.status = "stale"
-            
-            return $0
-        }
-    }
-    
-    func adjustDeploy() -> [Deployment]
-    {
-        self.map()
-        {
-            guard $0.isCurrent else { return $0 }
-            
-            $0.status = "deployed"
-            
-            return $0
-        }
-    }
-}
-

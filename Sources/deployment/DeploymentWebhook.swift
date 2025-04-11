@@ -2,7 +2,7 @@ import Vapor
 
 extension Application
 {
-    // convenience function to register github webhook listener
+    // convenience function to register github webhook listener with Vapor
     func push(_ endpoint: PathComponent..., action closure: @Sendable @escaping (Request) async -> ())
     {
         DeploymentWebhook(app: self).listen(to: endpoint, action: closure)
@@ -18,13 +18,14 @@ struct DeploymentWebhook
     {
         let accepted = Response(status: .ok, body: .init(stringLiteral: "[mottzi] Push event accepted."))
         let denied = Response(status: .forbidden, body: .init(stringLiteral: "[mottzi] Push event denied."))
-                
+            
+        // registers github push webhook endpoint / handler
         app.post(endpoint)
         { request async -> Response in
             // validate request by verifying github signature
             let validRequest = self.validateSignature(of: request)
             
-            // deny request if invalid signature
+            // deny request if signature is invalid
             guard validRequest else { return denied }
             
             // handle accepted request with custom action
@@ -41,16 +42,16 @@ struct DeploymentWebhook
         // get github secret from env file
         let secret = Environment.Variables.GITHUB_WEBHOOK_SECRET.value
 
-        // get signature
+        // abort if there is no github signature header
         guard let signatureHeader = request.headers.first(name: "X-Hub-Signature-256") else { return false }
         
-        // ensure signature starts with "sha256="
+        // abort if signature does not start with "sha256="
         guard signatureHeader.hasPrefix("sha256=") else { return false }
         
         // extract signature hex string
         let signatureHex = String(signatureHeader.dropFirst("sha256=".count))
         
-        // get raw request body
+        // abort if there is no request body
         guard let payload = request.body.string else { return false }
         
         // encode local secret and received payload
@@ -98,7 +99,7 @@ extension DeploymentWebhook
 
 extension String
 {
-    // needed for signature verification
+    // signature verification
     var hexadecimal: Data?
     {
         var data = Data(capacity: count / 2)

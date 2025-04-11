@@ -16,7 +16,8 @@
 </head>
 <body class="h-full bg-gray-50 dark:bg-neutral-900">
     <div class="min-h-full flex flex-col">
-        <!-- Modern header with elevated design -->
+    
+        <!-- header -->
         <header class="bg-white dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 shadow-sm flex-none">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="py-4 flex items-center justify-between">
@@ -40,7 +41,7 @@
             </div>
         </header>
         
-        <!-- Main content with modern table design -->
+        <!-- table -->
         <div class="flex-1 overflow-hidden">
             <div class="h-full overflow-auto">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -59,6 +60,7 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
                                     #for(task in tasks):
+                                        <!-- row -->
                                         #extend("deployment/row")
                                     #endfor
                                 </tbody>
@@ -69,6 +71,8 @@
             </div>
         </div>
     </div>
+    
+    <!-- html over the wire -->
     <script src="/deployment/panel.js"></script>
 </body>
 </html>

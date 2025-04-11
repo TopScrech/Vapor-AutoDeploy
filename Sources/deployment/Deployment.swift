@@ -1,6 +1,7 @@
 import Vapor
 import Fluent
 
+// deployment model
 final class Deployment: Model, Content, @unchecked Sendable
 {
     static let schema = "deployments"
@@ -20,49 +21,19 @@ final class Deployment: Model, Content, @unchecked Sendable
         self.message = message
         self.isCurrent = false
     }
-}
-
-extension Deployment
-{
-    // set this deployment as current
-    func setCurrent(on database: Database) async throws
-    {
-        // clear any existing current deployments
-        try await Deployment.clearCurrent(on: database)
-        
-        // set this one as current
-        self.isCurrent = true
-        try await self.save(on: database)
-    }
     
-    // returns the current Deployment
-    static func current(on database: Database) async throws -> Deployment?
-    {
-        try await Deployment.query(on: database)
-            .filter(\.$isCurrent, .equal, true)
-            .first()
-    }
-    
-    static func clearCurrent(on database: Database) async throws
-    {
-        try await Deployment.query(on: database)
-            .set(\.$isCurrent, to: false)
-            .filter(\.$isCurrent, .equal, true)
-            .update()
-    }
-    
-    // returns array of all Deployments
+    // returns array of all deployments, adjusted for presentation layer
     static func all(on database: Database) async throws -> [Deployment]
     {
         try await Deployment.query(on: database)
             .sort(\.$startedAt, .descending)
             .all()
-            .adjustStale()
-            .adjustDeploy()
+            .markStaleDeployments()
+            .markCurrentDeployment()
     }
 }
 
-// cumputated properties
+// cumputated model properties for presentaion layer
 extension Deployment
 {
     var durationString: String?
@@ -78,28 +49,77 @@ extension Deployment
     }
 }
 
-// encoding
+// functions to handle current deployment management
 extension Deployment
 {
-    enum CodingKeys: String, CodingKey
+    // flag this deployment as current
+    func setCurrent(on database: Database) async throws
     {
-        case id, status, message, isCurrent, startedAt, finishedAt
-        case durationString, startedAtTimestamp
+        // clear any existing current deployments
+        try await Deployment.clearCurrent(on: database)
+        
+        // set this one as current
+        self.isCurrent = true
+        
+        // save change to db
+        try await self.save(on: database)
     }
     
-    func encode(to encoder: Encoder) throws
+    // removes isCurrent flag of all entries that have it
+    static func clearCurrent(on database: Database) async throws
     {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encode(id, forKey: .id)
-        try container.encode(status, forKey: .status)
-        try container.encode(message, forKey: .message)
-        try container.encode(isCurrent, forKey: .isCurrent)
-        try container.encode(startedAt, forKey: .startedAt)
-        try container.encode(finishedAt, forKey: .finishedAt)
-        
-        try container.encode(durationString, forKey: .durationString)
-        try container.encode(startedAtTimestamp, forKey: .startedAtTimestamp)
+        try await Deployment.query(on: database)
+            .set(\.$isCurrent, to: false)
+            .filter(\.$isCurrent, .equal, true)
+            .update()
+    }
+    
+    // returns the current deployment
+    static func current(on database: Database) async throws -> Deployment?
+    {
+        try await Deployment.query(on: database)
+            .filter(\.$isCurrent, .equal, true)
+            .first()
+    }
+}
+
+// helper functions to adjust arrays of deployments for usage in presentation layer
+extension Array where Element == Deployment
+{
+    // returns the array with all stale deployments marked as such
+    func markStaleDeployments() -> [Deployment]
+    {
+        self.map()
+        {
+            // abort if deployment is not currently running
+            guard $0.status == "running" else { return $0 }
+            
+            // abort if there is no start time
+            guard let startedAt = $0.startedAt else { return $0 }
+            
+            // abort if minimal duration of deployment has not been reached
+            guard Date().timeIntervalSince(startedAt) > 1800 else { return $0 }
+            
+            // if stale deployment was detected, flag it as such
+            $0.status = "stale"
+            
+            return $0
+        }
+    }
+    
+    // returns the array with the currently deployed deployment marked as such
+    func markCurrentDeployment() -> [Deployment]
+    {
+        self.map()
+        {
+            // abort if deployment is not last in pipe
+            guard $0.isCurrent else { return $0 }
+            
+            // if latest deployment, mark as deployed on system
+            $0.status = "deployed"
+            
+            return $0
+        }
     }
 }
 
@@ -127,25 +147,60 @@ extension Deployment
     }
 }
 
-// table listener
+// database table listener
 extension Deployment
 {
     struct Listener: AsyncModelMiddleware
     {
+        // new deployment entry created...
         func create(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
         {
+            // run the middleware chain
             try await next.create(model, on: db)
             
+            // construct creation message for client update over the wire
             let message = Message.create(model)
+            
+            // broadcast creation message to connected clients
             await DeploymentClients.shared.broadcast(message)
         }
         
+        // deployment field(s) changed...
         func update(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
         {
+            // run the middleware chain
             try await next.update(model, on: db)
             
+            // construct update message for client update over the wire
             let message = Message.update(model)
+            
+            // broadcast update message to connected clients
             await DeploymentClients.shared.broadcast(message)
         }
+    }
+}
+
+// model encoding
+extension Deployment
+{
+    enum CodingKeys: String, CodingKey
+    {
+        case id, status, message, isCurrent, startedAt, finishedAt
+        case durationString, startedAtTimestamp
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(status, forKey: .status)
+        try container.encode(message, forKey: .message)
+        try container.encode(isCurrent, forKey: .isCurrent)
+        try container.encode(startedAt, forKey: .startedAt)
+        try container.encode(finishedAt, forKey: .finishedAt)
+        
+        try container.encode(durationString, forKey: .durationString)
+        try container.encode(startedAtTimestamp, forKey: .startedAtTimestamp)
     }
 }

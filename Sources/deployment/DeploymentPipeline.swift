@@ -122,16 +122,17 @@ extension Deployment
 
 extension Deployment.Pipeline
 {
-    // Serializes deployment processes through actor isolation.
+    // serializes deployment processes through actor isolation
     actor Manager
     {
         // singleton instance for deployment coordination
         static let shared = Manager()
+        private init() { }
         
         // deployment status
         private(set) var isDeploying: Bool = false
         
-        // attempt to acquire deployment lock
+        // attempt to acquire deployment lock atomically
         func requestDeployment() async -> Bool
         {
             if isDeploying { return false }

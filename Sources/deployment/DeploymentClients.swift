@@ -1,28 +1,35 @@
 import Vapor
 
+// thread-safe client registry
 actor DeploymentClients
 {
+    // singleton pattern
     static let shared = DeploymentClients()
+    private init() { }
     
-    private var connections: [(id: UUID, socket: WebSocket)] = []
+    // store clients as array of named tuples
+    private var clients: [(id: UUID, socket: WebSocket)] = []
     
-    func add(connection id: UUID, socket: WebSocket)
+    // adds a new client to registry
+    func add(client id: UUID, socket: WebSocket)
     {
-        connections.append((id: id, socket: socket))
+        clients.append((id: id, socket: socket))
     }
     
-    func remove(connection id: UUID)
+    // removes client from registry
+    func remove(client id: UUID)
     {
-        connections.removeAll { $0.id == id }
+        clients.removeAll { $0.id == id }
     }
     
+    // broadcast messages to connected clients
     func broadcast(_ message: Deployment.Message) async
     {
         guard let payload = message.jsonString else { return }
         
-        for connection in connections
+        for client in clients
         {
-            try? await connection.socket.send(payload)
+            try? await client.socket.send(payload)
         }
     }
 }

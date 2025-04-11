@@ -4,7 +4,7 @@ extension Application
 {
     func usePushDeploy()
     {
-        // github webhook push event route
+        // github webhook push event handler
         self.push("pushevent")
         { request async in
             // valid request leads to execution of deployment process
