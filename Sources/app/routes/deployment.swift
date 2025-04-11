@@ -2,6 +2,19 @@ import Vapor
 
 extension Application
 {
+    // initializes github webhook handling
+    func usePushDeploy()
+    {
+        // github webhook push event handler
+        self.push("pushevent")
+        { request async in
+            // valid request leads to execution of deployment process
+            let commitMessage = Deployment.Pipeline.getCommitMessage(inside: request)
+            await Deployment.Pipeline.initiateDeployment(message: commitMessage, on: request.db)
+        }
+    }
+    
+    // initializes deployment panel and websocket
     func useDeployPanel()
     {
         // establish websocket for clients to connect to

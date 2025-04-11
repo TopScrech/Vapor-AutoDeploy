@@ -1,8 +1,7 @@
 import Vapor
+import Leaf
 import Fluent
 import FluentSQLiteDriver
-import Leaf
-import Mist
 
 @main
 struct App
@@ -10,19 +9,7 @@ struct App
     static func main() async throws
     {
         var env = try Environment.detect()
-        try LoggingSystem.bootstrap(from: &env)
-
         let app = try await Application.make(env)
-        
-        app.logger = Logger(label: "mottzi")
-        {
-            let format = LevelFragment().separated(" ")
-                .and(MessageFragment().separated(" "))
-                .and(MetadataFragment().separated(" "))
-                .and(SourceLocationFragment().separated(" "))
-            
-            return ConsoleFragmentLogger(fragment: format, label: $0, console: Terminal(), level: .info)
-        }
         
         app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
