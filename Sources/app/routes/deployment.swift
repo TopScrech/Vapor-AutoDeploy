@@ -3,7 +3,7 @@ import Vapor
 extension Application
 {
     // initializes github webhook handling
-    func usePushDeploy()
+    func initPushWebhook()
     {
         // github webhook push event handler
         self.push("pushevent")
@@ -15,7 +15,7 @@ extension Application
     }
     
     // initializes deployment panel and websocket
-    func useDeployPanel()
+    func initDeployPanel()
     {
         // establish websocket for clients to connect to
         self.webSocket("deployment", "ws")
@@ -61,5 +61,11 @@ extension Application
             // render the panel template using data context
             return try await request.view.render("deployment/panel", context)
         }
+    }
+    
+    // registers test route for demo purposes: www.mottzi.de/test
+    public func initTestRoute()
+    {
+        self.get("test") { _ in "Test response string: 2" }
     }
 }
