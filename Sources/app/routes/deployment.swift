@@ -1,8 +1,5 @@
 import Vapor
 
-INVALID SYNTAX HERE
-THIS BUILD WILL FAIL!
-
 extension Application
 {
     // registers test route for demo purposes: www.mottzi.de/test
