@@ -59,3 +59,35 @@ The system maintains a database of deployments and their commit messages, durati
 - **failed**: Deployment failed
 - **stale**: Deployment has been running for too long (>30 min)
 - **deployed**: Current active deployment
+
+### Files
+
+**Configuration**
+
+- **deployment.swift**
+  Registers all routes related to deployment functionality, including the GitHub webhook endpoint, the deployment panel endpoint, and the websocket endpoint for real time panel updates
+
+**Deployment**
+
+- **Deployment.swift**: Defines the core deployment model, database schema, and helper methods for data presentation.
+
+- **DeploymentWebhook.swift**: Processes incoming GitHub webhook, validates request signature, and initiates the deployment process.
+
+- **DeploymentPipeline.swift**: Implements the deployment pipeline logic, handling the sequence of operations (pull, build, move, restart) and deployment queue management.
+
+- **DeploymentClients.swift**: Manages WebSocket client connections with thread-safe operations for broadcasting deployment updates.
+
+- **DeploymentListener.swift**: Database middleware that intercepts deployment status updates and broadcasts changes in real time to connected clients.
+  
+- **DeploymentMessage.swift**: Defines the message protocol for WebSocket communication between server and clients.
+
+**Frontend Templates**
+
+- **panel.leaf**: Main dashboard template that displays the deployment list and current deployment status.
+
+- **row.leaf**: Template fragment for rendering individual deployment entries in the dashboard.
+
+**Frontend JavaScript**
+
+- **panel.js**
+  Client-side JavaScript that establishes WebSocket connections and updates the UI/DOM in real-time as deployment states change.
