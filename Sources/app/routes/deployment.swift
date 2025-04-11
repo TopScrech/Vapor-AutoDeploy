@@ -5,7 +5,7 @@ extension Application
     // registers test route for demo purposes: www.mottzi.de/test
     public func initTestRoute()
     {
-        self.get("test") { _ in "Test response string: 4" }
+        self.get("test") { _ in "Test response string: 1" }
     }
     
     // initializes github webhook handling
