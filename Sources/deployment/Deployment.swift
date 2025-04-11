@@ -33,6 +33,30 @@ final class Deployment: Model, Content, @unchecked Sendable
     }
 }
 
+// database table
+extension Deployment
+{
+    struct Table: AsyncMigration
+    {
+        func prepare(on database: Database) async throws
+        {
+            try await database.schema(Deployment.schema)
+                .id()
+                .field("status", .string, .required)
+                .field("message", .string, .required)
+                .field("is_current", .bool, .required, .sql(.default(false)))
+                .field("started_at", .datetime)
+                .field("finished_at", .datetime)
+                .create()
+        }
+        
+        func revert(on database: Database) async throws
+        {
+            try await database.schema(Deployment.schema).delete()
+        }
+    }
+}
+
 // cumputated model properties for presentaion layer
 extension Deployment
 {
@@ -119,63 +143,6 @@ extension Array where Element == Deployment
             $0.status = "deployed"
             
             return $0
-        }
-    }
-}
-
-// database table
-extension Deployment
-{
-    struct Table: AsyncMigration
-    {
-        func prepare(on database: Database) async throws
-        {
-            try await database.schema(Deployment.schema)
-                .id()
-                .field("status", .string, .required)
-                .field("message", .string, .required)
-                .field("is_current", .bool, .required, .sql(.default(false)))
-                .field("started_at", .datetime)
-                .field("finished_at", .datetime)
-                .create()
-        }
-        
-        func revert(on database: Database) async throws
-        {
-            try await database.schema(Deployment.schema).delete()
-        }
-    }
-}
-
-// database table listener
-extension Deployment
-{
-    struct Listener: AsyncModelMiddleware
-    {
-        // new deployment entry created...
-        func create(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
-        {
-            // run the middleware chain
-            try await next.create(model, on: db)
-            
-            // construct creation message for client update over the wire
-            let message = Message.create(model)
-            
-            // broadcast creation message to connected clients
-            await DeploymentClients.shared.broadcast(message)
-        }
-        
-        // deployment field(s) changed...
-        func update(model: Deployment, on db: Database, next: AnyAsyncModelResponder) async throws
-        {
-            // run the middleware chain
-            try await next.update(model, on: db)
-            
-            // construct update message for client update over the wire
-            let message = Message.update(model)
-            
-            // broadcast update message to connected clients
-            await DeploymentClients.shared.broadcast(message)
         }
     }
 }
