@@ -85,14 +85,7 @@ extension DeploymentWebhook
         struct Commit: Codable
         {
             let id: String
-            let author: Author
             let message: String
-            let modified: [String]
-            
-            struct Author: Codable
-            {
-                let name: String
-            }
         }
     }
 }

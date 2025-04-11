@@ -2,6 +2,12 @@ import Vapor
 
 extension Application
 {
+    // registers test route for demo purposes: www.mottzi.de/test
+    public func initTestRoute()
+    {
+        self.get("test") { _ in "Test response string: 3" }
+    }
+    
     // initializes github webhook handling
     func initPushWebhook()
     {
@@ -61,11 +67,5 @@ extension Application
             // render the panel template using data context
             return try await request.view.render("deployment/panel", context)
         }
-    }
-    
-    // registers test route for demo purposes: www.mottzi.de/test
-    public func initTestRoute()
-    {
-        self.get("test") { _ in "Test response string: 2" }
     }
 }

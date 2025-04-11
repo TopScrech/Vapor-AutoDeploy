@@ -166,7 +166,6 @@ extension Deployment.Pipeline
             let output = try outputPipe.fileHandleForReading.readToEnd()
             let str = String(data: output ?? Data(), encoding: .utf8)
             
-            // why use NSError here specifically? error?
             throw NSError(domain: "DeploymentError", code: step, userInfo: [NSLocalizedDescriptionKey: "Command failed: \(command), Output: \(str ?? "")"])
         }
     }
