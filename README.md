@@ -5,9 +5,9 @@ This repository demonstrates one possible approach of implementing a simple CI/C
 
 ## Overview
 
-1. local changes are pushed to remote github repository
-2. push event is intercepted using webhooks
-3. deployment pipeline is initiated:
+1. Local changes are pushed to remote github repository
+2. Push event is intercepted using webhooks
+3. Deployment pipeline is initiated:
      - pull changes from remote repository
      - build executable
      - move executable
