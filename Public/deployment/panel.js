@@ -1,184 +1,167 @@
 // this js script makes the deployment panel auto-update
-class DeploymentSocket
-{
-    constructor() 
-    {
+class DeploymentSocket {
+    constructor() {
         // websocket
         this.socket = null;
         this.deploymentManager = new DeploymentManager();
-
+        
         // reconnect
         this.timer = null;
-        this.initialDelay = 1000;    
+        this.initialDelay = 1000;
         this.interval = 5000;
         
         document.addEventListener('visibilitychange', () => this.visibilityChange());
         window.addEventListener('online', () => this.connect());
         
-        document.addEventListener('click', (event) =>
-        {
+        document.addEventListener('click', (event) => {
             if (!event.target.matches('.delete-button')) return;
             
             const row = event.target.closest('tr');
             if (!row || !row.dataset.deploymentId) return;
             
             if (!confirm('Are you sure you want to delete this deployment?')) return
-            
-            this.deleteDeployment(row.dataset.deploymentId);
+                
+                this.deleteDeployment(row.dataset.deploymentId);
         });
     }
-
-    isConnected() { return this.socket?.readyState === WebSocket.OPEN; }
-    isConnecting() { return this.socket?.readyState === WebSocket.CONNECTING; }
-
-    connect()
-    {
+    
+    isConnected() {
+        return this.socket?.readyState === WebSocket.OPEN;
+    }
+    
+    isConnecting() {
+        return this.socket?.readyState === WebSocket.CONNECTING;
+    }
+    
+    connect() {
         // abort if already connected or currently connecting
         if (this.isConnected() || this.isConnecting()) return;
         
         // close existing socket
-        if (this.socket) { this.socket.close(); this.socket = null; }
-
+        if (this.socket) {
+            this.socket.close();
+            this.socket = null;
+        }
+        
         // create new socket and try to connect
         //console.log('WS: Connecting ...');
         this.socket = new WebSocket('wss://mottzi.de/deployment/ws/');
         
-         // connected: stop existing reconnect timer
-        this.socket.onopen = () =>
-        {
-            if (this.timer) { clearInterval(this.timer); this.timer = null; }
+        // connected: stop existing reconnect timer
+        this.socket.onopen = () => {
+            if (this.timer) {
+                clearInterval(this.timer);
+                this.timer = null;
+            }
         };
-
+        
         // parse incoming messages
-        this.socket.onmessage = (event) => 
-        {
-            try 
-            {
+        this.socket.onmessage = (event) => {
+            try {
                 //console.log(event.data)
                 
                 const data = JSON.parse(event.data);
                 
-                if (data.hasOwnProperty("state"))
-                {
+                if (data.hasOwnProperty("state")) {
                     console.log(`STATE: ${data.state.deployments.length} Deployments`);
                     this.deploymentManager.handleState(data.state.deployments);
-                }
-                else if (data.hasOwnProperty("create"))
-                {
+                } else if (data.hasOwnProperty("create")) {
                     console.log(`CREATION: ${data.create.deployment.message}`);
                     this.deploymentManager.handleCreation(data.create.deployment);
-                }
-                else if (data.hasOwnProperty("delete"))
-                {
+                } else if (data.hasOwnProperty("delete")) {
                     console.log(`DELETION: ${data.delete.id}`);
                     this.deploymentManager.handleDeletion(data.delete.id);
-                }
-                else if (data.hasOwnProperty("update"))
-                {
+                } else if (data.hasOwnProperty("update")) {
                     console.log(`UPDATE: ${data.update.deployment.message}`);
                     this.deploymentManager.handleUpdate(data.update.deployment);
-                }
-                else if (data.hasOwnProperty("message"))
-                {
+                } else if (data.hasOwnProperty("message")) {
                     console.log(`MESSAGE: ${data.message.message}`);
-                }
-                else
-                {
+                } else {
                     console.log("Unknown message type");
                 }
             }
-            catch (error) 
-            {
+            
+            catch (error) {
                 console.error(`WS: Failed to parse message: ${error}`);
             }
         };
-
+        
         // disconnected: start reconnect timer
-        this.socket.onclose = () => 
-        {
+        this.socket.onclose = () => {
             // abort if a reconnect timer is already running
             if (this.timer) return
                 
-            console.log("WS: ... closed -> Connect in 1s ...");
+                console.log("WS: ... closed -> Connect in 1s ...");
             
             // start trying every 5s
-            setTimeout(() => 
-            {
+            setTimeout(() => {
                 this.connect();
-
-                this.timer = setInterval(() => 
-                {
+                
+                this.timer = setInterval(() => {
                     this.connect();
-                }, 
-                this.interval);
-            }, 
-            this.initialDelay);
+                },
+                                         this.interval);
+            },
+                       this.initialDelay);
         };
     }
-
-    visibilityChange()
-    {
-        if (document.visibilityState === "visible")
-        {
+    
+    visibilityChange() {
+        if (document.visibilityState === "visible") {
             console.log('visibilityState === "visible" -> calling connect()')
             this.connect();
         }
     }
     
-    deleteDeployment(id)
-    {
+    deleteDeployment(id) {
         if (!this.isConnected()) return;
         
-        this.socket.send(JSON.stringify({ delete: { id } }));
+        this.socket.send(JSON.stringify({
+            delete: {
+                id
+            }
+        }));
     }
 }
 
-class DeploymentManager 
-{
-    constructor() 
-    {
+class DeploymentManager {
+    constructor() {
         this.activeTimers = new Map();
         this.startExistingTimers();
         this.initializeIdTruncation();
     }
     
-    initializeIdTruncation()
-    {
-        document.querySelectorAll('[data-full-id]').forEach(element =>
-        {
+    initializeIdTruncation() {
+        document.querySelectorAll('[data-full-id]').forEach(element => {
             const fullId = element.dataset.fullId;
             element.textContent = fullId.substring(0, 8);
         });
     }
-
+    
     // handle incoming messages
-
-    handleState(deployments)
-    {
+    
+    handleState(deployments) {
         // remove all existing rows
         document.querySelector('tbody').innerHTML = '';
-
+        
         // clear all existing timers
         this.activeTimers.forEach((_, deploymentId) => this.clearTimer(deploymentId));
-
+        
         // create new rows for each deployment
         deployments.reverse();
         deployments.forEach(deployment => this.handleCreation(deployment));
     }
     
-    handleDeletion(deploymentId)
-    {
+    handleDeletion(deploymentId) {
         const row = document.querySelector(`tr[data-deployment-id="${deploymentId}"]`);
         
-        if (row)
-        {
+        if (row) {
             this.clearTimer(deploymentId);
             row.remove();
         }
     }
-
-    handleCreation(deployment) 
-    {
+    
+    handleCreation(deployment) {
         // abort if row already exists
         let row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
         if (row) return;
@@ -198,20 +181,17 @@ class DeploymentManager
         this.setupTimer(row);
     }
     
-    handleUpdate(deployment)
-    {
+    handleUpdate(deployment) {
         // update header if deployment is current production deployment
-        if (deployment.isCurrent) 
-        {
+        if (deployment.isCurrent) {
             // show header element with current deployment
             this.updateHeader(deployment);
-
+            
             // find any existing deployed status and degrade it to success
             const allStatusCells = document.querySelectorAll('td:nth-child(3)');
-            allStatusCells.forEach(cell =>
-            {
-                if (cell.querySelector('.status-badge')?.textContent.trim() === 'Deployed')
-                {
+            
+            allStatusCells.forEach(cell => {
+                if (cell.querySelector('.status-badge')?.textContent.trim() === 'Deployed') {
                     cell.innerHTML = this.statusHTML('success');
                 }
             });
@@ -219,105 +199,105 @@ class DeploymentManager
             // Override status for current deployment
             deployment.status = 'deployed';
         }
-
+        
         // abort if row does not exist
         const row = document.querySelector(`tr[data-deployment-id="${deployment.id}"]`);
+        
         if (!row) return;
         row.dataset.startedAt = deployment.startedAtTimestamp;
-
+        
         // update status cell
         const statusCell = row.querySelector('td:nth-child(3)');
-        if (statusCell) { statusCell.innerHTML = this.statusHTML(deployment.status); }
+        
+        if (statusCell) {
+            statusCell.innerHTML = this.statusHTML(deployment.status);
+        }
         
         const startedCell = row.querySelector('td:nth-child(4)');
-        if (startedCell) { startedCell.innerHTML = this.startedHTML(deployment); }
+        
+        if (startedCell) {
+            startedCell.innerHTML = this.startedHTML(deployment);
+        }
         
         // if status is 'running', setup the timer and update cell with spinner
-        if (deployment.status === 'running')
-        {
+        if (deployment.status === 'running') {
             // update duration cell with timer
             const durationCell = row.querySelector('td:nth-child(5)');
-            if (durationCell) { durationCell.innerHTML = this.spinnerHTML(); }
+            
+            if (durationCell) {
+                durationCell.innerHTML = this.spinnerHTML();
+            }
             
             // start timer
             this.setupTimer(row);
-        }
-        // if status is 'not running' (anymore)
-        else
-        {
+        } else {
+            // if status is 'not running' (anymore)
+            
             // clear timer
             this.clearTimer(deployment.id);
             
             // update duration cell with deployment duration
             const durationCell = row.querySelector('td:nth-child(5)');
-            if (durationCell) { durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`; }
+            if (durationCell) {
+                durationCell.innerHTML = `<span class="font-mono text-sm text-gray-600 dark:text-gray-300">${deployment.durationString}</span>`;
+            }
         }
     }
-
-    updateHeader(current) 
-    {
+    
+    updateHeader(current) {
         if (!current.isCurrent) return
-        const headerElement = document.querySelector('.current-text');
+            const headerElement = document.querySelector('.current-text');
+        
         const container = headerElement.parentElement;
-
+        
         if (!headerElement || !container) return;
         
         // show the container when we have a current deployment
         container.classList.remove('hidden');
         headerElement.textContent = `Deployed: ${current.message}`;
     }
-
+    
     // timer management
-
-    startExistingTimers()
-    {
+    startExistingTimers() {
         // create duration timer for each deployment row that is currently running
-        document.querySelectorAll('tr[data-deployment-id]').forEach(row => 
-        {            
-            if (row.querySelector('.status-badge')?.textContent.includes('Running'))
-            {
+        document.querySelectorAll('tr[data-deployment-id]').forEach(row => {
+            if (row.querySelector('.status-badge')?.textContent.includes('Running')) {
                 this.setupTimer(row);
             }
         });
     }
-
-    setupTimer(row) 
-    {
+    
+    setupTimer(row) {
         // clear existing deployment duration timer
         this.clearTimer(row.dataset.deploymentId);
-
+        
         const durationElement = row.querySelector('.live-duration');
         const startTimestamp = parseFloat(row.dataset.startedAt);
         
         // abort if duration element or start timestamp is missing
         if (!durationElement || isNaN(startTimestamp)) return;
-
-        const update = () => 
-        {
+        
+        const update = () => {
             const now = Date.now() / 1000;
             durationElement.textContent = `${(now - startTimestamp).toFixed(1)}s`;
         };
-
+        
         // create new duration timer for deployment
         const intervalId = setInterval(update, 100);
         this.activeTimers.set(row.dataset.deploymentId, intervalId);
     }
-
-    clearTimer(deploymentId) 
-    {
+    
+    clearTimer(deploymentId) {
         // if deployment duration timer exists
-        if (this.activeTimers.has(deploymentId)) 
-        {
+        if (this.activeTimers.has(deploymentId)) {
             // clean timer
             clearInterval(this.activeTimers.get(deploymentId));
             this.activeTimers.delete(deploymentId);
         }
     }
-
+    
     // DOM manipulation
-
-    rowHTML(deployment)
-    {
+    rowHTML(deployment) {
         return `
             <tr class="hover:bg-gray-50 dark:hover:bg-neutral-750 transition-colors duration-150" 
                 data-deployment-id="${deployment.id}" 
@@ -351,9 +331,9 @@ class DeploymentManager
             </tr>`;
     }
     
-    startedHTML(deployment)
-    {
+    startedHTML(deployment) {
         const date = new Date(deployment.startedAtTimestamp * 1000);
+        
         return `
             <span class="text-sm text-gray-700 dark:text-neutral-300">
                 <span class="font-mono">${date.toLocaleTimeString('en-US', { 
@@ -369,12 +349,10 @@ class DeploymentManager
             </span>`;
     }
     
-    statusHTML(status)
-    {
+    statusHTML(status) {
         let className, label, dotColor;
         
-        switch(status)
-        {
+        switch(status) {
             case 'success':
                 className = 'bg-emerald-50 text-emerald-700 dark:bg-neutral-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-600/20 dark:ring-emerald-500/30';
                 dotColor = 'bg-emerald-500 dark:bg-emerald-400';
@@ -424,13 +402,11 @@ class DeploymentManager
             </span>`;
     }
     
-    durationHTML(durationString)
-    {
+    durationHTML(durationString) {
         return `<span class="font-mono text-sm text-gray-700 dark:text-neutral-300">${durationString}</span>`;
     }
     
-    spinnerHTML()
-    {
+    spinnerHTML() {
         return `
             <div class="flex items-center text-gray-700 dark:text-neutral-300">
                 <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -440,21 +416,17 @@ class DeploymentManager
                 <span class="live-duration font-mono text-sm">0.0s</span>
             </div>`;
     }
-
-    formatDate(timestamp) 
-    {
-        return new Date(timestamp).toLocaleDateString('en-US', 
-        { 
+    
+    formatDate(timestamp) {
+        return new Date(timestamp).toLocaleDateString('en-US', {
             month: 'short',
-            day: 'numeric', 
+            day: 'numeric',
             year: 'numeric'
         });
     }
-
-    formatTime(timestamp) 
-    {
-        return new Date(timestamp).toLocaleTimeString('en-US', 
-        { 
+    
+    formatTime(timestamp) {
+        return new Date(timestamp).toLocaleTimeString('en-US', {
             hour12: false,
             hour: '2-digit',
             minute: '2-digit',
