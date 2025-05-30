@@ -3,7 +3,8 @@ import Vapor
 extension Application {
     // convenience function to register github webhook listener with Vapor
     func push(_ endpoint: PathComponent..., action closure: @Sendable @escaping (Request) async -> ()) {
-        DeploymentWebhook(app: self).listen(to: endpoint, action: closure)
+        DeploymentWebhook(app: self)
+            .listen(to: endpoint, action: closure)
     }
 }
 
