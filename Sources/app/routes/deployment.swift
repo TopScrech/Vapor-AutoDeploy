@@ -15,8 +15,6 @@ extension Application {
             // valid request leads to execution of deployment process
             let commitMessage = Deployment.Pipeline.getCommitMessage(inside: req)
             
-            req.logger.info("Goida")
-            
             await Deployment.Pipeline.initiateDeployment(
                 message: commitMessage,
                 on: req.db

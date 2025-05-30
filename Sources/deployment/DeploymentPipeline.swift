@@ -20,8 +20,7 @@ extension Deployment
         ///
         /// - Parameter deployment: Deployment to re-run
         /// - Note: This is called on the latest cancelled deployment whenever any deployment finishes successfully.
-        private static func rerunDeployment(deployment: Deployment, on database: Database) async
-        {
+        private static func rerunDeployment(deployment: Deployment, on database: Database) async {
             await internalDeployment(existingDeployment: deployment, message: nil, on: database)
         }
         
@@ -36,6 +35,7 @@ extension Deployment
             
             // local deployment
             let deployment: Deployment
+            database.logger.info("Goida")
             
             // re-run of previously canceled deployment
             if let existingDeployment {
@@ -54,12 +54,19 @@ extension Deployment
                 deployment = Deployment(status: canDeploy ? "running" : "canceled", message: message ?? "")
             }
             
+            database.logger.info("Goida1")
+            
             // save newly created deployment or update re-running deployment
             try? await deployment.save(on: database)
             
+            database.logger.info("Goida2")
+            
             // abort deployment if pipeline is busy
             // pipeline will eventually re-run latest canceled deployment
-            guard canDeploy else { return }
+            guard canDeploy else {
+                return
+            }
+            database.logger.info("Goida3")
             
             //  pipeline:
             do {
