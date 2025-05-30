@@ -117,27 +117,30 @@ extension Deployment
     }
 }
 
-extension Deployment.Pipeline
-{
+extension Deployment.Pipeline {
     // serializes deployment processes through actor isolation
-    actor Manager
-    {
+    actor Manager {
         // singleton instance for deployment coordination
         static let shared = Manager()
-        private init() { }
+        private init() {}
         
         // deployment status
         private(set) var isDeploying: Bool = false
         
         // attempt to acquire deployment lock atomically
-        func requestDeployment() async -> Bool
-        {
-            if isDeploying { return false }
-            else { isDeploying = true; return true}
+        func requestDeployment() async -> Bool {
+            if isDeploying {
+                return false
+            } else {
+                isDeploying = true
+                return true
+            }
         }
         
         // release deployment lock for new operations
-        func endDeployment() async { isDeploying = false }
+        func endDeployment() async {
+            isDeploying = false
+        }
     }
 }
 
