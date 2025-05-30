@@ -26,7 +26,9 @@ extension Deployment.Message
     var jsonString: String?
     {
         guard let jsonData = try? JSONEncoder().encode(self) else { return nil }
-        guard let jsonString = String(data: jsonData, encoding: .utf8) else { return nil }
+        guard let jsonString = String(data: jsonData, encoding: .utf8) else {
+            return nil
+        }
         
         return jsonString
     }
