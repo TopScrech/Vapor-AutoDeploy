@@ -12,8 +12,7 @@ extension Deployment
         ///
         /// - Parameter message: The commit message of this deployment
         /// - Note: This is called when a valid GitHub pushevent is received.
-        public static func initiateDeployment(message: String?, on database: Database) async
-        {
+        public static func initiateDeployment(message: String?, on database: Database) async {
             await internalDeployment(existingDeployment: nil, message: message, on: database)
         }
         
@@ -31,8 +30,7 @@ extension Deployment
         /// - Parameters:
         ///   - existingDeployment: Pass a deployment to re-run it.
         ///   - message: Pass a commit message for newly created deployments.
-        private static func internalDeployment(existingDeployment: Deployment?, message: String?, on database: Database) async
-        {
+        private static func internalDeployment(existingDeployment: Deployment?, message: String?, on database: Database) async {
             // make sure deployment pipeline is not already busy
             let canDeploy = await Deployment.Pipeline.Manager.shared.requestDeployment()
             
@@ -40,8 +38,7 @@ extension Deployment
             let deployment: Deployment
             
             // re-run of previously canceled deployment
-            if let existingDeployment
-            {
+            if let existingDeployment {
                 // this function was called at the end of a previous deployment
                 deployment = existingDeployment
                 
@@ -50,10 +47,9 @@ extension Deployment
                 
                 // pipline status determines this deployment
                 deployment.status = canDeploy ? "running" : "canceled"
-            }
-            // original deployment triggered by push event
-            else
-            {
+            } else {
+                // original deployment triggered by push event
+                
                 // create new deployment entry
                 deployment = Deployment(status: canDeploy ? "running" : "canceled", message: message ?? "")
             }
@@ -66,8 +62,7 @@ extension Deployment
             guard canDeploy else { return }
             
             //  pipeline:
-            do
-            {
+            do {
                 // 1: git pull
                 try await pull()
                 
@@ -94,18 +89,14 @@ extension Deployment
                 {
                     // re-run latest canceled deployment
                     await rerunDeployment(deployment: latestCanceled, on: database)
-                }
-                else
-                {
+                } else {
                     // set this deployment as current
                     try await deployment.setCurrent(on: database)
                     
                     // restart app with this deployment
                     try await restart()
                 }
-            }
-            catch
-            {
+            } catch {
                 // failure: update deployment entry
                 deployment.status = "failed"
                 deployment.finishedAt = Date()
