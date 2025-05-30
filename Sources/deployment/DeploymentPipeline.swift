@@ -179,7 +179,7 @@ extension Deployment.Pipeline {
     }
     
     private static func move() async throws {
-        let fileManager = FileManager.default
+        let fm = FileManager.default
         
         let buildPath = "/Vapor-AutoDeploy/.build/x86_64-unknown-linux-gnu/debug/App"
 //        let buildPath = "/var/www/mottzi/.build/debug/App"
@@ -188,14 +188,14 @@ extension Deployment.Pipeline {
 //        let deployPath = "/var/www/mottzi/deploy/App"
         
         do {
-            try fileManager.createDirectory(atPath: "/Vapor-AutoDeploy/deploy", withIntermediateDirectories: true)
+            try fm.createDirectory(atPath: "/Vapor-AutoDeploy/deploy", withIntermediateDirectories: true)
 //            try fileManager.createDirectory(atPath: "/var/www/mottzi/deploy", withIntermediateDirectories: true)
             
-            if fileManager.fileExists(atPath: deployPath) {
-                try fileManager.removeItem(atPath: deployPath)
+            if fm.fileExists(atPath: deployPath) {
+                try fm.removeItem(atPath: deployPath)
             }
             
-            try fileManager.moveItem(atPath: buildPath, toPath: deployPath)
+            try fm.moveItem(atPath: buildPath, toPath: deployPath)
         } catch {
             throw error
         }
