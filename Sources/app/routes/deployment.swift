@@ -3,14 +3,14 @@ import Vapor
 extension Application
 {
     // registers test route for demo purposes: www.mottzi.de/test
-    public func initTestRoute()
-    {
-        self.get("test") { _ in "Test response string: 5" }
+    public func initTestRoute() {
+        self.get("test") { _ in
+            "Test response string: 5"
+        }
     }
     
     // initializes github webhook handling
-    func initPushWebhook()
-    {
+    func initPushWebhook() {
         // github webhook push event handler
         self.push("pushevent")
         { request async in
@@ -21,8 +21,7 @@ extension Application
     }
     
     // initializes deployment panel and websocket
-    func initDeployPanel()
-    {
+    func initDeployPanel() {
         // establish websocket for clients to connect to
         self.webSocket("deployment", "ws")
         { request, ws async in

@@ -9,13 +9,11 @@ extension Application
     }
 }
 
-struct DeploymentWebhook
-{
+struct DeploymentWebhook {
     let app: Application
 
     // register github webhook listener
-    func listen(to endpoint: [PathComponent], action closure: @Sendable @escaping (Request) async -> ())
-    {
+    func listen(to endpoint: [PathComponent], action closure: @Sendable @escaping (Request) async -> ()) {
         let accepted = Response(status: .ok, body: .init(stringLiteral: "[mottzi] Push event accepted."))
         let denied = Response(status: .forbidden, body: .init(stringLiteral: "[mottzi] Push event denied."))
             
@@ -37,13 +35,14 @@ struct DeploymentWebhook
     }
     
     // verify that the request has a valid github signature
-    private func validateSignature(of request: Request) -> Bool
-    {
+    private func validateSignature(of request: Request) -> Bool {
         // get github secret from env file
         let secret = Environment.Variables.GITHUB_WEBHOOK_SECRET.value
 
         // abort if there is no github signature header
-        guard let signatureHeader = request.headers.first(name: "X-Hub-Signature-256") else { return false }
+        guard let signatureHeader = request.headers.first(name: "X-Hub-Signature-256") else {
+            return false
+        }
         
         // abort if signature does not start with "sha256="
         guard signatureHeader.hasPrefix("sha256=") else { return false }
