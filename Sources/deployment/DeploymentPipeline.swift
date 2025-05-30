@@ -147,7 +147,7 @@ extension Deployment.Pipeline {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         process.arguments = ["bash", "-c", command]
-        process.currentDirectoryURL = URL(fileURLWithPath: "/var/www/mottzi")
+        process.currentDirectoryURL = URL(fileURLWithPath: "/Vapor-AutoDeploy")
         
         let outputPipe = Pipe()
         process.standardOutput = outputPipe
