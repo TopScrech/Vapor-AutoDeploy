@@ -28,13 +28,15 @@ extension Application
     // initializes deployment panel and websocket
     func initDeployPanel() {
         // establish websocket for clients to connect to
-        self.webSocket("deployment", "ws")
-        { request, ws async in
+        self.webSocket("deployment", "ws") { request, ws async in
             // make client connection identifiable
             let id = UUID()
             
             // register client in broadcasting registry
-            await DeploymentClients.shared.add(client: id, socket: ws)
+            await DeploymentClients.shared.add(
+                client: id,
+                socket: ws
+            )
             
             // send server welcome message
             await Deployment.Message.message("Client connected to Server").send(on: ws)
