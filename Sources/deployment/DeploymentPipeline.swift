@@ -35,6 +35,7 @@ extension Deployment
             
             // local deployment
             let deployment: Deployment
+            
             database.logger.info("Goida")
             
             // re-run of previously canceled deployment
