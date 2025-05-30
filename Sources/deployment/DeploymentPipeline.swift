@@ -182,14 +182,14 @@ extension Deployment.Pipeline {
         let fm = FileManager.default
         
         let buildPath = "/Vapor-AutoDeploy/.build/x86_64-unknown-linux-gnu/debug/App"
-//        let buildPath = "/var/www/mottzi/.build/debug/App"
+        //        let buildPath = "/var/www/mottzi/.build/debug/App"
         
         let deployPath = "/Vapor-AutoDeploy/deploy/App"
-//        let deployPath = "/var/www/mottzi/deploy/App"
+        //        let deployPath = "/var/www/mottzi/deploy/App"
         
         do {
             try fm.createDirectory(atPath: "/Vapor-AutoDeploy/deploy", withIntermediateDirectories: true)
-//            try fileManager.createDirectory(atPath: "/var/www/mottzi/deploy", withIntermediateDirectories: true)
+            //            try fileManager.createDirectory(atPath: "/var/www/mottzi/deploy", withIntermediateDirectories: true)
             
             if fm.fileExists(atPath: deployPath) {
                 try fm.removeItem(atPath: deployPath)
