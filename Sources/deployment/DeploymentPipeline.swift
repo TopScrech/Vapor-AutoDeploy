@@ -29,14 +29,16 @@ extension Deployment
         /// - Parameters:
         ///   - existingDeployment: Pass a deployment to re-run it.
         ///   - message: Pass a commit message for newly created deployments.
-        private static func internalDeployment(existingDeployment: Deployment?, message: String?, on database: Database) async {
+        private static func internalDeployment(
+            existingDeployment: Deployment?,
+            message: String?,
+            on database: Database
+        ) async {
             // make sure deployment pipeline is not already busy
             let canDeploy = await Deployment.Pipeline.Manager.shared.requestDeployment()
             
             // local deployment
             let deployment: Deployment
-            
-            database.logger.info("Goida")
             
             // re-run of previously canceled deployment
             if let existingDeployment {
@@ -55,19 +57,14 @@ extension Deployment
                 deployment = Deployment(status: canDeploy ? "running" : "canceled", message: message ?? "")
             }
             
-            database.logger.info("Goida1")
-            
             // save newly created deployment or update re-running deployment
             try? await deployment.save(on: database)
-            
-            database.logger.info("Goida2")
             
             // abort deployment if pipeline is busy
             // pipeline will eventually re-run latest canceled deployment
             guard canDeploy else {
                 return
             }
-            database.logger.info("Goida3")
             
             //  pipeline:
             do {
@@ -113,7 +110,8 @@ extension Deployment
                 // unlock deployment pipeline
                 await Deployment.Pipeline.Manager.shared.endDeployment()
                 
-                Logger(label: "mottzi").error("failed with error: \(error.localizedDescription)")
+                Logger(label: "mottzi")
+                    .error("failed with error: \(error.localizedDescription)")
             }
         }
     }
@@ -144,10 +142,8 @@ extension Deployment.Pipeline
 }
 
 // auto deploy commands
-extension Deployment.Pipeline
-{
-    private static func execute(_ command: String, step: Int) async throws
-    {
+extension Deployment.Pipeline {
+    private static func execute(_ command: String, step: Int) async throws {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         process.arguments = ["bash", "-c", command]
@@ -160,17 +156,17 @@ extension Deployment.Pipeline
         try process.run()
         process.waitUntilExit()
         
-        if process.terminationStatus != 0
-        {
+        if process.terminationStatus != 0 {
             let output = try outputPipe.fileHandleForReading.readToEnd()
             let str = String(data: output ?? Data(), encoding: .utf8)
             
-            throw NSError(domain: "DeploymentError", code: step, userInfo: [NSLocalizedDescriptionKey: "Command failed: \(command), Output: \(str ?? "")"])
+            throw NSError(domain: "DeploymentError", code: step, userInfo: [
+                NSLocalizedDescriptionKey: "Command failed: \(command), Output: \(str ?? "")"
+            ])
         }
     }
     
-    private static func pull() async throws
-    {
+    private static func pull() async throws {
         try await execute("git pull", step: 1)
     }
     
@@ -184,7 +180,8 @@ extension Deployment.Pipeline
     
     private static func move() async throws {
         let fileManager = FileManager.default
-        let buildPath = "/var/www/mottzi/.build/debug/App"
+        let buildPath = "/Vapor-AutoDeploy/.build/x86_64-unknown-linux-gnu/debug/App"
+//        let buildPath = "/var/www/mottzi/.build/debug/App"
         let deployPath = "/var/www/mottzi/deploy/App"
         
         do {
