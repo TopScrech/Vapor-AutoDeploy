@@ -180,8 +180,10 @@ extension Deployment.Pipeline {
     
     private static func move() async throws {
         let fileManager = FileManager.default
+        
         let buildPath = "/Vapor-AutoDeploy/.build/x86_64-unknown-linux-gnu/debug/App"
 //        let buildPath = "/var/www/mottzi/.build/debug/App"
+        
         let deployPath = "/var/www/mottzi/deploy/App"
         
         do {
