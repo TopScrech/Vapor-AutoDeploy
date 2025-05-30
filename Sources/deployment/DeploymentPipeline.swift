@@ -122,6 +122,7 @@ extension Deployment.Pipeline {
     actor Manager {
         // singleton instance for deployment coordination
         static let shared = Manager()
+        
         private init() {}
         
         // deployment status
