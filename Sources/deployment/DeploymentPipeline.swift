@@ -166,48 +166,43 @@ extension Deployment.Pipeline
         try await execute("git pull", step: 1)
     }
     
-    private static func build() async throws
-    {
+    private static func build() async throws {
         try await execute("swift build -c debug", step: 2)
     }
     
-    private static func restart() async throws
-    {
+    private static func restart() async throws {
         try await execute("supervisorctl restart mottzi", step: 4)
     }
     
-    private static func move() async throws
-    {
+    private static func move() async throws {
         let fileManager = FileManager.default
         let buildPath = "/var/www/mottzi/.build/debug/App"
         let deployPath = "/var/www/mottzi/deploy/App"
         
-        do
-        {
+        do {
             try fileManager.createDirectory(atPath: "/var/www/mottzi/deploy", withIntermediateDirectories: true)
             
-            if fileManager.fileExists(atPath: deployPath)
-            {
+            if fileManager.fileExists(atPath: deployPath) {
                 try fileManager.removeItem(atPath: deployPath)
             }
             
             try fileManager.moveItem(atPath: buildPath, toPath: deployPath)
-        }
-        catch
-        {
+        } catch {
             throw error
         }
     }
     
-    public static func getCommitMessage(inside request: Request) -> String?
-    {
+    public static func getCommitMessage(inside request: Request) -> String? {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         
-        guard let bodyString = request.body.string,
-              let jsonData = bodyString.data(using: .utf8),
-              let payload = try? decoder.decode(DeploymentWebhook.Payload.self, from: jsonData)
-        else { return nil }
+        guard
+            let bodyString = request.body.string,
+            let jsonData = bodyString.data(using: .utf8),
+            let payload = try? decoder.decode(DeploymentWebhook.Payload.self, from: jsonData)
+        else {
+            return nil
+        }
         
         return payload.headCommit.message
     }

@@ -13,10 +13,10 @@ extension Application
     func initPushWebhook() {
         // github webhook push event handler
         self.push("pushevent") { req async in
-            req.logger.info("Goida")
-            
             // valid request leads to execution of deployment process
             let commitMessage = Deployment.Pipeline.getCommitMessage(inside: req)
+            
+            req.logger.info("Goida")
             
             await Deployment.Pipeline.initiateDeployment(
                 message: commitMessage,
