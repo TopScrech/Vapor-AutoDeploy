@@ -5,8 +5,7 @@ extension Deployment
 {
     /// Handles deployment process execution (pull, build, queue check, restart).
     /// Ensures chronological execution by re-running latest canceled commit after successfull deployments.
-    struct Pipeline
-    {
+    struct Pipeline {
         /// Creates and processes a new `Deployment`. After successfull deployment, this will check for previously
         /// cancelled deployments and re-runs the latest one found.
         ///
